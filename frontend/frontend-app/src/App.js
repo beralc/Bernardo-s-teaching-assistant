@@ -280,7 +280,7 @@ import { supabase } from "./supabaseClient";
     return (
       <div className={`min-h-screen flex flex-col ${theme} ${fontSizes.base}`}>
         <header className={`sticky top-0 z-10 border-b ${contrast ? 'border-gray-700' : 'border-gray-200'} ${headerTheme}`}>
-          <div className="mx-auto max-w-5xl px-3 py-2 sm:px-4 sm:py-3 flex items-center justify-between">
+          <div className="mx-auto max-w-5xl px-4 py-3 flex items-center justify-between">
             <button
               onClick={() => setTab("talk")}
               className="flex items-center gap-3 hover:opacity-80 transition"
@@ -331,7 +331,7 @@ import { supabase } from "./supabaseClient";
           </div>
         </header>
 
-        <main className="mx-auto w-full max-w-5xl flex-1 px-3 py-3 sm:px-4 sm:py-6">
+        <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8">
           {tab === "talk" && <TalkView subtleText={subtleText} cardTheme={cardTheme} fontSizes={fontSizes} onSaveTranscription={saveTranscription} selectedTopic={selectedTopic} />}
           {tab === "starters" && <ConversationStartersView cardTheme={cardTheme} subtleText={subtleText} fontSizes={fontSizes} onStartConversation={(topic) => {
             setSelectedTopic(topic);
@@ -343,8 +343,8 @@ import { supabase } from "./supabaseClient";
 
         {/* Jakob's Law: Bottom tab bar is a familiar navigation pattern for mobile users. */}
         <nav className={`sticky bottom-0 border-t ${contrast ? 'border-gray-700' : 'border-gray-800'} ${headerTheme}`}>
-          <div className="mx-auto max-w-5xl px-2 sm:px-4">
-            <div className={`grid ${isAdmin ? 'grid-cols-4' : 'grid-cols-3'} gap-1 sm:gap-2 py-1 sm:py-2`}>
+          <div className="mx-auto max-w-5xl px-4">
+            <div className={`grid ${isAdmin ? 'grid-cols-4' : 'grid-cols-3'} gap-2 py-2`}>
               <NavButton active={tab === "starters"} onClick={() => setTab("starters")} label="Starters" icon={<BookIcon active={tab === 'starters'} />} activeColor={activeNavText} inactiveColor={inactiveNavText}
   />
               <NavButton active={tab === "talk"} onClick={() => setTab("talk")} label="Talk" icon={<MicIcon active={tab === 'talk'} />} activeColor={activeNavText} inactiveColor={inactiveNavText} />
@@ -1693,7 +1693,7 @@ import { supabase } from "./supabaseClient";
     }
 
     return (
-      <section aria-label="Voice chat" className="flex flex-col gap-3 sm:gap-4 md:gap-6 h-full">
+      <section aria-label="Voice chat" className="flex flex-col gap-6 h-full">
         {/* Usage Warning/Info Banner */}
         {!loadingUsage && limitReached && (
           <div className="bg-orange-100 dark:bg-orange-900 border border-orange-300 dark:border-orange-700 rounded-xl p-4">
@@ -1737,21 +1737,21 @@ import { supabase } from "./supabaseClient";
         )}
 
         {/* Ready State */}
-        <div className={`flex-1 flex flex-col justify-center items-center text-center rounded-3xl border p-3 sm:p-6 md:p-8 ${cardTheme}`}>
+        <div className={`flex-1 flex flex-col justify-center items-center text-center rounded-3xl border p-8 ${cardTheme}`}>
           <h2 className={`${fontSizes.xxxl} font-bold mb-2`}>Ready to Talk?</h2>
-          <p className={`${subtleText} ${fontSizes.lg} mb-4 sm:mb-8`}>Tap the large button to start speaking.</p>
+          <p className={`${subtleText} ${fontSizes.lg} mb-8`}>Tap the large button to start speaking.</p>
           {/* Fitts's Law: An unmissable primary action button. */}
           <button
               onClick={handleToggleSpeaking}
-              className="w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 bg-green-600 text-white rounded-full flex items-center justify-center shadow-2xl transform hover:scale-105 transition-transform"
+              className="w-48 h-48 bg-green-600 text-white rounded-full flex items-center justify-center shadow-2xl transform hover:scale-105 transition-transform"
               aria-label="Start speaking"
           >
               <MicIcon active={true} size={72} />
           </button>
         </div>
-
+        
         {/* Conversation History */}
-        <div className={`rounded-3xl border p-3 sm:p-5 ${cardTheme}`}>
+        <div className={`rounded-3xl border p-5 ${cardTheme}`}>
           <h3 className={`font-bold ${fontSizes.xl} mb-4`}>Today's Conversation</h3>
           <ul className="space-y-4">
             {conversation.map((msg, i) => (
@@ -1765,7 +1765,7 @@ import { supabase } from "./supabaseClient";
 
   function ListeningView({ onStop, cardTheme, subtleText, fontSizes, liveTranscript, usageRemaining, userTier, isAdmin }) {
       return (
-          <section aria-label="Listening to your speech" className="flex flex-col gap-3 sm:gap-4 md:gap-6 h-full">
+          <section aria-label="Listening to your speech" className="flex flex-col gap-6 h-full">
               {/* Usage reminder banner while listening */}
               {isAdmin ? (
                 <div className="bg-purple-50 dark:bg-purple-900/30 border border-purple-200 dark:border-purple-800 rounded-xl p-2">
@@ -1787,18 +1787,18 @@ import { supabase } from "./supabaseClient";
                 </div>
               ) : null}
 
-              <div className={`flex-1 flex flex-col justify-center items-center text-center rounded-3xl border p-3 sm:p-6 md:p-8 ${cardTheme}`}>
+              <div className={`flex-1 flex flex-col justify-center items-center text-center rounded-3xl border p-8 ${cardTheme}`}>
                   <h2 className={`${fontSizes.xxxl} font-bold mb-2`}>I'm listening...</h2>
-                  <p className={`${subtleText} ${fontSizes.lg} mb-4 sm:mb-8`}>Your words will appear below.</p>
+                  <p className={`${subtleText} ${fontSizes.lg} mb-8`}>Your words will appear below.</p>
                   <button
                       onClick={onStop}
-                      className="w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 bg-red-600 text-white rounded-full flex items-center justify-center shadow-2xl"
+                      className="w-48 h-48 bg-red-600 text-white rounded-full flex items-center justify-center shadow-2xl"
                       aria-label="Stop speaking"
                   >
                       <StopIcon />
                   </button>
               </div>
-              <div className={`rounded-3xl border p-3 sm:p-5 ${cardTheme}`} aria-live="polite">
+              <div className={`rounded-3xl border p-5 ${cardTheme}`} aria-live="polite">
                   <div className={`${subtleText} mb-2 ${fontSizes.base} font-semibold`}>Live Transcript</div>
                   <p className={`leading-relaxed ${fontSizes.xxl} min-h-[3em]`}>{liveTranscript}</p>
               </div>
@@ -1825,14 +1825,14 @@ import { supabase } from "./supabaseClient";
     };
 
     return (
-      <section aria-label="Conversation starters" className="flex flex-col gap-3 sm:gap-4 md:gap-6">
+      <section aria-label="Conversation starters" className="flex flex-col gap-6">
          <div>
            <h2 className={`${fontSizes.xxxl} font-bold`}>Conversation Starters</h2>
            <p className={`${subtleText} ${fontSizes.lg} mt-1`}>Choose a topic and start talking with the assistant.</p>
          </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {topics.map((topic, idx) => (
-            <article key={idx} className={`rounded-2xl border p-4 sm:p-6 flex flex-col justify-between ${cardTheme} hover:shadow-lg transition`}>
+            <article key={idx} className={`rounded-2xl border p-6 flex flex-col justify-between ${cardTheme} hover:shadow-lg transition`}>
               <div>
                 <div className="text-4xl mb-3">{topic.icon}</div>
                 <div className={`font-bold ${fontSizes.xl} mb-2`}>{topic.title}</div>
@@ -2001,16 +2001,16 @@ import { supabase } from "./supabaseClient";
     };
 
     return (
-      <section aria-label="Progress dashboard" className="flex flex-col gap-3 sm:gap-4 md:gap-6">
+      <section aria-label="Progress dashboard" className="flex flex-col gap-6">
         <div>
            <h2 className={`${fontSizes.xxxl} font-bold`}>Your Progress Report</h2>
            <p className={`${subtleText} ${fontSizes.lg} mt-1`}>Updated: October 29, 2025</p>
          </div>
 
          {/* Time Statistics */}
-         <div className={`rounded-2xl border p-4 sm:p-6 ${cardTheme}`}>
+         <div className={`rounded-2xl border p-6 ${cardTheme}`}>
           <h3 className={`font-bold ${fontSizes.xl} mb-4`}>Practice Time</h3>
-          <div className="grid grid-cols-3 gap-3 sm:gap-4">
+          <div className="grid grid-cols-3 gap-4">
             <div className="text-center">
               <div className={`${subtleText} ${fontSizes.base}`}>Total Time</div>
               <div className={`${fontSizes.xxl} font-bold mt-1 text-green-600 dark:text-green-400`}>
@@ -2033,7 +2033,7 @@ import { supabase } from "./supabaseClient";
         </div>
 
         {/* Can-Do Checklist */}
-        <div className={`rounded-2xl border p-4 sm:p-6 ${cardTheme}`}>
+        <div className={`rounded-2xl border p-6 ${cardTheme}`}>
           <h3 className={`font-bold ${fontSizes.xl} mb-3`}>Your "Can-Do" Checklist</h3>
           <ul className={`space-y-3 ${fontSizes.lg}`}>
             <li className="flex items-center gap-3"><CheckIcon /> You can describe past activities and experiences.</li>
@@ -2272,7 +2272,7 @@ import { supabase } from "./supabaseClient";
     };
 
     return (
-      <section aria-label="Admin dashboard" className="flex flex-col gap-3 sm:gap-4 md:gap-6">
+      <section aria-label="Admin dashboard" className="flex flex-col gap-6">
         <div>
           <h2 className={`${fontSizes.xxxl} font-bold`}>Admin Dashboard</h2>
           <p className={`${subtleText} ${fontSizes.lg} mt-1`}>Manage invitation codes</p>
@@ -2285,10 +2285,10 @@ import { supabase } from "./supabaseClient";
         )}
 
         {/* Generate New Code */}
-        <div className={`rounded-2xl border p-4 sm:p-6 ${cardTheme}`}>
+        <div className={`rounded-2xl border p-6 ${cardTheme}`}>
           <h3 className={`font-bold ${fontSizes.xl} mb-4`}>Generate New Invitation Code</h3>
           <div className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+            <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className={`text-sm font-semibold ${subtleText} mb-1 block`}>Code Prefix</label>
                 <input
@@ -2315,7 +2315,7 @@ import { supabase } from "./supabaseClient";
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+            <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className={`text-sm font-semibold ${subtleText} mb-1 block`}>Max Uses (-1 = unlimited)</label>
                 <input
