@@ -161,5 +161,8 @@ def webrtc_session():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
-    # Start the Flask app in debug mode
-    app.run(debug=True)
+    # Get port from environment variable (Render provides this) or default to 5000
+    import os
+    port = int(os.environ.get("PORT", 5000))
+    # Bind to 0.0.0.0 so Render can access it
+    app.run(host="0.0.0.0", port=port, debug=False)
