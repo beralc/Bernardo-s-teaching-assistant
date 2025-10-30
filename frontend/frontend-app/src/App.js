@@ -278,7 +278,7 @@ import { supabase } from "./supabaseClient";
     }, [tab]);
 
     return (
-      <div className={`h-screen flex flex-col overflow-hidden ${theme} ${fontSizes.base}`}>
+      <div className={`min-h-screen flex flex-col ${theme} ${fontSizes.base}`}>
         <header className={`sticky top-0 z-10 border-b ${contrast ? 'border-gray-700' : 'border-gray-200'} ${headerTheme}`}>
           <div className="mx-auto max-w-5xl px-3 py-2 sm:px-4 sm:py-3 flex items-center justify-between">
             <button
@@ -331,7 +331,7 @@ import { supabase } from "./supabaseClient";
           </div>
         </header>
 
-        <main className="mx-auto w-full max-w-5xl flex-1 px-3 py-3 sm:px-4 sm:py-6 overflow-y-auto">
+        <main className="mx-auto w-full max-w-5xl flex-1 px-3 py-3 sm:px-4 sm:py-6">
           {tab === "talk" && <TalkView subtleText={subtleText} cardTheme={cardTheme} fontSizes={fontSizes} onSaveTranscription={saveTranscription} selectedTopic={selectedTopic} />}
           {tab === "starters" && <ConversationStartersView cardTheme={cardTheme} subtleText={subtleText} fontSizes={fontSizes} onStartConversation={(topic) => {
             setSelectedTopic(topic);
