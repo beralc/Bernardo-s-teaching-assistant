@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//Users/bernardomorales/Desktop/**)",
+      "Bash(find:*)",
+      "Bash(grep:*)",
+      "WebSearch",
+      "WebFetch(domain:community.openai.com)",
+      "WebFetch(domain:platform.openai.com)",
+      "WebFetch(domain:github.com)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

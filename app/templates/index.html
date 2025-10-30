@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>AI English Teacher Assistant</title>
+  <style>
+    /****************************************************
+     * 1) Configuración base de la página y contenedor
+     ****************************************************/
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #F2F2F2;
+      font-family: -apple-system, BlinkMacSystemFont, 
+                   "SF Pro", "Helvetica Neue", Arial, sans-serif;
+      color: #333;
+    }
+    .main-container {
+      width: 700px;
+      margin: 60px auto; 
+      background: #FFFFFF;
+      border: 1px solid #DDD;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    header {
+      background-color: #ECECEC;
+      border-bottom: 1px solid #ccc;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 20px;
+    }
+    header h3 {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 500;
+    }
+
+    .content {
+      padding: 20px;
+    }
+
+    /****************************************************
+     * 2) Área de chat + Botones
+     ****************************************************/
+    #chatBox {
+      height: 400px;
+      overflow-y: auto;
+      border: 1px solid #cacaca;
+      border-radius: 6px;
+      background-color: #fff;
+      box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+    .message {
+      margin-bottom: 10px;
+      padding: 10px;
+      border-radius: 12px;
+      word-wrap: break-word;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+    .user {
+      text-align: right;
+      background-color: #E8E5FF;
+    }
+    .bot {
+      text-align: left;
+      background-color: #f0f0ff;
+    }
+    .input-group {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .input-group input {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      outline: none;
+      font-size: 14px;
+    }
+
+    /****************************************************
+     * 3) Estilos de botón al estilo Mac
+     ****************************************************/
+    .mac-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 14px;
+      border-radius: 6px;
+      border: 1px solid transparent;
+      font-size: 14px;
+      cursor: pointer;
+      background-color: #FFF;
+      transition: background-color 0.2s, border-color 0.2s;
+    }
+    .mac-btn:hover {
+      background-color: #f0f0f0;
+    }
+    .mac-btn:active {
+      background-color: #e0e0e0;
+    }
+    .mac-btn--primary {
+      background-color: #007AFF;
+      border-color: #007AFF;
+      color: white;
+    }
+    .mac-btn--primary:hover {
+      background-color: #006be0;
+      border-color: #006be0;
+    }
+    .mac-btn--destructive {
+      background-color: #b494ef;
+      border-color: #b494ef;
+      color: white;
+    }
+    .mac-btn--destructive:hover {
+      background-color: #9363ec;
+      border-color:#9363ec;
+    }
+    .mac-btn--secondary {
+      background-color: #fff;
+      border: 1px solid #bbb;
+      color: #333;
+    }
+    .mac-btn--secondary:hover {
+      background-color: #f9f9f9;
+      border-color: #999;
+    }
+
+    /****************************************************
+     * 4) Contenedor del GIF de onda (listening)
+     ****************************************************/
+    #waveGif {
+      display: none; /* oculto por defecto */
+      text-align: center;
+      margin-bottom: 12px;
+    }
+    #waveGif img {
+      max-width: 250px;
+      height: auto;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="main-container">
+    <header>
+      <h3>Bernardo's Teaching Assistant</h3>
+      <button class="mac-btn mac-btn--destructive" onclick="clearContext()">Clear Context</button>
+    </header>
+
+    <div class="content">
+
+      <!-- Contenedor para el GIF de onda, inicialmente oculto -->
+      <div id="waveGif">
+        <!-- Ajusta la ruta al archivo real (por ejemplo, static/listening.gif) -->
+        <img src="static/listening.gif" alt="Listening...">
+      </div>
+
+      <!-- Cuadro de chat para mensajes de texto -->
+      <div id="chatBox"></div>
+
+      <!-- Entrada + botón de enviar -->
+      <div class="input-group">
+        <input 
+          type="text" 
+          id="userInput" 
+          placeholder="Escribe tu pregunta..." 
+          onkeypress="checkEnter(event)"
+        >
+        <button class="mac-btn mac-btn--primary" onclick="sendTextChat()">Send</button>
+      </div>
+
+      <!-- Botones para iniciar/detener la sesión -->
+      <div style="display: flex; gap: 8px;">
+        <button class="mac-btn mac-btn--secondary" id="startSessionBtn">Start CHAT Session</button>
+        <button class="mac-btn mac-btn--secondary" id="stopSessionBtn">Stop CHAT Session</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /***************************************************
+     * LÓGICA DE CHAT DE TEXTO
+     ***************************************************/
+    function checkEnter(e) {
+      if (e.keyCode === 13) {
+        e.preventDefault();
+        sendTextChat();
+      }
+    }
+
+    function sendTextChat() {
+      const text = document.getElementById('userInput').value.trim();
+      if (!text) return;
+      addToChatBox(text, 'user');
+      document.getElementById('userInput').value = '';
+
+      fetch('/chat_text', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text })
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.error) {
+          console.error(data.error);
+          addToChatBox("Error: " + data.error, 'bot');
+        } else {
+          addToChatBox(data.response_text, 'bot');
+        }
+      })
+      .catch(err => console.error(err));
+    }
+
+    function clearContext() {
+      fetch('/clear_context', { method: 'POST' })
+      .then(res => res.json())
+      .then(data => {
+        console.log(data.message);
+        document.getElementById('chatBox').innerHTML = '';
+      })
+      .catch(err => console.error(err));
+    }
+
+    function addToChatBox(text, sender) {
+      const box = document.getElementById('chatBox');
+      const div = document.createElement('div');
+      div.className = 'message ' + sender;
+      div.textContent = text;
+      box.appendChild(div);
+      box.scrollTop = box.scrollHeight;
+    }
+
+    /***************************************************
+     * LÓGICA DE WEBRTC
+     ***************************************************/
+    let pc = null;
+    let dataChannel = null;
+    let localStream = null;
+    let remoteAudio = null;
+    let partialBotBubble = null;
+
+    window.onload = () => {
+      document.getElementById('startSessionBtn').onclick = startWebRTCSession;
+      document.getElementById('stopSessionBtn').onclick = stopWebRTCSession;
+
+      // Para la síntesis de voz del chatbot
+      remoteAudio = document.createElement("audio");
+      remoteAudio.autoplay = true;
+      document.body.appendChild(remoteAudio);
+    };
+
+    async function startWebRTCSession() {
+      console.log("Iniciando sesión WebRTC...");
+
+      // Mostrar el GIF de onda
+      document.getElementById('waveGif').style.display = 'block';
+
+      let ephemeralKey = null;
+      try {
+        const resp = await fetch('/webrtc_session', { method: 'POST' });
+        const sessionData = await resp.json();
+        if (sessionData.error) throw new Error(sessionData.error);
+        ephemeralKey = sessionData?.client_secret?.value;
+        if (!ephemeralKey) throw new Error("No se encontró ninguna key efímera.");
+      } catch(err) {
+        console.error("Fallo al obtener la key efímera:", err);
+        // Ocultar GIF de onda si hay error
+        document.getElementById('waveGif').style.display = 'none';
+        return;
+      }
+
+      pc = new RTCPeerConnection();
+
+      try {
+        localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        localStream.getTracks().forEach(track => {
+          pc.addTrack(track, localStream);
+        });
+      } catch (err) {
+        console.error("Error con el micrófono:", err);
+        // Ocultar GIF de onda si el mic falla
+        document.getElementById('waveGif').style.display = 'none';
+        return;
+      }
+
+      pc.ontrack = evt => {
+        if (remoteAudio) {
+          remoteAudio.srcObject = evt.streams[0];
+        }
+      };
+
+      dataChannel = pc.createDataChannel("oai-events");
+      dataChannel.onopen = () => console.log("Canal de datos abierto!");
+      dataChannel.onmessage = e => handleRealtimeEvent(e.data);
+
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+
+      try {
+        const url = "https://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-12-17";
+        const sdpResponse = await fetch(url, {
+          method: "POST",
+          body: offer.sdp,
+          headers: {
+            "Authorization": `Bearer ${ephemeralKey}`,
+            "Content-Type": "application/sdp"
+          }
+        });
+        const answerSDP = await sdpResponse.text();
+        const answer = { type: "answer", sdp: answerSDP };
+        await pc.setRemoteDescription(answer);
+        console.log("Sesión WebRTC establecida!");
+      } catch (err) {
+        console.error("Error en el intercambio SDP:", err);
+        // Ocultar GIF de onda si falla
+        document.getElementById('waveGif').style.display = 'none';
+        stopWebRTCSession();
+      }
+    }
+
+    function handleRealtimeEvent(jsonString) {
+      let data;
+      try {
+        data = JSON.parse(jsonString);
+      } catch (err) {
+        console.error("Datos no-JSON del servidor:", jsonString);
+        return;
+      }
+      console.log("Evento Realtime:", data);
+
+      if (data.type === "response.text.delta") {
+        if (!partialBotBubble) {
+          partialBotBubble = document.createElement('div');
+          partialBotBubble.className = 'message bot';
+          partialBotBubble.textContent = '';
+          document.getElementById('chatBox').appendChild(partialBotBubble);
+        }
+        partialBotBubble.textContent += data.delta;
+        document.getElementById('chatBox').scrollTop = document.getElementById('chatBox').scrollHeight;
+      }
+      else if (data.type === "response.text.done") {
+        if (!partialBotBubble) {
+          addToChatBox(data.text, 'bot');
+        } else {
+          partialBotBubble.textContent += data.text;
+        }
+        partialBotBubble = null;
+      }
+      else if (data.type === "error") {
+        console.error("Error Realtime:", data);
+        addToChatBox("Error Realtime: " + JSON.stringify(data), 'bot');
+      }
+    }
+
+    function stopWebRTCSession() {
+      // Ocultar GIF
+      document.getElementById('waveGif').style.display = 'none';
+
+      if (pc) {
+        pc.close();
+        pc = null;
+      }
+      if (localStream) {
+        localStream.getTracks().forEach(t => t.stop());
+        localStream = null;
+      }
+      if (dataChannel) {
+        dataChannel.close();
+        dataChannel = null;
+      }
+      partialBotBubble = null;
+      console.log("Sesión WebRTC detenida.");
+    }
+  </script>
+</body>
+</html>
