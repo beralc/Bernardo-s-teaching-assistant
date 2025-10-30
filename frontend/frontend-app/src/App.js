@@ -1255,6 +1255,8 @@ import { supabase } from "./supabaseClient";
     const [limitReached, setLimitReached] = useState(false);
     const [loadingUsage, setLoadingUsage] = useState(true);
     const [isAdmin, setIsAdmin] = useState(false);
+    const [elapsedSeconds, setElapsedSeconds] = useState(0);
+    const conversationStartTimeRef = useRef(null);
 
     // Initialize conversation with topic-specific greeting if a topic is selected
     const getInitialMessage = () => {
@@ -1408,6 +1410,10 @@ import { supabase } from "./supabaseClient";
       }
 
       try {
+        // Start timer
+        conversationStartTimeRef.current = Date.now();
+        setElapsedSeconds(0);
+
         // Start a new session with the topic
         await startSession(selectedTopic);
 
@@ -1624,6 +1630,34 @@ import { supabase } from "./supabaseClient";
       };
     }, [stopListening]);
 
+    // Real-time timer that updates every second and enforces limits
+    useEffect(() => {
+      if (!speaking || isAdmin) return; // Admins have unlimited time
+
+      const timerInterval = setInterval(() => {
+        const secondsElapsed = Math.floor((Date.now() - conversationStartTimeRef.current) / 1000);
+        setElapsedSeconds(secondsElapsed);
+
+        const minutesElapsed = Math.ceil(secondsElapsed / 60);
+        const remainingMinutes = usageRemaining - minutesElapsed;
+
+        // Auto-stop when time runs out
+        if (remainingMinutes <= 0) {
+          console.log('Time limit reached! Stopping conversation.');
+          alert('Your time is up! The conversation will now end.');
+          stopListening();
+          setSpeaking(false);
+          setLimitReached(true);
+        }
+        // Warning when 30 seconds left
+        else if (remainingMinutes === 0 && secondsElapsed % 60 >= 30) {
+          console.log('Warning: Less than 1 minute remaining');
+        }
+      }, 1000);
+
+      return () => clearInterval(timerInterval);
+    }, [speaking, isAdmin, usageRemaining, stopListening]);
+
     const handleToggleSpeaking = () => {
       const newState = !speaking;
       setSpeaking(newState);
@@ -1689,7 +1723,11 @@ import { supabase } from "./supabaseClient";
     // };
 
     if (speaking) {
-        return <ListeningView onStop={handleToggleSpeaking} cardTheme={cardTheme} subtleText={subtleText} fontSizes={fontSizes} liveTranscript={liveTranscript} usageRemaining={usageRemaining} userTier={userTier} isAdmin={isAdmin} />;
+        // Calculate remaining time in real-time
+        const minutesElapsed = Math.ceil(elapsedSeconds / 60);
+        const currentRemaining = isAdmin ? -1 : Math.max(0, usageRemaining - minutesElapsed);
+
+        return <ListeningView onStop={handleToggleSpeaking} cardTheme={cardTheme} subtleText={subtleText} fontSizes={fontSizes} liveTranscript={liveTranscript} usageRemaining={currentRemaining} userTier={userTier} isAdmin={isAdmin} elapsedSeconds={elapsedSeconds} />;
     }
 
     return (
@@ -1763,26 +1801,33 @@ import { supabase } from "./supabaseClient";
     );
   }
 
-  function ListeningView({ onStop, cardTheme, subtleText, fontSizes, liveTranscript, usageRemaining, userTier, isAdmin }) {
+  function ListeningView({ onStop, cardTheme, subtleText, fontSizes, liveTranscript, usageRemaining, userTier, isAdmin, elapsedSeconds }) {
+      // Format elapsed time as MM:SS
+      const formatElapsedTime = (seconds) => {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins}:${secs.toString().padStart(2, '0')}`;
+      };
+
       return (
           <section aria-label="Listening to your speech" className="flex flex-col gap-6 h-full">
               {/* Usage reminder banner while listening */}
               {isAdmin ? (
                 <div className="bg-purple-50 dark:bg-purple-900/30 border border-purple-200 dark:border-purple-800 rounded-xl p-2">
                   <p className="text-xs text-center text-purple-700 dark:text-purple-200">
-                    ✨ Unlimited (Admin)
+                    ✨ Unlimited (Admin) • Time: {formatElapsedTime(elapsedSeconds)}
                   </p>
                 </div>
               ) : usageRemaining !== -1 && usageRemaining <= 2 ? (
                 <div className="bg-orange-100 dark:bg-orange-900 border border-orange-300 dark:border-orange-700 rounded-xl p-3">
                   <p className="text-sm font-semibold text-orange-800 dark:text-orange-100">
-                    ⚠️ Only {usageRemaining} {usageRemaining === 1 ? 'minute' : 'minutes'} remaining this month
+                    ⚠️ Only {usageRemaining} {usageRemaining === 1 ? 'minute' : 'minutes'} remaining • Elapsed: {formatElapsedTime(elapsedSeconds)}
                   </p>
                 </div>
               ) : usageRemaining !== -1 && usageRemaining > 2 ? (
                 <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-xl p-2">
                   <p className="text-xs text-center text-blue-700 dark:text-blue-200">
-                    {usageRemaining} min remaining ({TIER_LIMITS[userTier].name})
+                    {usageRemaining} min remaining ({TIER_LIMITS[userTier].name}) • Elapsed: {formatElapsedTime(elapsedSeconds)}
                   </p>
                 </div>
               ) : null}
