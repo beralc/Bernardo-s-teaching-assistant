@@ -1563,7 +1563,7 @@ import { supabase } from "./supabaseClient";
           };
         };
 
-        ws.onmessage = (event) => {
+        ws.onmessage = async (event) => {
           const data = JSON.parse(event.data);
 
           // Log all message types for debugging
