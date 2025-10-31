@@ -2447,7 +2447,7 @@ import { supabase } from "./supabaseClient";
     const [loading, setLoading] = useState(true);
     const [generating, setGenerating] = useState(false);
     const [message, setMessage] = useState('');
-    const [activeTab, setActiveTab] = useState('codes'); // 'codes' or 'conversations'
+    const [activeTab, setActiveTab] = useState('codes'); // 'codes', 'conversations', or 'users'
 
     // Form fields for generating codes
     const [newCodePrefix, setNewCodePrefix] = useState('BETA');
@@ -2468,11 +2468,24 @@ import { supabase } from "./supabaseClient";
     const [exportEndDate, setExportEndDate] = useState('');
     const [exporting, setExporting] = useState(false);
 
+    // User management state
+    const [allUsers, setAllUsers] = useState([]);
+    const [loadingUsers, setLoadingUsers] = useState(false);
+    const [showCreateUser, setShowCreateUser] = useState(false);
+    const [newUserEmail, setNewUserEmail] = useState('');
+    const [newUserPassword, setNewUserPassword] = useState('');
+    const [newUserName, setNewUserName] = useState('');
+    const [newUserSurname, setNewUserSurname] = useState('');
+    const [newUserTier, setNewUserTier] = useState('free');
+    const [newUserIsAdmin, setNewUserIsAdmin] = useState(false);
+
     useEffect(() => {
       if (activeTab === 'codes') {
         loadCodes();
       } else if (activeTab === 'conversations') {
         loadUsers();
+      } else if (activeTab === 'users') {
+        loadAllUsers();
       }
     }, [activeTab]);
 
@@ -2573,6 +2586,151 @@ import { supabase } from "./supabaseClient";
         setUserSessions(data || []);
       }
       setLoadingConversations(false);
+    };
+
+    // User management functions
+    const loadAllUsers = async () => {
+      setLoadingUsers(true);
+      const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
+
+      if (authError) {
+        console.error('Error loading auth users:', authError);
+        setMessage('Error loading users: ' + authError.message);
+        setLoadingUsers(false);
+        return;
+      }
+
+      // Get profiles for all users
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (profilesError) {
+        console.error('Error loading profiles:', profilesError);
+        setMessage('Error loading profiles: ' + profilesError.message);
+        setLoadingUsers(false);
+        return;
+      }
+
+      // Merge auth and profile data
+      const mergedUsers = authUsers.users.map(authUser => {
+        const profile = profiles.find(p => p.id === authUser.id);
+        return {
+          id: authUser.id,
+          email: authUser.email,
+          created_at: authUser.created_at,
+          email_confirmed_at: authUser.email_confirmed_at,
+          ...profile
+        };
+      });
+
+      setAllUsers(mergedUsers);
+      setLoadingUsers(false);
+    };
+
+    const createUser = async () => {
+      if (!newUserEmail || !newUserPassword) {
+        setMessage('Error: Email and password are required');
+        return;
+      }
+
+      setGenerating(true);
+      setMessage('');
+
+      try {
+        // Create auth user
+        const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+          email: newUserEmail,
+          password: newUserPassword,
+          email_confirm: true
+        });
+
+        if (authError) throw authError;
+
+        // Create profile
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert([{
+            id: authData.user.id,
+            name: newUserName || '',
+            surname: newUserSurname || '',
+            tier: newUserTier,
+            is_admin: newUserIsAdmin
+          }]);
+
+        if (profileError) throw profileError;
+
+        setMessage(`User created successfully: ${newUserEmail}`);
+
+        // Reset form
+        setNewUserEmail('');
+        setNewUserPassword('');
+        setNewUserName('');
+        setNewUserSurname('');
+        setNewUserTier('free');
+        setNewUserIsAdmin(false);
+        setShowCreateUser(false);
+
+        // Reload users
+        loadAllUsers();
+      } catch (error) {
+        console.error('Error creating user:', error);
+        setMessage('Error creating user: ' + error.message);
+      }
+
+      setGenerating(false);
+    };
+
+    const deleteUser = async (userId, userEmail) => {
+      if (!window.confirm(`Are you sure you want to delete user ${userEmail}? This cannot be undone.`)) {
+        return;
+      }
+
+      setMessage('');
+
+      try {
+        // Delete auth user (this will cascade delete profile due to FK constraint)
+        const { error: authError } = await supabase.auth.admin.deleteUser(userId);
+
+        if (authError) throw authError;
+
+        setMessage(`User ${userEmail} deleted successfully`);
+
+        // Reload users
+        loadAllUsers();
+      } catch (error) {
+        console.error('Error deleting user:', error);
+        setMessage('Error deleting user: ' + error.message);
+      }
+    };
+
+    const resetPassword = async (userId, userEmail) => {
+      const newPassword = window.prompt(`Enter new password for ${userEmail}:`);
+
+      if (!newPassword) {
+        return;
+      }
+
+      if (newPassword.length < 6) {
+        setMessage('Error: Password must be at least 6 characters');
+        return;
+      }
+
+      setMessage('');
+
+      try {
+        const { error } = await supabase.auth.admin.updateUserById(userId, {
+          password: newPassword
+        });
+
+        if (error) throw error;
+
+        setMessage(`Password reset successfully for ${userEmail}`);
+      } catch (error) {
+        console.error('Error resetting password:', error);
+        setMessage('Error resetting password: ' + error.message);
+      }
     };
 
     const loadSessionMessages = async (sessionId) => {
@@ -2737,6 +2895,16 @@ import { supabase } from "./supabaseClient";
             }`}
           >
             User Conversations
+          </button>
+          <button
+            onClick={() => setActiveTab('users')}
+            className={`px-6 py-3 font-semibold ${fontSizes.lg} transition ${
+              activeTab === 'users'
+                ? 'border-b-2 border-green-600 text-green-600'
+                : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+            }`}
+          >
+            Users
           </button>
         </div>
 
@@ -3024,6 +3192,189 @@ import { supabase } from "./supabaseClient";
                 )}
               </div>
             )}
+          </div>
+        )}
+
+        {activeTab === 'users' && (
+          <div className="space-y-6">
+            {/* Create User Section */}
+            <div className={`rounded-2xl border p-6 ${cardTheme}`}>
+              <div className="flex justify-between items-center mb-4">
+                <h3 className={`font-bold ${fontSizes.xl}`}>User Management</h3>
+                <button
+                  onClick={() => setShowCreateUser(!showCreateUser)}
+                  className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl font-semibold transition"
+                >
+                  {showCreateUser ? 'Cancel' : '+ Create New User'}
+                </button>
+              </div>
+
+              {showCreateUser && (
+                <div className="mt-6 space-y-4 p-6 bg-gray-50 dark:bg-gray-800 rounded-xl">
+                  <h4 className={`font-bold ${fontSizes.lg} mb-4`}>Create New User</h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className={`text-sm font-semibold ${subtleText} mb-1 block`}>Email *</label>
+                      <input
+                        type="email"
+                        value={newUserEmail}
+                        onChange={(e) => setNewUserEmail(e.target.value)}
+                        className={`w-full px-3 py-2 rounded-lg border ${cardTheme}`}
+                        placeholder="user@example.com"
+                      />
+                    </div>
+                    <div>
+                      <label className={`text-sm font-semibold ${subtleText} mb-1 block`}>Password *</label>
+                      <input
+                        type="password"
+                        value={newUserPassword}
+                        onChange={(e) => setNewUserPassword(e.target.value)}
+                        className={`w-full px-3 py-2 rounded-lg border ${cardTheme}`}
+                        placeholder="Min. 6 characters"
+                      />
+                    </div>
+                    <div>
+                      <label className={`text-sm font-semibold ${subtleText} mb-1 block`}>First Name</label>
+                      <input
+                        type="text"
+                        value={newUserName}
+                        onChange={(e) => setNewUserName(e.target.value)}
+                        className={`w-full px-3 py-2 rounded-lg border ${cardTheme}`}
+                        placeholder="John"
+                      />
+                    </div>
+                    <div>
+                      <label className={`text-sm font-semibold ${subtleText} mb-1 block`}>Last Name</label>
+                      <input
+                        type="text"
+                        value={newUserSurname}
+                        onChange={(e) => setNewUserSurname(e.target.value)}
+                        className={`w-full px-3 py-2 rounded-lg border ${cardTheme}`}
+                        placeholder="Doe"
+                      />
+                    </div>
+                    <div>
+                      <label className={`text-sm font-semibold ${subtleText} mb-1 block`}>Tier</label>
+                      <select
+                        value={newUserTier}
+                        onChange={(e) => setNewUserTier(e.target.value)}
+                        className={`w-full px-3 py-2 rounded-lg border ${cardTheme}`}
+                      >
+                        <option value="free">Free</option>
+                        <option value="premium">Premium</option>
+                        <option value="unlimited">Unlimited</option>
+                      </select>
+                    </div>
+                    <div className="flex items-center">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={newUserIsAdmin}
+                          onChange={(e) => setNewUserIsAdmin(e.target.checked)}
+                          className="w-5 h-5"
+                        />
+                        <span className={`font-semibold ${fontSizes.base}`}>Is Admin</span>
+                      </label>
+                    </div>
+                  </div>
+                  <button
+                    onClick={createUser}
+                    disabled={generating || !newUserEmail || !newUserPassword}
+                    className={`px-6 py-3 rounded-xl font-bold transition ${
+                      generating || !newUserEmail || !newUserPassword
+                        ? 'bg-gray-300 dark:bg-gray-700 text-gray-600 dark:text-gray-400 cursor-not-allowed'
+                        : 'bg-green-600 hover:bg-green-700 text-white'
+                    }`}
+                  >
+                    {generating ? 'Creating...' : 'Create User'}
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Users List */}
+            <div className={`rounded-2xl border p-6 ${cardTheme}`}>
+              <h3 className={`font-bold ${fontSizes.xl} mb-4`}>All Users ({allUsers.length})</h3>
+              {loadingUsers ? (
+                <p className={subtleText}>Loading users...</p>
+              ) : allUsers.length === 0 ? (
+                <p className={subtleText}>No users found</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className={`border-b border-gray-200 dark:border-gray-700 ${subtleText}`}>
+                        <th className="text-left p-3 font-semibold">Email</th>
+                        <th className="text-left p-3 font-semibold">Name</th>
+                        <th className="text-left p-3 font-semibold">Tier</th>
+                        <th className="text-left p-3 font-semibold">Admin</th>
+                        <th className="text-left p-3 font-semibold">Verified</th>
+                        <th className="text-left p-3 font-semibold">Created</th>
+                        <th className="text-left p-3 font-semibold">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {allUsers.map(user => (
+                        <tr key={user.id} className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800">
+                          <td className="p-3">
+                            <p className={`${fontSizes.base} font-mono text-sm`}>{user.email}</p>
+                          </td>
+                          <td className="p-3">
+                            <p className={fontSizes.base}>{user.name} {user.surname}</p>
+                          </td>
+                          <td className="p-3">
+                            <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                              user.tier === 'unlimited' ? 'bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-100' :
+                              user.tier === 'premium' ? 'bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-100' :
+                              'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100'
+                            }`}>
+                              {user.tier || 'free'}
+                            </span>
+                          </td>
+                          <td className="p-3">
+                            {user.is_admin ? (
+                              <span className="text-green-600 dark:text-green-400 font-bold">✓</span>
+                            ) : (
+                              <span className="text-gray-400">-</span>
+                            )}
+                          </td>
+                          <td className="p-3">
+                            {user.email_confirmed_at ? (
+                              <span className="text-green-600 dark:text-green-400 font-bold">✓</span>
+                            ) : (
+                              <span className="text-red-600 dark:text-red-400 font-bold">✗</span>
+                            )}
+                          </td>
+                          <td className="p-3">
+                            <p className={`text-xs ${subtleText}`}>
+                              {new Date(user.created_at).toLocaleDateString()}
+                            </p>
+                          </td>
+                          <td className="p-3">
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => resetPassword(user.id, user.email)}
+                                className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg font-semibold transition"
+                                title="Reset Password"
+                              >
+                                Reset PW
+                              </button>
+                              <button
+                                onClick={() => deleteUser(user.id, user.email)}
+                                className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg font-semibold transition"
+                                title="Delete User"
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </section>
