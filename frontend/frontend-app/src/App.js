@@ -1555,6 +1555,32 @@ import { supabase } from "./supabaseClient";
             console.error("OpenAI Realtime API error:", data.error);
             setLiveTranscript("Error occurred. Please try again.");
 
+          } else if (data.type === 'input_audio_buffer.speech_started') {
+            // User started speaking - interrupt any playing audio
+            console.log("User started speaking - interrupting AI");
+            // Stop playing any queued audio
+            audioQueueRef.current = [];
+            isPlayingRef.current = false;
+            // Clear the live transcript to show we're listening to user
+            setLiveTranscript("Listening...");
+
+          } else if (data.type === 'input_audio_buffer.speech_stopped') {
+            // User stopped speaking
+            console.log("User stopped speaking");
+            setLiveTranscript("Processing...");
+
+          } else if (data.type === 'response.cancelled') {
+            // Response was cancelled (due to interruption)
+            console.log("Response cancelled (interrupted)");
+            // Clear any partial response
+            currentResponseTextRef.current = '';
+            audioQueueRef.current = [];
+            isPlayingRef.current = false;
+
+          } else if (data.type === 'conversation.item.truncated') {
+            // Conversation item was truncated due to interruption
+            console.log("Conversation item truncated");
+
           } else if (data.type === 'session.created' || data.type === 'session.updated') {
             // Session initialization events
             console.log("Session event:", data.type, data.session);
