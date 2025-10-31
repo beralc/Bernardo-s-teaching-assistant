@@ -1284,6 +1284,7 @@ import { supabase } from "./supabaseClient";
     const hasAutoStartedRef = useRef(false); // Track if we've auto-started for this topic
     const nextPlayTimeRef = useRef(0); // Track when to play next audio chunk for seamless playback
     const autoStartRequestedRef = useRef(false); // Track if auto-start was requested
+    const audioChunkCountRef = useRef(0); // Count chunks for buffering strategy
 
     // Load usage info on mount
     useEffect(() => {
@@ -1375,10 +1376,18 @@ import { supabase } from "./supabaseClient";
 
         // Queue the audio chunk
         audioQueueRef.current.push(audioBuffer);
+        audioChunkCountRef.current++;
 
-        // Start playback if not already playing
-        if (!isPlayingRef.current) {
+        // Buffer strategy: Wait for 2-3 chunks before starting playback
+        // This reduces stuttering from network jitter
+        const MIN_BUFFER_CHUNKS = 2;
+
+        // Start playback if not already playing AND we have enough chunks buffered
+        if (!isPlayingRef.current && audioQueueRef.current.length >= MIN_BUFFER_CHUNKS) {
+          console.log(`Starting playback with ${audioQueueRef.current.length} chunks buffered`);
           playNextChunk();
+        } else if (!isPlayingRef.current) {
+          console.log(`Buffering... (${audioQueueRef.current.length}/${MIN_BUFFER_CHUNKS} chunks)`);
         }
       } catch (error) {
         console.error('Error decoding audio:', error);
@@ -1431,8 +1440,9 @@ import { supabase } from "./supabaseClient";
         conversationStartTimeRef.current = Date.now();
         setElapsedSeconds(0);
 
-        // Reset audio playback timing for seamless playback
+        // Reset audio playback timing and buffering for seamless playback
         nextPlayTimeRef.current = 0;
+        audioChunkCountRef.current = 0;
 
         // Start a new session with the topic
         await startSession(selectedTopic);
@@ -1545,6 +1555,7 @@ import { supabase } from "./supabaseClient";
             // New response is starting - clear previous text accumulator
             console.log("Response starting");
             currentResponseTextRef.current = '';
+            audioChunkCountRef.current = 0; // Reset chunk count for new response
             // Don't change live transcript yet - wait for first delta to show new text
 
           } else if (data.type === 'response.audio_transcript.done') {
