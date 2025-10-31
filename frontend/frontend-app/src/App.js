@@ -1378,9 +1378,9 @@ import { supabase } from "./supabaseClient";
         audioQueueRef.current.push(audioBuffer);
         audioChunkCountRef.current++;
 
-        // Buffer strategy: Reduced to 1 chunk for lower latency
-        // Trade-off: slightly more risk of stutter for faster response
-        const MIN_BUFFER_CHUNKS = 1;
+        // Buffer strategy: 2 chunks for smooth playback
+        // Prevents choppy audio from network jitter
+        const MIN_BUFFER_CHUNKS = 2;
 
         // Start playback if not already playing AND we have enough chunks buffered
         if (!isPlayingRef.current && audioQueueRef.current.length >= MIN_BUFFER_CHUNKS) {
@@ -1414,11 +1414,23 @@ import { supabase } from "./supabaseClient";
       const currentTime = audioContextRef.current.currentTime;
 
       // Schedule this chunk to play at the next scheduled time
-      // If nextPlayTime is in the past or 0, start immediately
-      const startTime = Math.max(currentTime, nextPlayTimeRef.current);
+      // If nextPlayTime is in the past, reset to current time to avoid drift
+      let startTime;
+      if (nextPlayTimeRef.current <= currentTime) {
+        // Previous playback finished or this is first chunk - start now
+        startTime = currentTime;
+      } else {
+        // Schedule seamlessly after previous chunk
+        startTime = nextPlayTimeRef.current;
+      }
 
       // Update next play time to be right after this chunk finishes
       nextPlayTimeRef.current = startTime + audioBuffer.duration;
+
+      // Debug: Log if queue is backing up
+      if (audioQueueRef.current.length > 5) {
+        console.warn(`Audio queue backing up: ${audioQueueRef.current.length} chunks waiting`);
+      }
 
       source.onended = () => {
         playNextChunk(); // Play next chunk when this one finishes
