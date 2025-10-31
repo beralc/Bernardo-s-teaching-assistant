@@ -233,16 +233,21 @@ import { supabase } from "./supabaseClient";
         });
 
         // Load profile data including avatar and admin status
-        const { data: profile } = await supabase
+        const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('avatar_url, is_admin')
           .eq('id', user.id)
           .single();
 
-        if (profile) {
+        if (profileError) {
+          console.error('Error loading profile:', profileError);
+        } else if (profile) {
           // Always update avatar URL, even if empty
           setAvatarUrl(profile.avatar_url || '');
           setIsAdmin(profile.is_admin || false);
+          console.log('Profile loaded successfully:', { avatar_url: profile.avatar_url, is_admin: profile.is_admin });
+        } else {
+          console.warn('No profile found for user:', user.id);
         }
       }
     };
