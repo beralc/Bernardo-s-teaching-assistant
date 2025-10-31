@@ -1582,6 +1582,19 @@ import { supabase } from "./supabaseClient";
             console.log("Calling onSaveTranscription with:", transcript);
             onSaveTranscription(transcript);
 
+            // Save user message to conversation_messages table
+            if (sessionLogId && transcript) {
+              const user = (await supabase.auth.getUser()).data.user;
+              if (user) {
+                await supabase.from('conversation_messages').insert([{
+                  session_id: sessionLogId,
+                  user_id: user.id,
+                  role: 'user',
+                  content: transcript
+                }]);
+              }
+            }
+
             // Previous response stays visible until new response starts streaming
 
           } else if (data.type === 'response.audio.delta') {
@@ -1612,6 +1625,19 @@ import { supabase } from "./supabaseClient";
             if (data.transcript) {
               console.log("Saving bot response to database");
               onSaveTranscription(`Bot: ${data.transcript}`);
+
+              // Save assistant message to conversation_messages table
+              if (sessionLogId && data.transcript) {
+                const user = (await supabase.auth.getUser()).data.user;
+                if (user) {
+                  await supabase.from('conversation_messages').insert([{
+                    session_id: sessionLogId,
+                    user_id: user.id,
+                    role: 'assistant',
+                    content: data.transcript
+                  }]);
+                }
+              }
             }
 
             // Keep the response visible on screen - don't clear it
@@ -2353,12 +2379,13 @@ import { supabase } from "./supabaseClient";
     );
   }
 
-  // AdminView: Admin dashboard for managing invitation codes
+  // AdminView: Admin dashboard for managing invitation codes and viewing conversations
   function AdminView({ cardTheme, subtleText, fontSizes, contrast }) {
     const [codes, setCodes] = useState([]);
     const [loading, setLoading] = useState(true);
     const [generating, setGenerating] = useState(false);
     const [message, setMessage] = useState('');
+    const [activeTab, setActiveTab] = useState('codes'); // 'codes' or 'conversations'
 
     // Form fields for generating codes
     const [newCodePrefix, setNewCodePrefix] = useState('BETA');
@@ -2368,9 +2395,24 @@ import { supabase } from "./supabaseClient";
     const [newCodeDescription, setNewCodeDescription] = useState('');
     const [newCodeTag, setNewCodeTag] = useState('BETA');
 
+    // Conversation viewer state
+    const [users, setUsers] = useState([]);
+    const [selectedUserId, setSelectedUserId] = useState(null);
+    const [userSessions, setUserSessions] = useState([]);
+    const [selectedSessionId, setSelectedSessionId] = useState(null);
+    const [sessionMessages, setSessionMessages] = useState([]);
+    const [loadingConversations, setLoadingConversations] = useState(false);
+    const [exportStartDate, setExportStartDate] = useState('');
+    const [exportEndDate, setExportEndDate] = useState('');
+    const [exporting, setExporting] = useState(false);
+
     useEffect(() => {
-      loadCodes();
-    }, []);
+      if (activeTab === 'codes') {
+        loadCodes();
+      } else if (activeTab === 'conversations') {
+        loadUsers();
+      }
+    }, [activeTab]);
 
     const loadCodes = async () => {
       setLoading(true);
@@ -2423,7 +2465,7 @@ import { supabase } from "./supabaseClient";
     };
 
     const toggleCodeStatus = async (codeId, currentStatus) => {
-      const { error } = await supabase
+      const { error} = await supabase
         .from('invitation_codes')
         .update({ is_active: !currentStatus })
         .eq('id', codeId);
@@ -2436,11 +2478,157 @@ import { supabase } from "./supabaseClient";
       }
     };
 
+    // Conversation management functions
+    const loadUsers = async () => {
+      setLoadingConversations(true);
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, name, surname, email, created_at')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error loading users:', error);
+        setMessage('Error loading users: ' + error.message);
+      } else {
+        setUsers(data || []);
+      }
+      setLoadingConversations(false);
+    };
+
+    const loadUserSessions = async (userId) => {
+      setSelectedUserId(userId);
+      setLoadingConversations(true);
+      const { data, error } = await supabase
+        .from('conversation_sessions')
+        .select('*')
+        .eq('user_id', userId)
+        .order('started_at', { ascending: false });
+
+      if (error) {
+        console.error('Error loading sessions:', error);
+        setMessage('Error loading sessions: ' + error.message);
+      } else {
+        setUserSessions(data || []);
+      }
+      setLoadingConversations(false);
+    };
+
+    const loadSessionMessages = async (sessionId) => {
+      setSelectedSessionId(sessionId);
+      setLoadingConversations(true);
+      const { data, error } = await supabase
+        .from('conversation_messages')
+        .select('*')
+        .eq('session_id', sessionId)
+        .order('created_at', { ascending: true });
+
+      if (error) {
+        console.error('Error loading messages:', error);
+        setMessage('Error loading messages: ' + error.message);
+      } else {
+        setSessionMessages(data || []);
+      }
+      setLoadingConversations(false);
+    };
+
+    const exportConversations = async () => {
+      if (!exportStartDate || !exportEndDate) {
+        setMessage('Please select both start and end dates');
+        return;
+      }
+
+      setExporting(true);
+      setMessage('');
+
+      try {
+        // Fetch all sessions in date range
+        const { data: sessions, error: sessionsError } = await supabase
+          .from('conversation_sessions')
+          .select('*, profiles(name, surname, email)')
+          .gte('started_at', exportStartDate)
+          .lte('started_at', exportEndDate + 'T23:59:59')
+          .order('started_at', { ascending: true });
+
+        if (sessionsError) throw sessionsError;
+
+        // Fetch all messages for these sessions
+        const sessionIds = sessions.map(s => s.id);
+        const { data: messages, error: messagesError } = await supabase
+          .from('conversation_messages')
+          .select('*')
+          .in('session_id', sessionIds)
+          .order('created_at', { ascending: true });
+
+        if (messagesError) throw messagesError;
+
+        // Create export data
+        const exportData = sessions.map(session => {
+          const sessionMessages = messages.filter(m => m.session_id === session.id);
+          return {
+            session_id: session.id,
+            user_name: `${session.profiles?.name || ''} ${session.profiles?.surname || ''}`.trim(),
+            user_email: session.profiles?.email || '',
+            started_at: session.started_at,
+            ended_at: session.ended_at,
+            duration_minutes: session.duration_minutes,
+            topic: session.topic,
+            messages: sessionMessages.map(m => ({
+              role: m.role,
+              content: m.content,
+              timestamp: m.created_at
+            }))
+          };
+        });
+
+        // Convert to JSON and download
+        const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `conversations_${exportStartDate}_to_${exportEndDate}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        setMessage(`Exported ${sessions.length} conversations successfully`);
+      } catch (error) {
+        console.error('Export error:', error);
+        setMessage('Error exporting: ' + error.message);
+      }
+
+      setExporting(false);
+    };
+
     return (
       <section aria-label="Admin dashboard" className="flex flex-col gap-6">
         <div>
           <h2 className={`${fontSizes.xxxl} font-bold`}>Admin Dashboard</h2>
-          <p className={`${subtleText} ${fontSizes.lg} mt-1`}>Manage invitation codes</p>
+          <p className={`${subtleText} ${fontSizes.lg} mt-1`}>Manage invitation codes and view conversations</p>
+        </div>
+
+        {/* Tab Navigation */}
+        <div className="flex gap-2 border-b border-gray-200 dark:border-gray-700">
+          <button
+            onClick={() => setActiveTab('codes')}
+            className={`px-6 py-3 font-semibold ${fontSizes.lg} transition ${
+              activeTab === 'codes'
+                ? 'border-b-2 border-green-600 text-green-600'
+                : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+            }`}
+          >
+            Invitation Codes
+          </button>
+          <button
+            onClick={() => setActiveTab('conversations')}
+            className={`px-6 py-3 font-semibold ${fontSizes.lg} transition ${
+              activeTab === 'conversations'
+                ? 'border-b-2 border-green-600 text-green-600'
+                : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+            }`}
+          >
+            User Conversations
+          </button>
         </div>
 
         {message && (
@@ -2449,6 +2637,8 @@ import { supabase } from "./supabaseClient";
           </div>
         )}
 
+        {activeTab === 'codes' && (
+          <>
         {/* Generate New Code */}
         <div className={`rounded-2xl border p-6 ${cardTheme}`}>
           <h3 className={`font-bold ${fontSizes.xl} mb-4`}>Generate New Invitation Code</h3>
@@ -2581,6 +2771,153 @@ import { supabase } from "./supabaseClient";
             </div>
           )}
         </div>
+          </>
+        )}
+
+        {activeTab === 'conversations' && (
+          <div className="space-y-6">
+            {/* Export Section */}
+            <div className={`rounded-2xl border p-6 ${cardTheme}`}>
+              <h3 className={`font-bold ${fontSizes.xl} mb-4`}>Export Conversations</h3>
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className={`text-sm font-semibold ${subtleText} mb-1 block`}>Start Date</label>
+                    <input
+                      type="date"
+                      value={exportStartDate}
+                      onChange={(e) => setExportStartDate(e.target.value)}
+                      className={`w-full px-3 py-2 rounded-lg border ${cardTheme}`}
+                    />
+                  </div>
+                  <div>
+                    <label className={`text-sm font-semibold ${subtleText} mb-1 block`}>End Date</label>
+                    <input
+                      type="date"
+                      value={exportEndDate}
+                      onChange={(e) => setExportEndDate(e.target.value)}
+                      className={`w-full px-3 py-2 rounded-lg border ${cardTheme}`}
+                    />
+                  </div>
+                </div>
+                <button
+                  onClick={exportConversations}
+                  disabled={exporting || !exportStartDate || !exportEndDate}
+                  className={`px-6 py-3 rounded-xl font-semibold transition ${
+                    exporting || !exportStartDate || !exportEndDate
+                      ? 'bg-gray-300 dark:bg-gray-700 cursor-not-allowed'
+                      : 'bg-green-600 hover:bg-green-700 text-white'
+                  }`}
+                >
+                  {exporting ? 'Exporting...' : 'Export JSON'}
+                </button>
+              </div>
+            </div>
+
+            {/* User List */}
+            <div className={`rounded-2xl border p-6 ${cardTheme}`}>
+              <h3 className={`font-bold ${fontSizes.xl} mb-4`}>All Users ({users.length})</h3>
+              {loadingConversations ? (
+                <p className={subtleText}>Loading...</p>
+              ) : users.length === 0 ? (
+                <p className={subtleText}>No users found</p>
+              ) : (
+                <div className="space-y-2 max-h-96 overflow-y-auto">
+                  {users.map(user => (
+                    <button
+                      key={user.id}
+                      onClick={() => loadUserSessions(user.id)}
+                      className={`w-full text-left p-4 rounded-xl border transition ${
+                        selectedUserId === user.id
+                          ? 'bg-green-50 dark:bg-green-900/20 border-green-600'
+                          : 'hover:bg-gray-50 dark:hover:bg-gray-800'
+                      }`}
+                    >
+                      <p className={`font-semibold ${fontSizes.lg}`}>
+                        {user.name} {user.surname}
+                      </p>
+                      <p className={`text-sm ${subtleText}`}>{user.email}</p>
+                      <p className={`text-xs ${subtleText}`}>
+                        Joined: {new Date(user.created_at).toLocaleDateString()}
+                      </p>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Session List */}
+            {selectedUserId && (
+              <div className={`rounded-2xl border p-6 ${cardTheme}`}>
+                <h3 className={`font-bold ${fontSizes.xl} mb-4`}>
+                  Sessions ({userSessions.length})
+                </h3>
+                {loadingConversations ? (
+                  <p className={subtleText}>Loading sessions...</p>
+                ) : userSessions.length === 0 ? (
+                  <p className={subtleText}>No sessions found for this user</p>
+                ) : (
+                  <div className="space-y-2 max-h-96 overflow-y-auto">
+                    {userSessions.map(session => (
+                      <button
+                        key={session.id}
+                        onClick={() => loadSessionMessages(session.id)}
+                        className={`w-full text-left p-4 rounded-xl border transition ${
+                          selectedSessionId === session.id
+                            ? 'bg-green-50 dark:bg-green-900/20 border-green-600'
+                            : 'hover:bg-gray-50 dark:hover:bg-gray-800'
+                        }`}
+                      >
+                        <p className={`font-semibold ${fontSizes.lg}`}>
+                          {session.topic || 'No topic'}
+                        </p>
+                        <p className={`text-sm ${subtleText}`}>
+                          {new Date(session.started_at).toLocaleString()}
+                        </p>
+                        <p className={`text-xs ${subtleText}`}>
+                          Duration: {session.duration_minutes || 0} minutes
+                        </p>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Message List */}
+            {selectedSessionId && (
+              <div className={`rounded-2xl border p-6 ${cardTheme}`}>
+                <h3 className={`font-bold ${fontSizes.xl} mb-4`}>
+                  Conversation ({sessionMessages.length} messages)
+                </h3>
+                {loadingConversations ? (
+                  <p className={subtleText}>Loading messages...</p>
+                ) : sessionMessages.length === 0 ? (
+                  <p className={subtleText}>No messages in this session</p>
+                ) : (
+                  <div className="space-y-4 max-h-96 overflow-y-auto">
+                    {sessionMessages.map(msg => (
+                      <div
+                        key={msg.id}
+                        className={`p-4 rounded-xl ${
+                          msg.role === 'user'
+                            ? 'bg-gray-100 dark:bg-gray-800 ml-8'
+                            : 'bg-green-50 dark:bg-green-900/20 mr-8'
+                        }`}
+                      >
+                        <p className={`text-xs ${subtleText} mb-1`}>
+                          {msg.role === 'user' ? 'User' : 'AI Assistant'} •{' '}
+                          {new Date(msg.created_at).toLocaleTimeString()}
+                        </p>
+                        <p className={fontSizes.lg}>{msg.content}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
       </section>
     );
   }
