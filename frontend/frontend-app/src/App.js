@@ -1684,10 +1684,14 @@ import { supabase } from "./supabaseClient";
 
     useEffect(() => {
       return () => {
-        // Cleanup on unmount
-        stopListening();
+        // Cleanup on unmount (e.g., when switching tabs)
+        if (speaking) {
+          console.log('TalkView unmounting - stopping active conversation');
+          stopListening();
+          setSpeaking(false);
+        }
       };
-    }, [stopListening]);
+    }, [stopListening, speaking]);
 
     // Real-time timer that updates every second and enforces limits
     useEffect(() => {
