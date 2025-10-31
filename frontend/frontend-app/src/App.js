@@ -2549,12 +2549,41 @@ import { supabase } from "./supabaseClient";
         // Fetch all sessions in date range
         const { data: sessions, error: sessionsError } = await supabase
           .from('conversation_sessions')
-          .select('*, profiles(name, surname)')
+          .select('*')
           .gte('started_at', exportStartDate)
           .lte('started_at', exportEndDate + 'T23:59:59')
           .order('started_at', { ascending: true });
 
-        if (sessionsError) throw sessionsError;
+        if (sessionsError) {
+          console.error('Sessions error:', sessionsError);
+          throw sessionsError;
+        }
+
+        if (!sessions || sessions.length === 0) {
+          setMessage('No conversations found in this date range');
+          setExporting(false);
+          return;
+        }
+
+        console.log(`Found ${sessions.length} sessions to export`);
+
+        // Fetch user profiles for all sessions
+        const userIds = [...new Set(sessions.map(s => s.user_id))];
+        const { data: profiles, error: profilesError } = await supabase
+          .from('profiles')
+          .select('id, name, surname')
+          .in('id', userIds);
+
+        if (profilesError) {
+          console.error('Profiles error:', profilesError);
+          throw profilesError;
+        }
+
+        // Create a map of user profiles
+        const profileMap = {};
+        profiles?.forEach(p => {
+          profileMap[p.id] = p;
+        });
 
         // Fetch all messages for these sessions
         const sessionIds = sessions.map(s => s.id);
@@ -2564,15 +2593,21 @@ import { supabase } from "./supabaseClient";
           .in('session_id', sessionIds)
           .order('created_at', { ascending: true });
 
-        if (messagesError) throw messagesError;
+        if (messagesError) {
+          console.error('Messages error:', messagesError);
+          throw messagesError;
+        }
+
+        console.log(`Found ${messages?.length || 0} messages to export`);
 
         // Create export data
         const exportData = sessions.map(session => {
-          const sessionMessages = messages.filter(m => m.session_id === session.id);
+          const sessionMessages = messages?.filter(m => m.session_id === session.id) || [];
+          const userProfile = profileMap[session.user_id];
           return {
             session_id: session.id,
             user_id: session.user_id,
-            user_name: `${session.profiles?.name || ''} ${session.profiles?.surname || ''}`.trim(),
+            user_name: userProfile ? `${userProfile.name || ''} ${userProfile.surname || ''}`.trim() : 'Unknown',
             started_at: session.started_at,
             ended_at: session.ended_at,
             duration_minutes: session.duration_minutes,
