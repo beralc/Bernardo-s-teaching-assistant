@@ -1260,6 +1260,7 @@ import { supabase } from "./supabaseClient";
     const [isAdmin, setIsAdmin] = useState(false);
     const [elapsedSeconds, setElapsedSeconds] = useState(0);
     const conversationStartTimeRef = useRef(null);
+    const [connectingToBackend, setConnectingToBackend] = useState(false);
 
     // Initialize conversation with topic-specific greeting if a topic is selected
     const getInitialMessage = () => {
@@ -1464,11 +1465,17 @@ import { supabase } from "./supabaseClient";
         mediaStreamRef.current = stream;
 
         // 2. Call Flask's /webrtc_session Endpoint
+        // Show connecting message (may take up to 60s on free tier cold start)
+        setConnectingToBackend(true);
+        console.log('Connecting to backend (this may take up to 60s on first use)...');
+
         const sessionResponse = await fetch(`${API_BASE_URL}/webrtc_session`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ topic: selectedTopic }),
         });
+
+        setConnectingToBackend(false);
 
         if (!sessionResponse.ok) {
           throw new Error(`Failed to get WebRTC session: ${sessionResponse.status}`);
@@ -1852,16 +1859,28 @@ import { supabase } from "./supabaseClient";
 
         {/* Ready State */}
         <div className={`flex-1 flex flex-col justify-center items-center text-center rounded-3xl border p-8 ${cardTheme}`}>
-          <h2 className={`${fontSizes.xxxl} font-bold mb-2`}>Ready to Talk?</h2>
-          <p className={`${subtleText} ${fontSizes.lg} mb-8`}>Tap the large button to start speaking.</p>
-          {/* Fitts's Law: An unmissable primary action button. */}
-          <button
-              onClick={handleToggleSpeaking}
-              className="w-48 h-48 bg-green-600 text-white rounded-full flex items-center justify-center shadow-2xl transform hover:scale-105 transition-transform"
-              aria-label="Start speaking"
-          >
-              <MicIcon active={true} size={72} />
-          </button>
+          {connectingToBackend ? (
+            <>
+              <h2 className={`${fontSizes.xxxl} font-bold mb-2`}>Connecting...</h2>
+              <p className={`${subtleText} ${fontSizes.lg} mb-8`}>
+                Waking up the server (first use may take up to 60 seconds)
+              </p>
+              <div className="w-16 h-16 border-4 border-green-600 border-t-transparent rounded-full animate-spin"></div>
+            </>
+          ) : (
+            <>
+              <h2 className={`${fontSizes.xxxl} font-bold mb-2`}>Ready to Talk?</h2>
+              <p className={`${subtleText} ${fontSizes.lg} mb-8`}>Tap the large button to start speaking.</p>
+              {/* Fitts's Law: An unmissable primary action button. */}
+              <button
+                  onClick={handleToggleSpeaking}
+                  className="w-48 h-48 bg-green-600 text-white rounded-full flex items-center justify-center shadow-2xl transform hover:scale-105 transition-transform"
+                  aria-label="Start speaking"
+              >
+                  <MicIcon active={true} size={72} />
+              </button>
+            </>
+          )}
         </div>
         
         {/* Conversation History */}
