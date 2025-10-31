@@ -1916,8 +1916,8 @@ import { supabase } from "./supabaseClient";
         )}
 
         {!loadingUsage && usageRemaining === -1 && (
-          <div className="bg-indigo-100 dark:bg-indigo-900/30 border-2 border-indigo-400 dark:border-indigo-700 rounded-xl p-3">
-            <span className="text-sm font-bold text-indigo-900 dark:text-indigo-100">
+          <div className="bg-green-50 dark:bg-green-900/30 border-2 border-green-500 dark:border-green-700 rounded-xl p-3 shadow-md">
+            <span className="text-base font-extrabold text-green-800 dark:text-green-100">
               ✨ Unlimited voice conversations {isAdmin ? '(Admin)' : `(${TIER_LIMITS[userTier].name} tier)`}
             </span>
           </div>
@@ -1974,8 +1974,8 @@ import { supabase } from "./supabaseClient";
           <section aria-label="Listening to your speech" className="flex flex-col gap-6 h-full">
               {/* Usage reminder banner while listening */}
               {isAdmin ? (
-                <div className="bg-indigo-100 dark:bg-indigo-900/30 border-2 border-indigo-400 dark:border-indigo-700 rounded-xl p-2">
-                  <p className="text-xs text-center font-bold text-indigo-900 dark:text-indigo-100">
+                <div className="bg-green-50 dark:bg-green-900/30 border-2 border-green-500 dark:border-green-700 rounded-xl p-2 shadow-md">
+                  <p className="text-sm text-center font-extrabold text-green-800 dark:text-green-100">
                     ✨ Unlimited (Admin) • Time: {formatElapsedTime(elapsedSeconds)}
                   </p>
                 </div>
