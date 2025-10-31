@@ -1378,9 +1378,9 @@ import { supabase } from "./supabaseClient";
         audioQueueRef.current.push(audioBuffer);
         audioChunkCountRef.current++;
 
-        // Buffer strategy: Wait for 2-3 chunks before starting playback
-        // This reduces stuttering from network jitter
-        const MIN_BUFFER_CHUNKS = 2;
+        // Buffer strategy: Reduced to 1 chunk for lower latency
+        // Trade-off: slightly more risk of stutter for faster response
+        const MIN_BUFFER_CHUNKS = 1;
 
         // Start playback if not already playing AND we have enough chunks buffered
         if (!isPlayingRef.current && audioQueueRef.current.length >= MIN_BUFFER_CHUNKS) {
@@ -1489,7 +1489,8 @@ import { supabase } from "./supabaseClient";
           console.log(`AudioContext created with sample rate: ${context.sampleRate}Hz`);
 
           const source = context.createMediaStreamSource(stream);
-          const processor = context.createScriptProcessor(4096, 1, 1); // Buffer size, input channels, output channels
+          // Reduced buffer size from 4096 to 2048 for lower latency
+          const processor = context.createScriptProcessor(2048, 1, 1); // Buffer size, input channels, output channels
           scriptProcessorRef.current = processor;
 
           source.connect(processor);
