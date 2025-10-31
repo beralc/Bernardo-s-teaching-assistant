@@ -12,8 +12,19 @@ load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = "your_secure_secret_key"
-# Initialize CORS with explicit settings
-CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
+# Initialize CORS with explicit settings - allow Vercel domain
+CORS(app, resources={
+    r"/*": {
+        "origins": [
+            "https://bernardo-s-teaching-assistant.vercel.app",
+            "http://localhost:3000",
+            "http://127.0.0.1:3000"
+        ],
+        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        "allow_headers": ["Content-Type", "Authorization"],
+        "supports_credentials": True
+    }
+})
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 openai.api_key = OPENAI_API_KEY
