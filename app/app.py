@@ -5,6 +5,7 @@ from flask import Flask, request, jsonify, render_template, session
 from dotenv import load_dotenv
 import openai
 from flask_cors import CORS # Import CORS
+from supabase import create_client, Client
 
 # Load environment variables
 load_dotenv()
@@ -16,6 +17,11 @@ CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 openai.api_key = OPENAI_API_KEY
+
+# Initialize Supabase with service role key for admin operations
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
 
 @app.route("/")
 def index():
@@ -161,6 +167,183 @@ def webrtc_session():
         return jsonify({"error": f"HTTP error from OpenAI: {http_err.response.status_code} - {http_err.response.text}"}), 500
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
+        return jsonify({"error": str(e)}), 500
+
+# Admin API endpoints
+@app.route("/admin/users", methods=["GET"])
+def admin_list_users():
+    """
+    Lists all users (requires admin authentication).
+    Returns merged auth and profile data.
+    """
+    try:
+        # Verify admin access via Authorization header
+        auth_header = request.headers.get('Authorization')
+        if not auth_header or not auth_header.startswith('Bearer '):
+            return jsonify({"error": "Unauthorized"}), 401
+
+        user_token = auth_header.split(' ')[1]
+
+        # Verify the user is an admin
+        user_response = supabase.auth.get_user(user_token)
+        if not user_response.user:
+            return jsonify({"error": "Invalid token"}), 401
+
+        # Check if user is admin in profiles table
+        profile = supabase.table('profiles').select('is_admin').eq('id', user_response.user.id).single().execute()
+        if not profile.data or not profile.data.get('is_admin'):
+            return jsonify({"error": "Forbidden: Admin access required"}), 403
+
+        # List all users using admin API
+        users_response = supabase.auth.admin.list_users()
+
+        # Get all profiles
+        profiles_response = supabase.table('profiles').select('*').execute()
+        profiles_dict = {p['id']: p for p in profiles_response.data}
+
+        # Merge auth and profile data
+        merged_users = []
+        for auth_user in users_response:
+            profile = profiles_dict.get(auth_user.id, {})
+            merged_users.append({
+                'id': auth_user.id,
+                'email': auth_user.email,
+                'created_at': auth_user.created_at,
+                'email_confirmed_at': auth_user.email_confirmed_at,
+                **profile
+            })
+
+        return jsonify({"users": merged_users})
+
+    except Exception as e:
+        print(f"Error in admin_list_users: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/admin/users", methods=["POST"])
+def admin_create_user():
+    """
+    Creates a new user (requires admin authentication).
+    """
+    try:
+        # Verify admin access
+        auth_header = request.headers.get('Authorization')
+        if not auth_header or not auth_header.startswith('Bearer '):
+            return jsonify({"error": "Unauthorized"}), 401
+
+        user_token = auth_header.split(' ')[1]
+        user_response = supabase.auth.get_user(user_token)
+        if not user_response.user:
+            return jsonify({"error": "Invalid token"}), 401
+
+        profile = supabase.table('profiles').select('is_admin').eq('id', user_response.user.id).single().execute()
+        if not profile.data or not profile.data.get('is_admin'):
+            return jsonify({"error": "Forbidden: Admin access required"}), 403
+
+        # Get user data from request
+        data = request.json
+        email = data.get('email')
+        password = data.get('password')
+        name = data.get('name', '')
+        surname = data.get('surname', '')
+        tier = data.get('tier', 'free')
+        is_admin = data.get('is_admin', False)
+
+        if not email or not password:
+            return jsonify({"error": "Email and password are required"}), 400
+
+        # Create auth user
+        new_user = supabase.auth.admin.create_user({
+            'email': email,
+            'password': password,
+            'email_confirm': True
+        })
+
+        # Create profile
+        supabase.table('profiles').insert({
+            'id': new_user.id,
+            'name': name,
+            'surname': surname,
+            'tier': tier,
+            'is_admin': is_admin
+        }).execute()
+
+        return jsonify({
+            "success": True,
+            "user": {
+                'id': new_user.id,
+                'email': new_user.email
+            }
+        })
+
+    except Exception as e:
+        print(f"Error in admin_create_user: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/admin/users/<user_id>", methods=["DELETE"])
+def admin_delete_user(user_id):
+    """
+    Deletes a user (requires admin authentication).
+    """
+    try:
+        # Verify admin access
+        auth_header = request.headers.get('Authorization')
+        if not auth_header or not auth_header.startswith('Bearer '):
+            return jsonify({"error": "Unauthorized"}), 401
+
+        user_token = auth_header.split(' ')[1]
+        user_response = supabase.auth.get_user(user_token)
+        if not user_response.user:
+            return jsonify({"error": "Invalid token"}), 401
+
+        profile = supabase.table('profiles').select('is_admin').eq('id', user_response.user.id).single().execute()
+        if not profile.data or not profile.data.get('is_admin'):
+            return jsonify({"error": "Forbidden: Admin access required"}), 403
+
+        # Delete user
+        supabase.auth.admin.delete_user(user_id)
+
+        return jsonify({"success": True})
+
+    except Exception as e:
+        print(f"Error in admin_delete_user: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/admin/users/<user_id>/reset-password", methods=["POST"])
+def admin_reset_password(user_id):
+    """
+    Resets a user's password (requires admin authentication).
+    """
+    try:
+        # Verify admin access
+        auth_header = request.headers.get('Authorization')
+        if not auth_header or not auth_header.startswith('Bearer '):
+            return jsonify({"error": "Unauthorized"}), 401
+
+        user_token = auth_header.split(' ')[1]
+        user_response = supabase.auth.get_user(user_token)
+        if not user_response.user:
+            return jsonify({"error": "Invalid token"}), 401
+
+        profile = supabase.table('profiles').select('is_admin').eq('id', user_response.user.id).single().execute()
+        if not profile.data or not profile.data.get('is_admin'):
+            return jsonify({"error": "Forbidden: Admin access required"}), 403
+
+        # Get new password from request
+        data = request.json
+        new_password = data.get('password')
+
+        if not new_password or len(new_password) < 6:
+            return jsonify({"error": "Password must be at least 6 characters"}), 400
+
+        # Update password
+        supabase.auth.admin.update_user_by_id(user_id, {
+            'password': new_password
+        })
+
+        return jsonify({"success": True})
+
+    except Exception as e:
+        print(f"Error in admin_reset_password: {e}")
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":

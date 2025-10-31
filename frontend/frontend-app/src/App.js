@@ -2588,44 +2588,40 @@ import { supabase } from "./supabaseClient";
       setLoadingConversations(false);
     };
 
-    // User management functions
+    // User management functions (call backend API)
     const loadAllUsers = async () => {
       setLoadingUsers(true);
-      const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
 
-      if (authError) {
-        console.error('Error loading auth users:', authError);
-        setMessage('Error loading users: ' + authError.message);
-        setLoadingUsers(false);
-        return;
+      try {
+        // Get current user's session token
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          setMessage('Error: Not authenticated');
+          setLoadingUsers(false);
+          return;
+        }
+
+        // Call backend API
+        const response = await fetch(`${API_BASE_URL}/admin/users`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'Failed to load users');
+        }
+
+        const data = await response.json();
+        setAllUsers(data.users || []);
+      } catch (error) {
+        console.error('Error loading users:', error);
+        setMessage('Error loading users: ' + error.message);
       }
 
-      // Get profiles for all users
-      const { data: profiles, error: profilesError } = await supabase
-        .from('profiles')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (profilesError) {
-        console.error('Error loading profiles:', profilesError);
-        setMessage('Error loading profiles: ' + profilesError.message);
-        setLoadingUsers(false);
-        return;
-      }
-
-      // Merge auth and profile data
-      const mergedUsers = authUsers.users.map(authUser => {
-        const profile = profiles.find(p => p.id === authUser.id);
-        return {
-          id: authUser.id,
-          email: authUser.email,
-          created_at: authUser.created_at,
-          email_confirmed_at: authUser.email_confirmed_at,
-          ...profile
-        };
-      });
-
-      setAllUsers(mergedUsers);
       setLoadingUsers(false);
     };
 
@@ -2639,27 +2635,35 @@ import { supabase } from "./supabaseClient";
       setMessage('');
 
       try {
-        // Create auth user
-        const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-          email: newUserEmail,
-          password: newUserPassword,
-          email_confirm: true
-        });
+        // Get current user's session token
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          setMessage('Error: Not authenticated');
+          setGenerating(false);
+          return;
+        }
 
-        if (authError) throw authError;
-
-        // Create profile
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert([{
-            id: authData.user.id,
-            name: newUserName || '',
-            surname: newUserSurname || '',
+        // Call backend API
+        const response = await fetch(`${API_BASE_URL}/admin/users`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            email: newUserEmail,
+            password: newUserPassword,
+            name: newUserName,
+            surname: newUserSurname,
             tier: newUserTier,
             is_admin: newUserIsAdmin
-          }]);
+          })
+        });
 
-        if (profileError) throw profileError;
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'Failed to create user');
+        }
 
         setMessage(`User created successfully: ${newUserEmail}`);
 
@@ -2690,10 +2694,26 @@ import { supabase } from "./supabaseClient";
       setMessage('');
 
       try {
-        // Delete auth user (this will cascade delete profile due to FK constraint)
-        const { error: authError } = await supabase.auth.admin.deleteUser(userId);
+        // Get current user's session token
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          setMessage('Error: Not authenticated');
+          return;
+        }
 
-        if (authError) throw authError;
+        // Call backend API
+        const response = await fetch(`${API_BASE_URL}/admin/users/${userId}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'Failed to delete user');
+        }
 
         setMessage(`User ${userEmail} deleted successfully`);
 
@@ -2720,11 +2740,27 @@ import { supabase } from "./supabaseClient";
       setMessage('');
 
       try {
-        const { error } = await supabase.auth.admin.updateUserById(userId, {
-          password: newPassword
+        // Get current user's session token
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          setMessage('Error: Not authenticated');
+          return;
+        }
+
+        // Call backend API
+        const response = await fetch(`${API_BASE_URL}/admin/users/${userId}/reset-password`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ password: newPassword })
         });
 
-        if (error) throw error;
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'Failed to reset password');
+        }
 
         setMessage(`Password reset successfully for ${userEmail}`);
       } catch (error) {
