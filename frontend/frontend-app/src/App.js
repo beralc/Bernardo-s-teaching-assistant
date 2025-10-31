@@ -1591,12 +1591,17 @@ import { supabase } from "./supabaseClient";
             if (sessionLogId && transcript) {
               const user = (await supabase.auth.getUser()).data.user;
               if (user) {
-                await supabase.from('conversation_messages').insert([{
+                const { error: insertError } = await supabase.from('conversation_messages').insert([{
                   session_id: sessionLogId,
                   user_id: user.id,
                   role: 'user',
                   content: transcript
                 }]);
+                if (insertError) {
+                  console.error('Error saving user message:', insertError);
+                } else {
+                  console.log('User message saved to database');
+                }
               }
             }
 
@@ -1635,12 +1640,17 @@ import { supabase } from "./supabaseClient";
               if (sessionLogId && data.transcript) {
                 const user = (await supabase.auth.getUser()).data.user;
                 if (user) {
-                  await supabase.from('conversation_messages').insert([{
+                  const { error: insertError } = await supabase.from('conversation_messages').insert([{
                     session_id: sessionLogId,
                     user_id: user.id,
                     role: 'assistant',
                     content: data.transcript
                   }]);
+                  if (insertError) {
+                    console.error('Error saving assistant message:', insertError);
+                  } else {
+                    console.log('Assistant message saved to database');
+                  }
                 }
               }
             }
