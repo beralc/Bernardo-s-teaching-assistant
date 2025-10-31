@@ -1468,19 +1468,44 @@ import { supabase } from "./supabaseClient";
         // Show connecting message (may take up to 60s on free tier cold start)
         setConnectingToBackend(true);
         console.log('Connecting to backend (this may take up to 60s on first use)...');
+        console.log('Fetch URL:', `${API_BASE_URL}/webrtc_session`);
 
-        const sessionResponse = await fetch(`${API_BASE_URL}/webrtc_session`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ topic: selectedTopic }),
-        });
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 minute timeout
 
-        setConnectingToBackend(false);
+        let sessionResponse, session_id, websocket_url, ephemeral_token;
+        try {
+          sessionResponse = await fetch(`${API_BASE_URL}/webrtc_session`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ topic: selectedTopic }),
+            signal: controller.signal
+          });
 
-        if (!sessionResponse.ok) {
-          throw new Error(`Failed to get WebRTC session: ${sessionResponse.status}`);
+          clearTimeout(timeoutId);
+          setConnectingToBackend(false);
+          console.log('Backend response received:', sessionResponse.status);
+
+          if (!sessionResponse.ok) {
+            const errorText = await sessionResponse.text();
+            console.error('Backend error response:', errorText);
+            throw new Error(`Failed to get WebRTC session: ${sessionResponse.status} - ${errorText}`);
+          }
+
+          const responseData = await sessionResponse.json();
+          console.log('Session data received:', { session_id: responseData.session_id, websocket_url: responseData.websocket_url });
+
+          session_id = responseData.session_id;
+          websocket_url = responseData.websocket_url;
+          ephemeral_token = responseData.ephemeral_token;
+        } catch (fetchError) {
+          clearTimeout(timeoutId);
+          setConnectingToBackend(false);
+          if (fetchError.name === 'AbortError') {
+            throw new Error('Backend request timed out after 2 minutes. Please try again.');
+          }
+          throw fetchError;
         }
-        const { session_id, websocket_url, ephemeral_token } = await sessionResponse.json();
 
         // 3. Connect to OpenAI's Realtime API via WebSocket with authentication
         // Browser WebSocket API doesn't support custom headers, so we use protocols
