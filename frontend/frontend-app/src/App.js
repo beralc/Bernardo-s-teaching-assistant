@@ -1916,8 +1916,8 @@ import { supabase } from "./supabaseClient";
         )}
 
         {!loadingUsage && usageRemaining === -1 && (
-          <div className="bg-purple-100 dark:bg-purple-900/30 border border-purple-300 dark:border-purple-800 rounded-xl p-3">
-            <span className="text-sm font-semibold text-purple-800 dark:text-purple-200">
+          <div className="bg-indigo-100 dark:bg-indigo-900/30 border-2 border-indigo-400 dark:border-indigo-700 rounded-xl p-3">
+            <span className="text-sm font-bold text-indigo-900 dark:text-indigo-100">
               ✨ Unlimited voice conversations {isAdmin ? '(Admin)' : `(${TIER_LIMITS[userTier].name} tier)`}
             </span>
           </div>
@@ -1974,8 +1974,8 @@ import { supabase } from "./supabaseClient";
           <section aria-label="Listening to your speech" className="flex flex-col gap-6 h-full">
               {/* Usage reminder banner while listening */}
               {isAdmin ? (
-                <div className="bg-purple-100 dark:bg-purple-900/30 border border-purple-300 dark:border-purple-800 rounded-xl p-2">
-                  <p className="text-xs text-center text-purple-800 dark:text-purple-200">
+                <div className="bg-indigo-100 dark:bg-indigo-900/30 border-2 border-indigo-400 dark:border-indigo-700 rounded-xl p-2">
+                  <p className="text-xs text-center font-bold text-indigo-900 dark:text-indigo-100">
                     ✨ Unlimited (Admin) • Time: {formatElapsedTime(elapsedSeconds)}
                   </p>
                 </div>
@@ -2577,11 +2577,11 @@ import { supabase } from "./supabaseClient";
 
         console.log(`Found ${sessions.length} sessions to export`);
 
-        // Fetch user profiles for all sessions
+        // Fetch user profiles for all sessions (FULL profile data)
         const userIds = [...new Set(sessions.map(s => s.user_id))];
         const { data: profiles, error: profilesError } = await supabase
           .from('profiles')
-          .select('id, name, surname')
+          .select('id, name, surname, age, native_language, country, english_level, tier, created_at, is_admin')
           .in('id', userIds);
 
         if (profilesError) {
@@ -2610,19 +2610,31 @@ import { supabase } from "./supabaseClient";
 
         console.log(`Found ${messages?.length || 0} messages to export`);
 
-        // Create export data
+        // Create export data with FULL user profiles
         const exportData = sessions.map(session => {
           const sessionMessages = messages?.filter(m => m.session_id === session.id) || [];
           const userProfile = profileMap[session.user_id];
           return {
             session_id: session.id,
-            user_id: session.user_id,
-            user_name: userProfile ? `${userProfile.name || ''} ${userProfile.surname || ''}`.trim() : 'Unknown',
-            started_at: session.started_at,
-            ended_at: session.ended_at,
-            duration_minutes: session.duration_minutes,
-            topic: session.topic,
-            messages: sessionMessages.map(m => ({
+            session_info: {
+              started_at: session.started_at,
+              ended_at: session.ended_at,
+              duration_minutes: session.duration_minutes,
+              topic: session.topic
+            },
+            user_profile: {
+              user_id: session.user_id,
+              name: userProfile?.name || '',
+              surname: userProfile?.surname || '',
+              age: userProfile?.age || null,
+              native_language: userProfile?.native_language || '',
+              country: userProfile?.country || '',
+              english_level: userProfile?.english_level || '',
+              tier: userProfile?.tier || '',
+              is_admin: userProfile?.is_admin || false,
+              account_created: userProfile?.created_at || ''
+            },
+            conversation: sessionMessages.map(m => ({
               role: m.role,
               content: m.content,
               timestamp: m.created_at
@@ -2853,10 +2865,10 @@ import { supabase } from "./supabaseClient";
                 <button
                   onClick={exportConversations}
                   disabled={exporting || !exportStartDate || !exportEndDate}
-                  className={`px-6 py-3 rounded-xl font-semibold transition ${
+                  className={`px-6 py-3 rounded-xl font-bold text-lg transition ${
                     exporting || !exportStartDate || !exportEndDate
-                      ? 'bg-gray-300 dark:bg-gray-700 cursor-not-allowed'
-                      : 'bg-green-600 hover:bg-green-700 text-white'
+                      ? 'bg-gray-300 dark:bg-gray-700 text-gray-600 dark:text-gray-400 cursor-not-allowed'
+                      : 'bg-green-600 hover:bg-green-700 text-white shadow-lg hover:shadow-xl'
                   }`}
                 >
                   {exporting ? 'Exporting...' : 'Export JSON'}
