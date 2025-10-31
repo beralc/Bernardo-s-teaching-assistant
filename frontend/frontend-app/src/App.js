@@ -2483,7 +2483,7 @@ import { supabase } from "./supabaseClient";
       setLoadingConversations(true);
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, name, surname, email, created_at')
+        .select('id, name, surname, created_at')
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -2544,7 +2544,7 @@ import { supabase } from "./supabaseClient";
         // Fetch all sessions in date range
         const { data: sessions, error: sessionsError } = await supabase
           .from('conversation_sessions')
-          .select('*, profiles(name, surname, email)')
+          .select('*, profiles(name, surname)')
           .gte('started_at', exportStartDate)
           .lte('started_at', exportEndDate + 'T23:59:59')
           .order('started_at', { ascending: true });
@@ -2566,8 +2566,8 @@ import { supabase } from "./supabaseClient";
           const sessionMessages = messages.filter(m => m.session_id === session.id);
           return {
             session_id: session.id,
+            user_id: session.user_id,
             user_name: `${session.profiles?.name || ''} ${session.profiles?.surname || ''}`.trim(),
-            user_email: session.profiles?.email || '',
             started_at: session.started_at,
             ended_at: session.ended_at,
             duration_minutes: session.duration_minutes,
@@ -2836,7 +2836,6 @@ import { supabase } from "./supabaseClient";
                       <p className={`font-semibold ${fontSizes.lg}`}>
                         {user.name} {user.surname}
                       </p>
-                      <p className={`text-sm ${subtleText}`}>{user.email}</p>
                       <p className={`text-xs ${subtleText}`}>
                         Joined: {new Date(user.created_at).toLocaleDateString()}
                       </p>
