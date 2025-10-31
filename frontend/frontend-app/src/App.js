@@ -1604,13 +1604,16 @@ import { supabase } from "./supabaseClient";
             setLiveTranscript("Error occurred. Please try again.");
 
           } else if (data.type === 'input_audio_buffer.speech_started') {
-            // User started speaking - interrupt any playing audio
-            console.log("User started speaking - interrupting AI");
-            // Stop playing any queued audio
-            audioQueueRef.current = [];
-            isPlayingRef.current = false;
-            nextPlayTimeRef.current = 0; // Reset playback timing
-            // Clear the live transcript to show we're listening to user
+            // User started speaking - interrupt AI only if it's actually playing
+            console.log("User started speaking");
+            // Only clear audio if there's something to interrupt
+            if (audioQueueRef.current.length > 0 || isPlayingRef.current) {
+              console.log("Interrupting AI audio playback");
+              audioQueueRef.current = [];
+              isPlayingRef.current = false;
+              nextPlayTimeRef.current = 0; // Reset playback timing
+            }
+            // Show we're listening to user
             setLiveTranscript("Listening...");
 
           } else if (data.type === 'input_audio_buffer.speech_stopped') {
@@ -1621,11 +1624,8 @@ import { supabase } from "./supabaseClient";
           } else if (data.type === 'response.cancelled') {
             // Response was cancelled (due to interruption)
             console.log("Response cancelled (interrupted)");
-            // Clear any partial response
+            // Clear any partial response text (audio already cleared by speech_started)
             currentResponseTextRef.current = '';
-            audioQueueRef.current = [];
-            isPlayingRef.current = false;
-            nextPlayTimeRef.current = 0; // Reset playback timing
 
           } else if (data.type === 'conversation.item.truncated') {
             // Conversation item was truncated due to interruption
