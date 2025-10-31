@@ -974,6 +974,8 @@ import { supabase } from "./supabaseClient";
       const [message, setMessage] = useState('');
       const [invitationCode, setInvitationCode] = useState('');
       const [validatingCode, setValidatingCode] = useState(false);
+      const [showConfirmation, setShowConfirmation] = useState(false);
+      const [premiumDays, setPremiumDays] = useState(0);
 
       // Profile fields for signup
       const [name, setName] = useState('');
@@ -1074,12 +1076,11 @@ import { supabase } from "./supabaseClient";
                       console.error('Error updating profile:', profileError);
                   }
 
-                  // Show success message with tier info
-                  if (useCodeData.grants_premium) {
-                      setMessage(`Success! Check your email for confirmation. You have ${useCodeData.premium_duration_days} days of premium access!`);
-                  } else {
-                      setMessage('Success! Check your email for the confirmation link.');
-                  }
+                  // Show confirmation page
+                  setPremiumDays(useCodeData.grants_premium ? useCodeData.premium_duration_days : 0);
+                  setShowConfirmation(true);
+                  setLoading(false);
+                  return;
               }
           } else {
               // Login
@@ -1094,6 +1095,52 @@ import { supabase } from "./supabaseClient";
           setLoading(false);
       };
 
+      // Show confirmation page after successful signup
+      if (showConfirmation) {
+          return (
+              <div className="bg-gradient-to-br from-green-50 to-blue-50 text-gray-900 min-h-screen flex flex-col justify-center items-center text-center p-8">
+                  <div className="max-w-2xl w-full bg-white rounded-3xl shadow-2xl p-12">
+                      <div className="mx-auto w-32 h-32 mb-8 bg-green-100 rounded-full flex items-center justify-center">
+                          <span className="text-6xl">📧</span>
+                      </div>
+                      <h1 className="text-5xl font-extrabold mb-6 text-green-700">Check Your Email!</h1>
+                      <p className="text-2xl text-gray-700 mb-8 leading-relaxed">
+                          We've sent a confirmation link to <strong className="text-green-600">{email}</strong>
+                      </p>
+
+                      <div className="bg-blue-50 border-2 border-blue-300 rounded-2xl p-6 mb-8">
+                          <p className="text-lg text-gray-800 font-semibold mb-4">📬 Next Steps:</p>
+                          <ol className="text-left text-lg text-gray-700 space-y-3 ml-4">
+                              <li>1️⃣ Open your email inbox</li>
+                              <li>2️⃣ Look for an email from Bernardo's English Helper</li>
+                              <li>3️⃣ Click the confirmation link</li>
+                              <li>4️⃣ Come back here and log in!</li>
+                          </ol>
+                      </div>
+
+                      {premiumDays > 0 && (
+                          <div className="bg-yellow-50 border-2 border-yellow-400 rounded-2xl p-6 mb-8">
+                              <p className="text-xl font-bold text-yellow-800">
+                                  🎉 You have <span className="text-2xl text-yellow-600">{premiumDays} days</span> of premium access!
+                              </p>
+                          </div>
+                      )}
+
+                      <p className="text-gray-500 text-sm mb-6">
+                          Didn't receive the email? Check your spam folder or contact support.
+                      </p>
+
+                      <button
+                          onClick={() => setShowConfirmation(false)}
+                          className="px-8 py-4 bg-green-600 hover:bg-green-700 text-white text-xl font-bold rounded-xl shadow-lg transition"
+                      >
+                          Back to Login
+                      </button>
+                  </div>
+              </div>
+          );
+      }
+
       return (
           <div className="bg-gray-50 text-gray-900 min-h-screen flex flex-col justify-center items-center text-center p-8">
               <div className="max-w-md w-full">
@@ -1102,7 +1149,7 @@ import { supabase } from "./supabaseClient";
                   </div>
                   <h1 className="text-4xl font-bold mb-4">Welcome to Bernardo's English Helper</h1>
                   <p className="text-xl text-gray-600 mb-8">A safe and friendly space to practice speaking English at your own pace.</p>
-                  
+
                   <form onSubmit={handleAuth} className="flex flex-col gap-4 text-left">
                       <input
                           type="email"
