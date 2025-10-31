@@ -1282,6 +1282,7 @@ import { supabase } from "./supabaseClient";
     const currentResponseTextRef = useRef(''); // Accumulate bot response text
     const [liveTranscript, setLiveTranscript] = useState("Assistant's response will appear here...");
     const hasAutoStartedRef = useRef(false); // Track if we've auto-started for this topic
+    const nextPlayTimeRef = useRef(0); // Track when to play next audio chunk for seamless playback
     const autoStartRequestedRef = useRef(false); // Track if auto-start was requested
 
     // Load usage info on mount
@@ -1384,12 +1385,14 @@ import { supabase } from "./supabaseClient";
       }
     }, []);
 
-    // Function to play queued audio chunks sequentially
+    // Function to play queued audio chunks with seamless scheduling
     const playNextChunk = useCallback(() => {
       if (audioQueueRef.current.length === 0) {
         isPlayingRef.current = false;
         return;
       }
+
+      if (!audioContextRef.current) return;
 
       isPlayingRef.current = true;
       const audioBuffer = audioQueueRef.current.shift();
@@ -1398,11 +1401,22 @@ import { supabase } from "./supabaseClient";
       source.buffer = audioBuffer;
       source.connect(audioContextRef.current.destination);
 
+      // Get current time from audio context
+      const currentTime = audioContextRef.current.currentTime;
+
+      // Schedule this chunk to play at the next scheduled time
+      // If nextPlayTime is in the past or 0, start immediately
+      const startTime = Math.max(currentTime, nextPlayTimeRef.current);
+
+      // Update next play time to be right after this chunk finishes
+      nextPlayTimeRef.current = startTime + audioBuffer.duration;
+
       source.onended = () => {
         playNextChunk(); // Play next chunk when this one finishes
       };
 
-      source.start(0);
+      // Start the audio at the scheduled time for seamless playback
+      source.start(startTime);
     }, []);
 
     const startListening = async () => {
@@ -1416,6 +1430,9 @@ import { supabase } from "./supabaseClient";
         // Start timer
         conversationStartTimeRef.current = Date.now();
         setElapsedSeconds(0);
+
+        // Reset audio playback timing for seamless playback
+        nextPlayTimeRef.current = 0;
 
         // Start a new session with the topic
         await startSession(selectedTopic);
@@ -1561,6 +1578,7 @@ import { supabase } from "./supabaseClient";
             // Stop playing any queued audio
             audioQueueRef.current = [];
             isPlayingRef.current = false;
+            nextPlayTimeRef.current = 0; // Reset playback timing
             // Clear the live transcript to show we're listening to user
             setLiveTranscript("Listening...");
 
@@ -1576,6 +1594,7 @@ import { supabase } from "./supabaseClient";
             currentResponseTextRef.current = '';
             audioQueueRef.current = [];
             isPlayingRef.current = false;
+            nextPlayTimeRef.current = 0; // Reset playback timing
 
           } else if (data.type === 'conversation.item.truncated') {
             // Conversation item was truncated due to interruption
