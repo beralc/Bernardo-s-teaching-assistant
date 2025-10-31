@@ -1047,11 +1047,13 @@ import { supabase } from "./supabaseClient";
                       return;
                   }
 
-                  // Note: The use_invitation_code function already updates the profile with tier info
-                  // So we don't need to insert again, just update with user details
+                  // Use UPSERT to handle race condition with trigger
+                  // The trigger creates an empty profile, but we need to ensure it exists
+                  // before updating, so we use upsert (insert with onConflict update)
                   const { error: profileError } = await supabase
                       .from('profiles')
-                      .update({
+                      .upsert({
+                          id: authData.user.id,
                           name,
                           surname,
                           age: age ? parseInt(age) : null,
@@ -1059,8 +1061,9 @@ import { supabase } from "./supabaseClient";
                           country,
                           english_level: englishLevel,
                           updated_at: new Date().toISOString()
-                      })
-                      .eq('id', authData.user.id);
+                      }, {
+                          onConflict: 'id'
+                      });
 
                   if (profileError) {
                       console.error('Error updating profile:', profileError);
