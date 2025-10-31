@@ -2787,14 +2787,14 @@ import { supabase } from "./supabaseClient";
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
-                        <code className={`font-mono font-bold ${fontSizes.lg} px-2 py-1 rounded bg-gray-100 dark:bg-gray-800`}>
+                        <code className={`font-mono font-bold ${fontSizes.lg} px-2 py-1 rounded bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-100`}>
                           {code.code}
                         </code>
-                        <span className={`text-xs px-2 py-1 rounded ${code.tag === 'BETA' ? 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-100' : code.tag === 'FOUNDER' ? 'bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-100' : 'bg-gray-100 dark:bg-gray-800'}`}>
+                        <span className={`text-xs px-2 py-1 rounded ${code.tag === 'BETA' ? 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-100' : code.tag === 'FOUNDER' ? 'bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-100' : 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-100'}`}>
                           {code.tag}
                         </span>
                         {code.grants_premium && (
-                          <span className="text-xs px-2 py-1 rounded bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-100">
+                          <span className="text-xs px-2 py-1 rounded bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-100">
                             Premium {code.premium_duration_days}d
                           </span>
                         )}
