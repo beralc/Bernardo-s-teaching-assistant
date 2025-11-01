@@ -2769,6 +2769,42 @@ import { supabase } from "./supabaseClient";
       }
     };
 
+    const updateUserTier = async (userId, currentTier, userEmail) => {
+      setMessage('');
+
+      try {
+        // Get current user's session token
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          setMessage('Error: Not authenticated');
+          return;
+        }
+
+        // Call backend API
+        const response = await fetch(`${API_BASE_URL}/admin/users/${userId}/tier`, {
+          method: 'PATCH',
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ tier: currentTier })
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'Failed to update tier');
+        }
+
+        setMessage(`Tier updated successfully for ${userEmail}`);
+
+        // Reload users to reflect changes
+        loadAllUsers();
+      } catch (error) {
+        console.error('Error updating tier:', error);
+        setMessage('Error updating tier: ' + error.message);
+      }
+    };
+
     const loadSessionMessages = async (sessionId) => {
       setSelectedSessionId(sessionId);
       setLoadingConversations(true);
@@ -3359,13 +3395,19 @@ import { supabase } from "./supabaseClient";
                             <p className={fontSizes.base}>{user.name} {user.surname}</p>
                           </td>
                           <td className="p-3">
-                            <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                              user.tier === 'unlimited' ? 'bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-100' :
-                              user.tier === 'premium' ? 'bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-100' :
-                              'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100'
-                            }`}>
-                              {user.tier || 'free'}
-                            </span>
+                            <select
+                              value={user.tier || 'free'}
+                              onChange={(e) => updateUserTier(user.id, e.target.value, user.email)}
+                              className={`px-3 py-1 rounded-lg text-xs font-bold border-2 cursor-pointer transition ${
+                                user.tier === 'unlimited' ? 'bg-purple-50 dark:bg-purple-900/30 text-purple-800 dark:text-purple-100 border-purple-300 dark:border-purple-700' :
+                                user.tier === 'premium' ? 'bg-amber-50 dark:bg-amber-900/30 text-amber-800 dark:text-amber-100 border-amber-300 dark:border-amber-700' :
+                                'bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-gray-100 border-gray-300 dark:border-gray-600'
+                              } hover:border-blue-500 dark:hover:border-blue-400`}
+                            >
+                              <option value="free">Free</option>
+                              <option value="premium">Premium</option>
+                              <option value="unlimited">Unlimited</option>
+                            </select>
                           </td>
                           <td className="p-3">
                             {user.is_admin ? (

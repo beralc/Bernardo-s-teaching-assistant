@@ -416,6 +416,51 @@ def admin_reset_password(user_id):
         print(f"Error in admin_reset_password: {e}")
         return jsonify({"error": str(e)}), 500
 
+@app.route("/admin/users/<user_id>/tier", methods=["PATCH"])
+def admin_update_tier(user_id):
+    """
+    Updates a user's tier (requires admin authentication).
+    """
+    try:
+        # Verify admin access
+        auth_header = request.headers.get('Authorization')
+        if not auth_header or not auth_header.startswith('Bearer '):
+            return jsonify({"error": "Unauthorized"}), 401
+
+        user_token = auth_header.split(' ')[1]
+        admin_id, error = verify_admin(user_token)
+        if error:
+            return jsonify({"error": error}), 403 if "Forbidden" in error else 401
+
+        # Get new tier from request
+        data = request.json
+        new_tier = data.get('tier')
+
+        if not new_tier or new_tier not in ['free', 'premium', 'admin']:
+            return jsonify({"error": "Invalid tier. Must be 'free', 'premium', or 'admin'"}), 400
+
+        # Update tier in profiles table
+        headers = {
+            'Authorization': f'Bearer {SUPABASE_SERVICE_KEY}',
+            'apikey': SUPABASE_SERVICE_KEY,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=representation'
+        }
+        update_resp = requests.patch(
+            f'{SUPABASE_URL}/rest/v1/profiles?id=eq.{user_id}',
+            headers=headers,
+            json={'tier': new_tier}
+        )
+
+        if update_resp.status_code not in [200, 204]:
+            return jsonify({"error": "Failed to update tier"}), 500
+
+        return jsonify({"success": True, "tier": new_tier})
+
+    except Exception as e:
+        print(f"Error in admin_update_tier: {e}")
+        return jsonify({"error": str(e)}), 500
+
 if __name__ == "__main__":
     # Get port from environment variable (Render provides this) or default to 5000
     import os
