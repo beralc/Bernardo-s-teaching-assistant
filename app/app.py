@@ -461,6 +461,458 @@ def admin_update_tier(user_id):
         print(f"Error in admin_update_tier: {e}")
         return jsonify({"error": str(e)}), 500
 
+# ============================================================================
+# Can-Do Checklist API Endpoints
+# ============================================================================
+
+@app.route("/users/<user_id>/cando", methods=["GET"])
+def get_user_cando_achievements(user_id):
+    """
+    Get user's Can-Do achievements and progress.
+    Returns achievements grouped by level with progress percentages.
+    """
+    try:
+        # Verify user authentication
+        auth_header = request.headers.get('Authorization')
+        if not auth_header or not auth_header.startswith('Bearer '):
+            return jsonify({"error": "Unauthorized"}), 401
+
+        user_token = auth_header.split(' ')[1]
+
+        # Get authenticated user ID from token
+        headers = {
+            'Authorization': f'Bearer {user_token}',
+            'apikey': SUPABASE_SERVICE_KEY
+        }
+        user_resp = requests.get(f'{SUPABASE_URL}/auth/v1/user', headers=headers)
+        if user_resp.status_code != 200:
+            return jsonify({"error": "Invalid token"}), 401
+
+        auth_user_id = user_resp.json().get('id')
+
+        # Check if user is requesting their own data or is admin
+        if auth_user_id != user_id:
+            # Check if user is admin
+            admin_id, error = verify_admin(user_token)
+            if error:
+                return jsonify({"error": "Forbidden: Can only access your own data"}), 403
+
+        # Get all Can-Do statements
+        headers = {
+            'Authorization': f'Bearer {SUPABASE_SERVICE_KEY}',
+            'apikey': SUPABASE_SERVICE_KEY,
+            'Content-Type': 'application/json'
+        }
+
+        statements_resp = requests.get(
+            f'{SUPABASE_URL}/rest/v1/cando_statements?select=*&order=display_order.asc',
+            headers=headers
+        )
+
+        if statements_resp.status_code != 200:
+            return jsonify({"error": "Failed to fetch Can-Do statements"}), 500
+
+        statements = statements_resp.json()
+
+        # Get user's achievements
+        achievements_resp = requests.get(
+            f'{SUPABASE_URL}/rest/v1/user_cando_achievements?user_id=eq.{user_id}&select=*',
+            headers=headers
+        )
+
+        if achievements_resp.status_code != 200:
+            return jsonify({"error": "Failed to fetch achievements"}), 500
+
+        achievements = achievements_resp.json()
+        achieved_ids = {a['cando_id'] for a in achievements if a.get('admin_approved') != False}
+
+        # Group statements by level and calculate progress
+        levels_data = {}
+        for stmt in statements:
+            level = stmt['level']
+            if level not in levels_data:
+                levels_data[level] = {
+                    'level': level,
+                    'total': 0,
+                    'achieved': 0,
+                    'statements': []
+                }
+
+            is_achieved = stmt['id'] in achieved_ids
+            levels_data[level]['total'] += 1
+            if is_achieved:
+                levels_data[level]['achieved'] += 1
+
+            levels_data[level]['statements'].append({
+                'id': stmt['id'],
+                'descriptor': stmt['descriptor'],
+                'skill_type': stmt['skill_type'],
+                'is_achieved': is_achieved
+            })
+
+        # Calculate percentages
+        for level_data in levels_data.values():
+            total = level_data['total']
+            achieved = level_data['achieved']
+            level_data['percentage'] = round((achieved / total * 100), 1) if total > 0 else 0
+
+        # Order levels
+        level_order = ['A1', 'A2', 'A2+', 'B1', 'B1+', 'B2', 'B2+', 'C1', 'C2']
+        ordered_levels = [levels_data[lvl] for lvl in level_order if lvl in levels_data]
+
+        return jsonify({
+            "user_id": user_id,
+            "levels": ordered_levels
+        })
+
+    except Exception as e:
+        print(f"Error in get_user_cando_achievements: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/analyze_session", methods=["POST"])
+def analyze_session_cando():
+    """
+    Analyze a voice session transcript for Can-Do achievements.
+    Uses GPT-4 to detect which Can-Do statements were demonstrated.
+
+    Request body:
+    {
+        "session_id": "string",
+        "user_id": "uuid",
+        "transcript": "full conversation transcript",
+        "user_level": "A2|B1|B2" (optional, defaults to user's profile level)
+    }
+    """
+    try:
+        # Verify authentication
+        auth_header = request.headers.get('Authorization')
+        if not auth_header or not auth_header.startswith('Bearer '):
+            return jsonify({"error": "Unauthorized"}), 401
+
+        user_token = auth_header.split(' ')[1]
+
+        # Get authenticated user
+        headers = {
+            'Authorization': f'Bearer {user_token}',
+            'apikey': SUPABASE_SERVICE_KEY
+        }
+        user_resp = requests.get(f'{SUPABASE_URL}/auth/v1/user', headers=headers)
+        if user_resp.status_code != 200:
+            return jsonify({"error": "Invalid token"}), 401
+
+        # Get request data
+        data = request.json
+        session_id = data.get('session_id')
+        user_id = data.get('user_id')
+        transcript = data.get('transcript')
+        user_level = data.get('user_level')
+
+        if not all([session_id, user_id, transcript]):
+            return jsonify({"error": "Missing required fields: session_id, user_id, transcript"}), 400
+
+        # If no level provided, get from user profile
+        if not user_level:
+            headers = {
+                'Authorization': f'Bearer {SUPABASE_SERVICE_KEY}',
+                'apikey': SUPABASE_SERVICE_KEY
+            }
+            profile_resp = requests.get(
+                f'{SUPABASE_URL}/rest/v1/profiles?id=eq.{user_id}&select=cefr_level',
+                headers=headers
+            )
+            if profile_resp.status_code == 200 and profile_resp.json():
+                user_level = profile_resp.json()[0].get('cefr_level', 'A2')
+            else:
+                user_level = 'A2'  # Default
+
+        # Get Can-Do statements for user's level and adjacent levels (ZPD)
+        level_map = {'A1': 0, 'A2': 1, 'A2+': 2, 'B1': 3, 'B1+': 4, 'B2': 5, 'B2+': 6, 'C1': 7, 'C2': 8}
+        current_level_idx = level_map.get(user_level, 1)
+        relevant_levels = [k for k, v in level_map.items() if abs(v - current_level_idx) <= 1]
+
+        headers = {
+            'Authorization': f'Bearer {SUPABASE_SERVICE_KEY}',
+            'apikey': SUPABASE_SERVICE_KEY
+        }
+
+        # Build query for relevant levels
+        level_query = ','.join(relevant_levels)
+        statements_resp = requests.get(
+            f'{SUPABASE_URL}/rest/v1/cando_statements?level=in.({level_query})&select=id,level,skill_type,descriptor',
+            headers=headers
+        )
+
+        if statements_resp.status_code != 200:
+            return jsonify({"error": "Failed to fetch Can-Do statements"}), 500
+
+        statements = statements_resp.json()
+
+        # Call GPT-4 for analysis
+        import time
+        start_time = time.time()
+
+        analysis_result = analyze_transcript_with_gpt(transcript, statements, user_level)
+
+        processing_time = int((time.time() - start_time) * 1000)
+
+        # Save analysis log to database
+        headers['Content-Type'] = 'application/json'
+        log_data = {
+            'session_id': session_id,
+            'user_id': user_id,
+            'transcript_length': len(transcript),
+            'detected_achievements': analysis_result.get('detected_achievements', []),
+            'model_used': 'gpt-4o',
+            'prompt_version': 'v1.0',
+            'processing_time_ms': processing_time,
+            'error_occurred': analysis_result.get('error', False),
+            'error_message': analysis_result.get('error_message')
+        }
+
+        requests.post(
+            f'{SUPABASE_URL}/rest/v1/session_cando_analysis',
+            headers=headers,
+            json=log_data
+        )
+
+        # If AI detected achievements, save them to user_cando_achievements
+        detected = analysis_result.get('detected_achievements', [])
+        new_achievements = []
+
+        for achievement in detected:
+            # Check if already achieved
+            check_resp = requests.get(
+                f'{SUPABASE_URL}/rest/v1/user_cando_achievements?user_id=eq.{user_id}&cando_id=eq.{achievement["cando_id"]}',
+                headers=headers
+            )
+
+            if check_resp.status_code == 200 and len(check_resp.json()) == 0:
+                # Not yet achieved - add it
+                achievement_data = {
+                    'user_id': user_id,
+                    'cando_id': achievement['cando_id'],
+                    'session_id': session_id,
+                    'detected_by': 'ai_automatic',
+                    'confidence_score': achievement['confidence'],
+                    'evidence_text': achievement['evidence']
+                }
+
+                insert_resp = requests.post(
+                    f'{SUPABASE_URL}/rest/v1/user_cando_achievements',
+                    headers=headers,
+                    json=achievement_data
+                )
+
+                if insert_resp.status_code in [200, 201]:
+                    new_achievements.append(achievement)
+
+        return jsonify({
+            "success": True,
+            "session_id": session_id,
+            "user_id": user_id,
+            "analyzed_level": user_level,
+            "total_statements_analyzed": len(statements),
+            "detected_achievements": detected,
+            "new_achievements": new_achievements,
+            "processing_time_ms": processing_time
+        })
+
+    except Exception as e:
+        print(f"Error in analyze_session_cando: {e}")
+        return jsonify({"error": str(e)}), 500
+
+def analyze_transcript_with_gpt(transcript, statements, user_level):
+    """
+    Use GPT-4 to analyze transcript and detect Can-Do achievements.
+
+    Returns:
+    {
+        "detected_achievements": [
+            {
+                "cando_id": "uuid",
+                "descriptor": "Can do X",
+                "confidence": 0.85,
+                "evidence": "excerpt from transcript"
+            }
+        ]
+    }
+    """
+    try:
+        # Build prompt for GPT-4
+        statements_text = "\n".join([
+            f"{i+1}. [{stmt['id']}] ({stmt['level']} - {stmt['skill_type']}): {stmt['descriptor']}"
+            for i, stmt in enumerate(statements)
+        ])
+
+        prompt = f"""You are an expert CEFR language assessor analyzing a learner's English conversation transcript.
+
+The learner is at CEFR level: {user_level}
+
+Analyze the following conversation transcript and identify which Can-Do statements the learner has CLEARLY DEMONSTRATED.
+
+IMPORTANT CRITERIA:
+- Only mark as achieved if there is CLEAR, CONCRETE evidence in the transcript
+- The learner must have PRODUCED language (speaking/interaction), not just comprehended
+- Look for actual demonstrations, not potential ability
+- Be conservative - when in doubt, don't mark as achieved
+- Focus on what the learner actually DID, not what they might be able to do
+
+TRANSCRIPT:
+{transcript}
+
+CAN-DO STATEMENTS TO EVALUATE:
+{statements_text}
+
+For each Can-Do statement that was CLEARLY DEMONSTRATED, respond with:
+1. The statement ID (in brackets)
+2. Confidence score (0.0 to 1.0)
+3. A brief excerpt from the transcript showing the evidence (max 100 words)
+
+Respond in JSON format:
+{{
+  "detected_achievements": [
+    {{
+      "cando_id": "uuid-here",
+      "confidence": 0.85,
+      "evidence": "Brief excerpt showing clear demonstration..."
+    }}
+  ]
+}}
+
+If no statements were clearly demonstrated, return an empty array."""
+
+        # Call GPT-4
+        response = openai.ChatCompletion.create(
+            model="gpt-4o",
+            messages=[
+                {"role": "system", "content": "You are an expert CEFR language assessor. Respond only in valid JSON format."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.3,
+            max_tokens=2000
+        )
+
+        result_text = response.choices[0].message.content.strip()
+
+        # Parse JSON response
+        import json
+        result = json.loads(result_text)
+
+        # Add descriptor to each achievement for frontend display
+        stmt_dict = {s['id']: s for s in statements}
+        for achievement in result.get('detected_achievements', []):
+            cando_id = achievement['cando_id']
+            if cando_id in stmt_dict:
+                achievement['descriptor'] = stmt_dict[cando_id]['descriptor']
+                achievement['level'] = stmt_dict[cando_id]['level']
+
+        return result
+
+    except Exception as e:
+        print(f"Error in GPT analysis: {e}")
+        return {
+            "detected_achievements": [],
+            "error": True,
+            "error_message": str(e)
+        }
+
+@app.route("/admin/users/<user_id>/cando/<cando_id>", methods=["POST"])
+def admin_add_cando_achievement(user_id, cando_id):
+    """
+    Manually add a Can-Do achievement for a user (admin only).
+    """
+    try:
+        # Verify admin access
+        auth_header = request.headers.get('Authorization')
+        if not auth_header or not auth_header.startswith('Bearer '):
+            return jsonify({"error": "Unauthorized"}), 401
+
+        user_token = auth_header.split(' ')[1]
+        admin_id, error = verify_admin(user_token)
+        if error:
+            return jsonify({"error": error}), 403 if "Forbidden" in error else 401
+
+        # Get optional notes from request
+        data = request.json or {}
+        admin_notes = data.get('notes', '')
+
+        # Check if already achieved
+        headers = {
+            'Authorization': f'Bearer {SUPABASE_SERVICE_KEY}',
+            'apikey': SUPABASE_SERVICE_KEY,
+            'Content-Type': 'application/json'
+        }
+
+        check_resp = requests.get(
+            f'{SUPABASE_URL}/rest/v1/user_cando_achievements?user_id=eq.{user_id}&cando_id=eq.{cando_id}',
+            headers=headers
+        )
+
+        if check_resp.status_code == 200 and len(check_resp.json()) > 0:
+            return jsonify({"error": "Achievement already exists"}), 400
+
+        # Insert achievement
+        achievement_data = {
+            'user_id': user_id,
+            'cando_id': cando_id,
+            'detected_by': 'admin_manual',
+            'reviewed_by_admin': True,
+            'admin_approved': True,
+            'admin_notes': admin_notes,
+            'reviewed_at': 'now()'
+        }
+
+        insert_resp = requests.post(
+            f'{SUPABASE_URL}/rest/v1/user_cando_achievements',
+            headers=headers,
+            json=achievement_data
+        )
+
+        if insert_resp.status_code not in [200, 201]:
+            return jsonify({"error": "Failed to add achievement"}), 500
+
+        return jsonify({"success": True})
+
+    except Exception as e:
+        print(f"Error in admin_add_cando_achievement: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/admin/users/<user_id>/cando/<cando_id>", methods=["DELETE"])
+def admin_remove_cando_achievement(user_id, cando_id):
+    """
+    Remove a Can-Do achievement for a user (admin only).
+    """
+    try:
+        # Verify admin access
+        auth_header = request.headers.get('Authorization')
+        if not auth_header or not auth_header.startswith('Bearer '):
+            return jsonify({"error": "Unauthorized"}), 401
+
+        user_token = auth_header.split(' ')[1]
+        admin_id, error = verify_admin(user_token)
+        if error:
+            return jsonify({"error": error}), 403 if "Forbidden" in error else 401
+
+        # Delete achievement
+        headers = {
+            'Authorization': f'Bearer {SUPABASE_SERVICE_KEY}',
+            'apikey': SUPABASE_SERVICE_KEY
+        }
+
+        delete_resp = requests.delete(
+            f'{SUPABASE_URL}/rest/v1/user_cando_achievements?user_id=eq.{user_id}&cando_id=eq.{cando_id}',
+            headers=headers
+        )
+
+        if delete_resp.status_code not in [200, 204]:
+            return jsonify({"error": "Failed to delete achievement"}), 500
+
+        return jsonify({"success": True})
+
+    except Exception as e:
+        print(f"Error in admin_remove_cando_achievement: {e}")
+        return jsonify({"error": str(e)}), 500
+
 if __name__ == "__main__":
     # Get port from environment variable (Render provides this) or default to 5000
     import os

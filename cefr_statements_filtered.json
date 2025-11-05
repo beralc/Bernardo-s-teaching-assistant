@@ -1,0 +1,2626 @@
+[
+  {
+    "mode": "Reception",
+    "activity": "Oral comprehension",
+    "scale": "Overall oral comprehension",
+    "level": "B2+",
+    "descriptor": "Can understand standard language or a familiar variety, live or broadcast, on both familiar and unfamiliar topics normally encountered in personal, social, academic or vocational life. Only extreme [auditory/visual] background noise, inadequate discourse structure and/or idiomatic usage influence the ability to understand.",
+    "skill_type": "listening"
+  },
+  {
+    "mode": "Reception",
+    "activity": "Oral comprehension",
+    "scale": "Overall oral comprehension",
+    "level": "B2",
+    "descriptor": "Can understand the main ideas of propositionally and linguistically complex discourse on both concrete and abstract topics delivered in standard language or a familiar variety, including technical discussions in their field of specialisation.",
+    "skill_type": "listening"
+  },
+  {
+    "mode": "Reception",
+    "activity": "Oral comprehension",
+    "scale": "Overall oral comprehension",
+    "level": "B2",
+    "descriptor": "Can follow extended discourse and complex lines of argument, provided the topic is reasonably familiar, and the direction of the argument is signposted by explicit markers.",
+    "skill_type": "listening"
+  },
+  {
+    "mode": "Reception",
+    "activity": "Oral comprehension",
+    "scale": "Overall oral comprehension",
+    "level": "B1+",
+    "descriptor": "Can understand straightforward factual information about common everyday or job-related topics, identifying both general messages and specific details, provided people articulate clearly in a generally familiar variety.",
+    "skill_type": "listening"
+  },
+  {
+    "mode": "Reception",
+    "activity": "Oral comprehension",
+    "scale": "Overall oral comprehension",
+    "level": "B1",
+    "descriptor": "Can understand the main points made in clear standard language or a familiar variety on familiar matters regularly encountered at work, school, leisure, etc., including short narratives. ",
+    "skill_type": "listening"
+  },
+  {
+    "mode": "Reception",
+    "activity": "Oral comprehension",
+    "scale": "Overall oral comprehension",
+    "level": "A2+",
+    "descriptor": "Can understand enough to be able to meet needs of a concrete type, provided people articulate clearly and slowly.",
+    "skill_type": "listening"
+  },
+  {
+    "mode": "Reception",
+    "activity": "Oral comprehension",
+    "scale": "Overall oral comprehension",
+    "level": "A2",
+    "descriptor": "Can understand phrases and expressions related to areas of most immediate priority (e.g. very basic personal and family information, shopping, local geography, employment), provided people articulate clearly and slowly.",
+    "skill_type": "listening"
+  },
+  {
+    "mode": "Reception",
+    "activity": "Oral comprehension",
+    "scale": "Overall oral comprehension",
+    "level": "A1",
+    "descriptor": "Can follow language which is very slow and carefully articulated, with long pauses for them to assimilate meaning.",
+    "skill_type": "listening"
+  },
+  {
+    "mode": "Reception",
+    "activity": "Oral comprehension",
+    "scale": "Overall oral comprehension",
+    "level": "A1",
+    "descriptor": "Can recognise concrete information (e.g. places and times) on familiar topics encountered in everyday life, provided it is delivered slowly and clearly.",
+    "skill_type": "listening"
+  },
+  {
+    "mode": "Reception",
+    "activity": "Oral comprehension",
+    "scale": "Understanding conversation between other people",
+    "level": "B2+",
+    "descriptor": "Can keep up with an animated conversation between proficient users of the target language.",
+    "skill_type": "listening"
+  },
+  {
+    "mode": "Reception",
+    "activity": "Oral comprehension",
+    "scale": "Understanding conversation between other people",
+    "level": "B2",
+    "descriptor": "Can with some effort catch much of what is said around them, but may find it difficult to participate effectively in discussion with several users of the target language who do not modify their language in any way.",
+    "skill_type": "listening"
+  },
+  {
+    "mode": "Reception",
+    "activity": "Oral comprehension",
+    "scale": "Understanding conversation between other people",
+    "level": "B2",
+    "descriptor": "Can identify the main reasons for and against an argument or idea in a discussion conducted in clear standard language or a familiar variety.",
+    "skill_type": "listening"
+  },
+  {
+    "mode": "Reception",
+    "activity": "Oral comprehension",
+    "scale": "Understanding conversation between other people",
+    "level": "B2",
+    "descriptor": "Can follow chronological sequence in extended informal discourse, e.g. in a story or anecdote.",
+    "skill_type": "listening"
+  },
+  {
+    "mode": "Reception",
+    "activity": "Oral comprehension",
+    "scale": "Understanding conversation between other people",
+    "level": "B1+",
+    "descriptor": "Can follow much of everyday conversation and discussion, provided it is clearly articulated in standard language or in a familiar variety.",
+    "skill_type": "listening"
+  },
+  {
+    "mode": "Reception",
+    "activity": "Oral comprehension",
+    "scale": "Understanding conversation between other people",
+    "level": "B1",
+    "descriptor": "Can generally follow the main points of extended discussion around them, provided it is clearly articulated in standard language or a familiar variety.",
+    "skill_type": "listening"
+  },
+  {
+    "mode": "Reception",
+    "activity": "Oral comprehension",
+    "scale": "Understanding conversation between other people",
+    "level": "A2+",
+    "descriptor": "Can generally identify the topic of discussion around them when it is conducted slowly and clearly.",
+    "skill_type": "listening"
+  },
+  {
+    "mode": "Reception",
+    "activity": "Oral comprehension",
+    "scale": "Understanding conversation between other people",
+    "level": "A2+",
+    "descriptor": "Can recognise when people agree and disagree in a conversation conducted slowly and clearly.",
+    "skill_type": "listening"
+  },
+  {
+    "mode": "Reception",
+    "activity": "Oral comprehension",
+    "scale": "Understanding conversation between other people",
+    "level": "A2",
+    "descriptor": "Can follow in outline short, simple social exchanges, conducted very slowly and clearly.",
+    "skill_type": "listening"
+  },
+  {
+    "mode": "Reception",
+    "activity": "Oral comprehension",
+    "scale": "Understanding conversation between other people",
+    "level": "A1",
+    "descriptor": "Can understand some expressions when people are discussing them, family, school, hobbies or surroundings, provided the delivery is slow and clear.",
+    "skill_type": "listening"
+  },
+  {
+    "mode": "Reception",
+    "activity": "Oral comprehension",
+    "scale": "Understanding conversation between other people",
+    "level": "A1",
+    "descriptor": "Can understand words/signs and short sentences in a simple conversation (e.g. between a customer and a salesperson in a shop), provided people communicate very slowly and very clearly.",
+    "skill_type": "listening"
+  },
+  {
+    "mode": "Reception",
+    "activity": "Oral comprehension",
+    "scale": "Understanding as a member of a live audience",
+    "level": "B2+",
+    "descriptor": "Can follow the essentials of lectures, talks and reports and other forms of academic/professional presentation which are propositionally and linguistically complex.",
+    "skill_type": "listening"
+  },
+  {
+    "mode": "Reception",
+    "activity": "Oral comprehension",
+    "scale": "Understanding as a member of a live audience",
+    "level": "B2+",
+    "descriptor": "Can understand the point of view expressed on topics that are of current interest or that relate to their specialised field, provided the talk is delivered in standard language or a familiar variety.",
+    "skill_type": "listening"
+  },
+  {
+    "mode": "Reception",
+    "activity": "Oral comprehension",
+    "scale": "Understanding as a member of a live audience",
+    "level": "B2",
+    "descriptor": "Can follow complex lines of argument in a clearly articulated lecture, provided the topic is reasonably familiar.",
+    "skill_type": "listening"
+  },
+  {
+    "mode": "Reception",
+    "activity": "Oral comprehension",
+    "scale": "Understanding as a member of a live audience",
+    "level": "B2",
+    "descriptor": "Can distinguish main themes from asides, provided the lecture or talk is delivered in standard language or a familiar variety.",
+    "skill_type": "listening"
+  },
+  {
+    "mode": "Reception",
+    "activity": "Oral comprehension",
+    "scale": "Understanding as a member of a live audience",
+    "level": "B2",
+    "descriptor": "Can recognise the point of view expressed and distinguish this from facts being reporting.",
+    "skill_type": "listening"
+  },
+  {
+    "mode": "Reception",
+    "activity": "Oral comprehension",
+    "scale": "Understanding as a member of a live audience",
+    "level": "B1+",
+    "descriptor": "Can follow a lecture or talk within their own field, provided the subject matter is familiar and the presentation straightforward and clearly structured.",
+    "skill_type": "listening"
+  },
+  {
+    "mode": "Reception",
+    "activity": "Oral comprehension",
+    "scale": "Understanding as a member of a live audience",
+    "level": "B1+",
+    "descriptor": "Can distinguish between main ideas and supporting details in standard lectures on familiar subjects, provided these are delivered in clearly articulated standard language or a familiar variety.",
+    "skill_type": "listening"
+  },
+  {
+    "mode": "Reception",
+    "activity": "Oral comprehension",
+    "scale": "Understanding as a member of a live audience",
+    "level": "B1",
+    "descriptor": "Can follow in outline straightforward short talks on familiar topics, provided these are delivered in clearly articulated standard language or a familiar variety.",
+    "skill_type": "listening"
+  },
+  {
+    "mode": "Reception",
+    "activity": "Oral comprehension",
+    "scale": "Understanding as a member of a live audience",
+    "level": "B1",
+    "descriptor": "Can follow a straightforward conference presentation or demonstration with visual support (e.g. slides, handouts) on a topic or product within their field, understanding explanations given.",
+    "skill_type": "listening"
+  },
+  {
+    "mode": "Reception",
+    "activity": "Oral comprehension",
+    "scale": "Understanding as a member of a live audience",
+    "level": "B1",
+    "descriptor": "Can understand the main points of what is said in a straightforward monologue (e.g. a guided tour), provided the delivery is clear and relatively slow.",
+    "skill_type": "listening"
+  },
+  {
+    "mode": "Reception",
+    "activity": "Oral comprehension",
+    "scale": "Understanding as a member of a live audience",
+    "level": "A2+",
+    "descriptor": "Can follow the general outline of a demonstration or presentation on a familiar or predictable topic, where the message is expressed slowly and clearly in simple language and there is visual support (e.g. slides, handouts).",
+    "skill_type": "listening"
+  },
+  {
+    "mode": "Reception",
+    "activity": "Oral comprehension",
+    "scale": "Understanding as a member of a live audience",
+    "level": "A2",
+    "descriptor": "Can follow a very simple, well-structured presentation or demonstration, provided it is illustrated with slides, concrete examples or diagrams, it is delivered slowly and clearly with repetition, and the topic is familiar.",
+    "skill_type": "listening"
+  },
+  {
+    "mode": "Reception",
+    "activity": "Oral comprehension",
+    "scale": "Understanding as a member of a live audience",
+    "level": "A2",
+    "descriptor": "Can understand the outline of simple information given in a predictable situation, such as on a guided tour (e.g. “This is where the President lives”).",
+    "skill_type": "listening"
+  },
+  {
+    "mode": "Reception",
+    "activity": "Oral comprehension",
+    "scale": "Understanding as a member of a live audience",
+    "level": "A1",
+    "descriptor": "Can understand in outline very simple information being explained in a predictable situation like a guided tour, provided the delivery is very slow and clear and that there are long pauses from time to time.",
+    "skill_type": "listening"
+  },
+  {
+    "mode": "Reception",
+    "activity": "Oral comprehension",
+    "scale": "Understanding announcements and instructions",
+    "level": "B2",
+    "descriptor": "Can understand announcements and messages on concrete and abstract topics delivered in standard language or a familiar variety at normal speed.",
+    "skill_type": "listening"
+  },
+  {
+    "mode": "Reception",
+    "activity": "Oral comprehension",
+    "scale": "Understanding announcements and instructions",
+    "level": "B2",
+    "descriptor": "Can understand detailed instructions well enough to be able to follow them successfully.",
+    "skill_type": "listening"
+  },
+  {
+    "mode": "Reception",
+    "activity": "Oral comprehension",
+    "scale": "Understanding announcements and instructions",
+    "level": "B1",
+    "descriptor": "Can understand simple technical information, such as operating instructions for everyday equipment.",
+    "skill_type": "listening"
+  },
+  {
+    "mode": "Reception",
+    "activity": "Oral comprehension",
+    "scale": "Understanding announcements and instructions",
+    "level": "B1",
+    "descriptor": "Can follow detailed directions.",
+    "skill_type": "listening"
+  },
+  {
+    "mode": "Reception",
+    "activity": "Oral comprehension",
+    "scale": "Understanding announcements and instructions",
+    "level": "B1",
+    "descriptor": "Can understand public announcements at airports, stations and on planes, buses and trains, provided these are clearly articulated with minimum interference from [auditory/visual] background noise.",
+    "skill_type": "listening"
+  },
+  {
+    "mode": "Reception",
+    "activity": "Oral comprehension",
+    "scale": "Understanding announcements and instructions",
+    "level": "A2+",
+    "descriptor": "Can understand and follow a series of instructions for familiar everyday activities such as sports, cooking, etc., provided they are delivered slowly and clearly.",
+    "skill_type": "listening"
+  },
+  {
+    "mode": "Reception",
+    "activity": "Oral comprehension",
+    "scale": "Understanding announcements and instructions",
+    "level": "A2+",
+    "descriptor": "Can understand straightforward announcements (e.g. of a cinema programme or sports event, that a train has been delayed), provided the delivery is slow and clear.",
+    "skill_type": "listening"
+  },
+  {
+    "mode": "Reception",
+    "activity": "Oral comprehension",
+    "scale": "Understanding announcements and instructions",
+    "level": "A2",
+    "descriptor": "Can catch the main point in short, clear, simple messages and announcements.",
+    "skill_type": "listening"
+  },
+  {
+    "mode": "Reception",
+    "activity": "Oral comprehension",
+    "scale": "Understanding announcements and instructions",
+    "level": "A2",
+    "descriptor": "Can understand simple directions on how to get from X to Y, by foot or public transport.",
+    "skill_type": "listening"
+  },
+  {
+    "mode": "Reception",
+    "activity": "Oral comprehension",
+    "scale": "Understanding announcements and instructions",
+    "level": "A2",
+    "descriptor": "Can understand basic instructions on times, dates and numbers, etc., and on routine tasks and assignments to be carried out.",
+    "skill_type": "listening"
+  },
+  {
+    "mode": "Reception",
+    "activity": "Oral comprehension",
+    "scale": "Understanding announcements and instructions",
+    "level": "A1",
+    "descriptor": "Can understand instructions addressed carefully and slowly to them and follow short, simple directions.",
+    "skill_type": "listening"
+  },
+  {
+    "mode": "Reception",
+    "activity": "Oral comprehension",
+    "scale": "Understanding announcements and instructions",
+    "level": "A1",
+    "descriptor": "Can understand when someone tells them slowly and clearly where something is, provided the object is in the immediate environment.",
+    "skill_type": "listening"
+  },
+  {
+    "mode": "Reception",
+    "activity": "Oral comprehension",
+    "scale": "Understanding announcements and instructions",
+    "level": "A1",
+    "descriptor": "Can understand figures, prices and times given slowly and clearly in an announcement by loudspeaker, e.g. at a railway station or in a shop.",
+    "skill_type": "listening"
+  },
+  {
+    "mode": "Reception",
+    "activity": "Oral comprehension",
+    "scale": "Understanding audio (or signed) media and recordings",
+    "level": "B2+",
+    "descriptor": "Can understand recordings in the standard form of the language likely to be encountered in social, professional or academic life and identify viewpoints and attitudes as well as the information content.",
+    "skill_type": "listening"
+  },
+  {
+    "mode": "Reception",
+    "activity": "Oral comprehension",
+    "scale": "Understanding audio (or signed) media and recordings",
+    "level": "B2",
+    "descriptor": "Can understand most documentaries and most other recorded or broadcast material delivered in the standard form of the language and can identify mood, attitude, etc.",
+    "skill_type": "listening"
+  },
+  {
+    "mode": "Reception",
+    "activity": "Oral comprehension",
+    "scale": "Understanding audio (or signed) media and recordings",
+    "level": "B1+",
+    "descriptor": "Can understand the information content of the majority of recorded or broadcast material on topics of personal interest delivered in clear standard language.",
+    "skill_type": "listening"
+  },
+  {
+    "mode": "Reception",
+    "activity": "Oral comprehension",
+    "scale": "Understanding audio (or signed) media and recordings",
+    "level": "B1",
+    "descriptor": "Can understand the main points of news bulletins and simpler recorded material about familiar subjects delivered relatively slowly and clearly.",
+    "skill_type": "listening"
+  },
+  {
+    "mode": "Reception",
+    "activity": "Oral comprehension",
+    "scale": "Understanding audio (or signed) media and recordings",
+    "level": "B1",
+    "descriptor": "Can understand the main points and important details in stories and other narratives (e.g. a description of a holiday), provided the delivery is slow and clear.",
+    "skill_type": "listening"
+  },
+  {
+    "mode": "Reception",
+    "activity": "Oral comprehension",
+    "scale": "Understanding audio (or signed) media and recordings",
+    "level": "A2+",
+    "descriptor": "Can understand the most important information contained in short commercials concerning goods and services of interest (e.g. CDs, video games, travel).",
+    "skill_type": "listening"
+  },
+  {
+    "mode": "Reception",
+    "activity": "Oral comprehension",
+    "scale": "Understanding audio (or signed) media and recordings",
+    "level": "A2+",
+    "descriptor": "Can understand in an interview what people say they do in their free time, what they particularly like doing and what they do not like doing, provided they speak slowly and clearly.",
+    "skill_type": "listening"
+  },
+  {
+    "mode": "Reception",
+    "activity": "Oral comprehension",
+    "scale": "Understanding audio (or signed) media and recordings",
+    "level": "A2",
+    "descriptor": "Can understand and extract the essential information from short, recorded passages dealing with predictable everyday matters which are delivered slowly and clearly.",
+    "skill_type": "listening"
+  },
+  {
+    "mode": "Reception",
+    "activity": "Oral comprehension",
+    "scale": "Understanding audio (or signed) media and recordings",
+    "level": "A2",
+    "descriptor": "Can extract important information from short broadcasts (e.g. the weather forecast, concert announcements, sports results), provided people talk clearly.",
+    "skill_type": "listening"
+  },
+  {
+    "mode": "Reception",
+    "activity": "Oral comprehension",
+    "scale": "Understanding audio (or signed) media and recordings",
+    "level": "A2",
+    "descriptor": "Can understand the important points of a story and manage to follow the plot, provided the story is told slowly and clearly.",
+    "skill_type": "listening"
+  },
+  {
+    "mode": "Reception",
+    "activity": "Oral comprehension",
+    "scale": "Understanding audio (or signed) media and recordings",
+    "level": "A1",
+    "descriptor": "Can pick out concrete information (e.g. places and times) from short recordings on familiar everyday topics, provided they are delivered very slowly and clearly.",
+    "skill_type": "listening"
+  },
+  {
+    "mode": "Reception",
+    "activity": "Audio-visual comprehension",
+    "scale": "Watching TV, film and video",
+    "level": "B2+",
+    "descriptor": "Can extract the main points from the arguments and discussions in news and current affairs programmes.",
+    "skill_type": "listening"
+  },
+  {
+    "mode": "Reception",
+    "activity": "Audio-visual comprehension",
+    "scale": "Watching TV, film and video",
+    "level": "B2",
+    "descriptor": "Can understand most TV news and current affairs programmes.",
+    "skill_type": "listening"
+  },
+  {
+    "mode": "Reception",
+    "activity": "Audio-visual comprehension",
+    "scale": "Watching TV, film and video",
+    "level": "B2",
+    "descriptor": "Can understand documentaries, live interviews, talk shows, plays and the majority of films in the standard form of the language or a familiar variety.",
+    "skill_type": "listening"
+  },
+  {
+    "mode": "Reception",
+    "activity": "Audio-visual comprehension",
+    "scale": "Watching TV, film and video",
+    "level": "B1+",
+    "descriptor": "Can understand a large part of many TV programmes on topics of personal interest such as interviews, short lectures and news reports when the delivery is relatively slow and clear.",
+    "skill_type": "listening"
+  },
+  {
+    "mode": "Reception",
+    "activity": "Audio-visual comprehension",
+    "scale": "Watching TV, film and video",
+    "level": "B1",
+    "descriptor": "Can follow many films in which visuals and action carry much of the storyline, and which are delivered clearly in straightforward language.",
+    "skill_type": "listening"
+  },
+  {
+    "mode": "Reception",
+    "activity": "Audio-visual comprehension",
+    "scale": "Watching TV, film and video",
+    "level": "B1",
+    "descriptor": "Can catch the main points in TV programmes on familiar topics when the delivery is relatively slow and clear.",
+    "skill_type": "listening"
+  },
+  {
+    "mode": "Reception",
+    "activity": "Audio-visual comprehension",
+    "scale": "Watching TV, film and video",
+    "level": "A2+",
+    "descriptor": "Can identify the main point of TV news items reporting events, accidents, etc. where the visuals support the commentary.",
+    "skill_type": "listening"
+  },
+  {
+    "mode": "Reception",
+    "activity": "Audio-visual comprehension",
+    "scale": "Watching TV, film and video",
+    "level": "A2+",
+    "descriptor": "Can follow a TV commercial or a trailer for or scene from a film, understanding what topic(s) are concerned, provided the images are a great help in understanding and the delivery is clear and relatively slow.",
+    "skill_type": "listening"
+  },
+  {
+    "mode": "Reception",
+    "activity": "Audio-visual comprehension",
+    "scale": "Watching TV, film and video",
+    "level": "A2",
+    "descriptor": "Can follow changes of topic of factual TV news items, and form an idea of the main content.",
+    "skill_type": "listening"
+  },
+  {
+    "mode": "Reception",
+    "activity": "Audio-visual comprehension",
+    "scale": "Watching TV, film and video",
+    "level": "A1",
+    "descriptor": "Can recognise familiar words/signs and phrases and identify the topics in headline news summaries and many of the products in advertisements, by exploiting visual information and general knowledge.",
+    "skill_type": "listening"
+  },
+  {
+    "mode": "Production",
+    "activity": "Oral production",
+    "scale": "Overall oral production",
+    "level": "B2+",
+    "descriptor": "Can give clear, systematically developed descriptions and presentations, with appropriate highlighting of significant points, and relevant supporting detail.",
+    "skill_type": "speaking"
+  },
+  {
+    "mode": "Production",
+    "activity": "Oral production",
+    "scale": "Overall oral production",
+    "level": "B2",
+    "descriptor": "Can give clear, detailed descriptions and presentations on a wide range of subjects related to their field of interest, expanding and supporting ideas with subsidiary points and relevant examples.",
+    "skill_type": "speaking"
+  },
+  {
+    "mode": "Production",
+    "activity": "Oral production",
+    "scale": "Overall oral production",
+    "level": "B1",
+    "descriptor": "Can reasonably fluently sustain a straightforward description of one of a variety of subjects within their field of interest, presenting it as a linear sequence of points.",
+    "skill_type": "speaking"
+  },
+  {
+    "mode": "Production",
+    "activity": "Oral production",
+    "scale": "Overall oral production",
+    "level": "A2",
+    "descriptor": "Can give a simple description or presentation of people, living or working conditions, daily routines. likes/dislikes, etc. as a short series of simple phrases and sentences linked into a list.",
+    "skill_type": "speaking"
+  },
+  {
+    "mode": "Production",
+    "activity": "Oral production",
+    "scale": "Overall oral production",
+    "level": "A1",
+    "descriptor": "Can produce simple, mainly isolated phrases about people and places.",
+    "skill_type": "speaking"
+  },
+  {
+    "mode": "Production",
+    "activity": "Oral production",
+    "scale": "Sustained monologue: describing experience",
+    "level": "B2",
+    "descriptor": "Can give clear, detailed descriptions on a wide range of subjects related to their field of interest.",
+    "skill_type": "speaking"
+  },
+  {
+    "mode": "Production",
+    "activity": "Oral production",
+    "scale": "Sustained monologue: describing experience",
+    "level": "B2",
+    "descriptor": "Can describe the personal significance of events and experiences in detail.",
+    "skill_type": "speaking"
+  },
+  {
+    "mode": "Production",
+    "activity": "Oral production",
+    "scale": "Sustained monologue: describing experience",
+    "level": "B1+",
+    "descriptor": "Can clearly express feelings about something experienced and give reasons to explain those feelings.",
+    "skill_type": "speaking"
+  },
+  {
+    "mode": "Production",
+    "activity": "Oral production",
+    "scale": "Sustained monologue: describing experience",
+    "level": "B1",
+    "descriptor": "Can give straightforward descriptions on a variety of familiar subjects within their field of interest.",
+    "skill_type": "speaking"
+  },
+  {
+    "mode": "Production",
+    "activity": "Oral production",
+    "scale": "Sustained monologue: describing experience",
+    "level": "B1",
+    "descriptor": "Can reasonably fluently relate a straightforward narrative or description as a sequence of points.",
+    "skill_type": "speaking"
+  },
+  {
+    "mode": "Production",
+    "activity": "Oral production",
+    "scale": "Sustained monologue: describing experience",
+    "level": "B1",
+    "descriptor": "Can give detailed accounts of experiences, describing feelings and reactions.",
+    "skill_type": "speaking"
+  },
+  {
+    "mode": "Production",
+    "activity": "Oral production",
+    "scale": "Sustained monologue: describing experience",
+    "level": "B1",
+    "descriptor": "Can relate details of unpredictable occurrences, e.g. an accident.",
+    "skill_type": "speaking"
+  },
+  {
+    "mode": "Production",
+    "activity": "Oral production",
+    "scale": "Sustained monologue: describing experience",
+    "level": "B1",
+    "descriptor": "Can relate the plot of a book or film and describe their reactions.",
+    "skill_type": "speaking"
+  },
+  {
+    "mode": "Production",
+    "activity": "Oral production",
+    "scale": "Sustained monologue: describing experience",
+    "level": "B1",
+    "descriptor": "Can describe dreams, hopes and ambitions.",
+    "skill_type": "speaking"
+  },
+  {
+    "mode": "Production",
+    "activity": "Oral production",
+    "scale": "Sustained monologue: describing experience",
+    "level": "B1",
+    "descriptor": "Can describe events, real or imagined.",
+    "skill_type": "speaking"
+  },
+  {
+    "mode": "Production",
+    "activity": "Oral production",
+    "scale": "Sustained monologue: describing experience",
+    "level": "B1",
+    "descriptor": "Can narrate a story.",
+    "skill_type": "speaking"
+  },
+  {
+    "mode": "Production",
+    "activity": "Oral production",
+    "scale": "Sustained monologue: describing experience",
+    "level": "A2+",
+    "descriptor": "Can tell a story or describe something in a simple list of points.",
+    "skill_type": "speaking"
+  },
+  {
+    "mode": "Production",
+    "activity": "Oral production",
+    "scale": "Sustained monologue: describing experience",
+    "level": "A2+",
+    "descriptor": "Can describe everyday aspects of their environment e.g. people, places, a job or study experience.",
+    "skill_type": "speaking"
+  },
+  {
+    "mode": "Production",
+    "activity": "Oral production",
+    "scale": "Sustained monologue: describing experience",
+    "level": "A2+",
+    "descriptor": "Can give short, basic descriptions of events and activities.",
+    "skill_type": "speaking"
+  },
+  {
+    "mode": "Production",
+    "activity": "Oral production",
+    "scale": "Sustained monologue: describing experience",
+    "level": "A2+",
+    "descriptor": "Can describe plans and arrangements, habits and routines, past activities and personal experiences.",
+    "skill_type": "speaking"
+  },
+  {
+    "mode": "Production",
+    "activity": "Oral production",
+    "scale": "Sustained monologue: describing experience",
+    "level": "A2+",
+    "descriptor": "Can use simple descriptive language to make brief statements about and compare objects and possessions.",
+    "skill_type": "speaking"
+  },
+  {
+    "mode": "Production",
+    "activity": "Oral production",
+    "scale": "Sustained monologue: describing experience",
+    "level": "A2+",
+    "descriptor": "Can explain what they like or dislike about something.",
+    "skill_type": "speaking"
+  },
+  {
+    "mode": "Production",
+    "activity": "Oral production",
+    "scale": "Sustained monologue: describing experience",
+    "level": "A2",
+    "descriptor": "Can describe their family, living conditions, educational background, present or most recent job.",
+    "skill_type": "speaking"
+  },
+  {
+    "mode": "Production",
+    "activity": "Oral production",
+    "scale": "Sustained monologue: describing experience",
+    "level": "A2",
+    "descriptor": "Can describe people, places and possessions in simple terms.",
+    "skill_type": "speaking"
+  },
+  {
+    "mode": "Production",
+    "activity": "Oral production",
+    "scale": "Sustained monologue: describing experience",
+    "level": "A2",
+    "descriptor": "Can express what they are good at and not so good at (e.g. sports, games, skills, subjects).",
+    "skill_type": "speaking"
+  },
+  {
+    "mode": "Production",
+    "activity": "Oral production",
+    "scale": "Sustained monologue: describing experience",
+    "level": "A2",
+    "descriptor": "Can briefly describe what they plan to do at the weekend or during the holidays.",
+    "skill_type": "speaking"
+  },
+  {
+    "mode": "Production",
+    "activity": "Oral production",
+    "scale": "Sustained monologue: describing experience",
+    "level": "A1",
+    "descriptor": "Can describe themselves, what they do and where they live.",
+    "skill_type": "speaking"
+  },
+  {
+    "mode": "Production",
+    "activity": "Oral production",
+    "scale": "Sustained monologue: describing experience",
+    "level": "A1",
+    "descriptor": "Can describe simple aspects of their everyday life in a series of simple sentences, using simple words/signs and basic phrases, provided they can prepare in advance.",
+    "skill_type": "speaking"
+  },
+  {
+    "mode": "Production",
+    "activity": "Oral production",
+    "scale": "Sustained monologue: giving information",
+    "level": "B2+",
+    "descriptor": "Can communicate complex information and advice on the full range of matters related to their occupational role.",
+    "skill_type": "speaking"
+  },
+  {
+    "mode": "Production",
+    "activity": "Oral production",
+    "scale": "Sustained monologue: giving information",
+    "level": "B2",
+    "descriptor": "Can communicate detailed information reliably.",
+    "skill_type": "speaking"
+  },
+  {
+    "mode": "Production",
+    "activity": "Oral production",
+    "scale": "Sustained monologue: giving information",
+    "level": "B2",
+    "descriptor": "Can give a clear, detailed description of how to carry out a procedure.",
+    "skill_type": "speaking"
+  },
+  {
+    "mode": "Production",
+    "activity": "Oral production",
+    "scale": "Sustained monologue: giving information",
+    "level": "B1+",
+    "descriptor": "Can explain the main points in an idea or problem with reasonable precision.",
+    "skill_type": "speaking"
+  },
+  {
+    "mode": "Production",
+    "activity": "Oral production",
+    "scale": "Sustained monologue: giving information",
+    "level": "B1+",
+    "descriptor": "Can describe how to do something, giving detailed instructions.",
+    "skill_type": "speaking"
+  },
+  {
+    "mode": "Production",
+    "activity": "Oral production",
+    "scale": "Sustained monologue: giving information",
+    "level": "B1",
+    "descriptor": "Can report straightforward factual information on a familiar topic, for example to indicate the nature of a problem or to give detailed directions, provided they can prepare beforehand.",
+    "skill_type": "speaking"
+  },
+  {
+    "mode": "Production",
+    "activity": "Oral production",
+    "scale": "Sustained monologue: giving information",
+    "level": "A2",
+    "descriptor": "Can give simple directions on how to get from X to Y, using basic expressions such as “turn right” and “go straight” along with sequential connectors such as “first”, “then” and “next”.",
+    "skill_type": "speaking"
+  },
+  {
+    "mode": "Production",
+    "activity": "Oral production",
+    "scale": "Sustained monologue: giving information",
+    "level": "A1",
+    "descriptor": "Can name an object and indicate its shape and colour while showing it to others using basic words/signs, phrases and formulaic expressions, provided they can prepare in advance.",
+    "skill_type": "speaking"
+  },
+  {
+    "mode": "Production",
+    "activity": "Oral production",
+    "scale": "Sustained monologue: putting a case (e.g. in a debate)",
+    "level": "B2+",
+    "descriptor": "Can develop an argument systematically with appropriate highlighting of significant points, and relevant supporting detail.",
+    "skill_type": "speaking"
+  },
+  {
+    "mode": "Production",
+    "activity": "Oral production",
+    "scale": "Sustained monologue: putting a case (e.g. in a debate)",
+    "level": "B2",
+    "descriptor": "Can develop a clear argument, expanding and supporting their points of view at some length with subsidiary points and relevant examples.",
+    "skill_type": "speaking"
+  },
+  {
+    "mode": "Production",
+    "activity": "Oral production",
+    "scale": "Sustained monologue: putting a case (e.g. in a debate)",
+    "level": "B2",
+    "descriptor": "Can construct a chain of reasoned argument.",
+    "skill_type": "speaking"
+  },
+  {
+    "mode": "Production",
+    "activity": "Oral production",
+    "scale": "Sustained monologue: putting a case (e.g. in a debate)",
+    "level": "B2",
+    "descriptor": "Can explain a viewpoint on a topical issue giving the advantages and disadvantages of various options.",
+    "skill_type": "speaking"
+  },
+  {
+    "mode": "Production",
+    "activity": "Oral production",
+    "scale": "Sustained monologue: putting a case (e.g. in a debate)",
+    "level": "B1+",
+    "descriptor": "Can develop an argument well enough to be followed without difficulty most of the time.",
+    "skill_type": "speaking"
+  },
+  {
+    "mode": "Production",
+    "activity": "Oral production",
+    "scale": "Sustained monologue: putting a case (e.g. in a debate)",
+    "level": "B1+",
+    "descriptor": "Can give simple reasons to justify a viewpoint on a familiar topic.",
+    "skill_type": "speaking"
+  },
+  {
+    "mode": "Production",
+    "activity": "Oral production",
+    "scale": "Sustained monologue: putting a case (e.g. in a debate)",
+    "level": "B1",
+    "descriptor": "Can express opinions on subjects relating to everyday life, using simple expressions.",
+    "skill_type": "speaking"
+  },
+  {
+    "mode": "Production",
+    "activity": "Oral production",
+    "scale": "Sustained monologue: putting a case (e.g. in a debate)",
+    "level": "B1",
+    "descriptor": "Can briefly give reasons and explanations for opinions, plans and actions.",
+    "skill_type": "speaking"
+  },
+  {
+    "mode": "Production",
+    "activity": "Oral production",
+    "scale": "Sustained monologue: putting a case (e.g. in a debate)",
+    "level": "B1",
+    "descriptor": "Can explain whether or not they approve of what someone has done and give reasons to justify this opinion.",
+    "skill_type": "speaking"
+  },
+  {
+    "mode": "Production",
+    "activity": "Oral production",
+    "scale": "Sustained monologue: putting a case (e.g. in a debate)",
+    "level": "A2+",
+    "descriptor": "Can explain what they like or dislike about something, why they prefer one thing to another, making simple, direct comparisons.",
+    "skill_type": "speaking"
+  },
+  {
+    "mode": "Production",
+    "activity": "Oral production",
+    "scale": "Sustained monologue: putting a case (e.g. in a debate)",
+    "level": "A2",
+    "descriptor": "Can present their opinion in simple terms, provided interlocutors are patient.",
+    "skill_type": "speaking"
+  },
+  {
+    "mode": "Production",
+    "activity": "Oral production",
+    "scale": "Sustained monologue: putting a case (e.g. in a debate)",
+    "level": "A1",
+    "descriptor": "No descriptors available",
+    "skill_type": "speaking"
+  },
+  {
+    "mode": "Production",
+    "activity": "Oral production",
+    "scale": "Public announcements",
+    "level": "B2",
+    "descriptor": "Can deliver announcements on most general topics with a degree of clarity, fluency and spontaneity which causes no strain or inconvenience to the recipient.",
+    "skill_type": "speaking"
+  },
+  {
+    "mode": "Production",
+    "activity": "Oral production",
+    "scale": "Public announcements",
+    "level": "B1",
+    "descriptor": "Can deliver short, rehearsed announcements on a topic pertinent to everyday occurrences in their field which, despite possible problems with stress and intonation (= non-manuals in a sign language), are nevertheless clearly intelligible.",
+    "skill_type": "speaking"
+  },
+  {
+    "mode": "Production",
+    "activity": "Oral production",
+    "scale": "Public announcements",
+    "level": "A2",
+    "descriptor": "Can deliver very short, rehearsed announcements of predictable, learnt content which are intelligible to recipients who are prepared to concentrate.",
+    "skill_type": "speaking"
+  },
+  {
+    "mode": "Production",
+    "activity": "Oral production",
+    "scale": "Public announcements",
+    "level": "A1",
+    "descriptor": "No descriptors available",
+    "skill_type": "speaking"
+  },
+  {
+    "mode": "Production",
+    "activity": "Oral production",
+    "scale": "Addressing audiences",
+    "level": "B2+",
+    "descriptor": "Can give a clear, systematically developed presentation, with highlighting of significant points, and relevant supporting detail.",
+    "skill_type": "speaking"
+  },
+  {
+    "mode": "Production",
+    "activity": "Oral production",
+    "scale": "Addressing audiences",
+    "level": "B2+",
+    "descriptor": "Can depart spontaneously from a prepared text and follow up interesting points raised by members of the audience, often showing remarkable fluency and ease of expression.",
+    "skill_type": "speaking"
+  },
+  {
+    "mode": "Production",
+    "activity": "Oral production",
+    "scale": "Addressing audiences",
+    "level": "B2",
+    "descriptor": "Can give a clear, prepared presentation, giving reasons in support of or against a particular point of view and giving the advantages and disadvantages of various options.",
+    "skill_type": "speaking"
+  },
+  {
+    "mode": "Production",
+    "activity": "Oral production",
+    "scale": "Addressing audiences",
+    "level": "B2",
+    "descriptor": "Can take a series of follow-up questions with a degree of fluency and spontaneity which poses no strain for either themselves or the audience.",
+    "skill_type": "speaking"
+  },
+  {
+    "mode": "Production",
+    "activity": "Oral production",
+    "scale": "Addressing audiences",
+    "level": "B1+",
+    "descriptor": "Can give a prepared presentation on a familiar topic within their field, outlining similarities and differences (e.g. between products, countries/regions, plans).",
+    "skill_type": "speaking"
+  },
+  {
+    "mode": "Production",
+    "activity": "Oral production",
+    "scale": "Addressing audiences",
+    "level": "B1",
+    "descriptor": "Can give a prepared straightforward presentation on a familiar topic within their field which is clear enough to be followed without difficulty most of the time, and in which the main points are explained with reasonable precision.",
+    "skill_type": "speaking"
+  },
+  {
+    "mode": "Production",
+    "activity": "Oral production",
+    "scale": "Addressing audiences",
+    "level": "B1",
+    "descriptor": "Can take follow-up questions, but may have to ask for repetition if the delivery is rapid.",
+    "skill_type": "speaking"
+  },
+  {
+    "mode": "Production",
+    "activity": "Oral production",
+    "scale": "Addressing audiences",
+    "level": "A2+",
+    "descriptor": "Can give a short, rehearsed presentation on a topic pertinent to their everyday life, and briefly give reasons and explanations for opinions, plans and actions.",
+    "skill_type": "speaking"
+  },
+  {
+    "mode": "Production",
+    "activity": "Oral production",
+    "scale": "Addressing audiences",
+    "level": "A2+",
+    "descriptor": "Can cope with a limited number of straightforward follow-up questions.",
+    "skill_type": "speaking"
+  },
+  {
+    "mode": "Production",
+    "activity": "Oral production",
+    "scale": "Addressing audiences",
+    "level": "A2",
+    "descriptor": "Can give a short, rehearsed, basic presentation on a familiar subject.",
+    "skill_type": "speaking"
+  },
+  {
+    "mode": "Production",
+    "activity": "Oral production",
+    "scale": "Addressing audiences",
+    "level": "A2",
+    "descriptor": "Can answer straightforward follow-up questions if they can ask for repetition and if some help with the formulation of their reply is possible.",
+    "skill_type": "speaking"
+  },
+  {
+    "mode": "Production",
+    "activity": "Oral production",
+    "scale": "Addressing audiences",
+    "level": "A1",
+    "descriptor": "Can use a very short prepared text to deliver a rehearsed statement (e.g. to formally introduce someone, to propose a toast).",
+    "skill_type": "speaking"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Overall oral interaction",
+    "level": "B2+",
+    "descriptor": "Can use the language fluently, accurately and effectively on a wide range of general, academic, vocational or leisure topics, marking clearly the relationships between ideas. Can communicate spontaneously with good grammatical control without much sign of having to restrict what they want to say, adopting a level of formality appropriate to the circumstances.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Overall oral interaction",
+    "level": "B2",
+    "descriptor": "Can interact with a degree of fluency and spontaneity that makes regular interaction, and sustained relationships with users of the target language, quite possible without imposing strain on either party. Can highlight the personal significance of events and experiences, and account for and sustain views clearly by providing relevant explanations and arguments.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Overall oral interaction",
+    "level": "B1+",
+    "descriptor": "Can communicate with some confidence on familiar routine and non-routine matters related to their interests and professional field. Can exchange, check and confirm information, deal with less routine situations and explain why something is a problem. Can express thoughts on more abstract, cultural topics such as films, books, music, etc.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Overall oral interaction",
+    "level": "B1",
+    "descriptor": "Can exploit a wide range of simple language to deal with most situations likely to arise whilst travelling. Can enter unprepared into conversation on familiar topics, and express personal opinions and exchange information on topics that are familiar, of personal interest or pertinent to everyday life (e.g. family, hobbies, work, travel and current events).",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Overall oral interaction",
+    "level": "A2+",
+    "descriptor": "Can interact with reasonable ease in structured situations and short conversations, provided the other person helps if necessary. Can manage simple, routine exchanges without undue effort; can ask and answer questions and exchange ideas and information on familiar topics in predictable everyday situations.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Overall oral interaction",
+    "level": "A2",
+    "descriptor": "Can communicate in simple and routine tasks requiring a simple and direct exchange of information on familiar and routine matters to do with work and free time. Can handle very short social exchanges but is rarely able to understand enough to keep conversation going of their own accord.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Overall oral interaction",
+    "level": "A1",
+    "descriptor": "Can interact in a simple way but communication is totally dependent on repetition at a slower rate, rephrasing and repair. Can ask and answer simple questions, initiate and respond to simple statements in areas of immediate need or on very familiar topics.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Understanding an interlocutor",
+    "level": "B2",
+    "descriptor": "Can understand in detail what is said to them in the standard language or a familiar variety even in a [audially/visually] noisy environment.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Understanding an interlocutor",
+    "level": "B1",
+    "descriptor": "Can follow clearly articulated speech/sign directed at them in everyday conversation, though will sometimes have to ask for repetition of particular words/signs and phrases.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Understanding an interlocutor",
+    "level": "A2+",
+    "descriptor": "Can understand enough to manage simple, routine exchanges without undue effort.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Understanding an interlocutor",
+    "level": "A2+",
+    "descriptor": "Can generally understand clear, standard speech/sign on familiar matters directed at them, provided they can ask for repetition or reformulation from time to time.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Understanding an interlocutor",
+    "level": "A2",
+    "descriptor": "Can understand what is said clearly, slowly and directly to them in simple everyday conversation; can be made to understand, if the interlocutor can take the trouble.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Understanding an interlocutor",
+    "level": "A1",
+    "descriptor": "Can understand everyday expressions aimed at the satisfaction of simple needs of a concrete type, delivered directly to them clearly and slowly, with repetition, by a sympathetic interlocutor.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Understanding an interlocutor",
+    "level": "A1",
+    "descriptor": "Can understand questions and instructions addressed carefully and slowly to them and follow short, simple directions.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Conversation",
+    "level": "B2+",
+    "descriptor": "Can establish a relationship with interlocutors through sympathetic questioning and expressions of agreement plus, if appropriate, comments about third parties or shared conditions.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Conversation",
+    "level": "B2+",
+    "descriptor": "Can indicate reservations and reluctance, state conditions when agreeing to requests or granting permission, and ask for understanding of their own position.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Conversation",
+    "level": "B2",
+    "descriptor": "Can engage in extended conversation on most general topics in a clearly participatory fashion, even in a [audially/visually] noisy environment.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Conversation",
+    "level": "B2",
+    "descriptor": "Can sustain relationships with users of the target language without unintentionally amusing or irritating them or requiring them to behave other than they would with another proficient language user.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Conversation",
+    "level": "B2",
+    "descriptor": "Can convey degrees of emotion and highlight the personal significance of events and experiences.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Conversation",
+    "level": "B1+",
+    "descriptor": "Can start up a conversation and help keep it going by asking people relatively spontaneous questions about a special experience or event, expressing reactions and opinions on familiar subjects.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Conversation",
+    "level": "B1+",
+    "descriptor": "Can have relatively long conversations on subjects of common interest, provided the interlocutor makes an effort to support understanding.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Conversation",
+    "level": "B1",
+    "descriptor": "Can enter unprepared into conversations on familiar topics.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Conversation",
+    "level": "B1",
+    "descriptor": "Can follow clearly articulated language directed at them in everyday conversation, though will sometimes have to ask for repetition of particular words/signs.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Conversation",
+    "level": "B1",
+    "descriptor": "Can maintain a conversation or discussion but may sometimes be difficult to follow when trying to express exactly what they would like to.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Conversation",
+    "level": "B1",
+    "descriptor": "Can express and respond to feelings such as surprise, happiness, sadness, interest and indifference.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Conversation",
+    "level": "A2+",
+    "descriptor": "Can establish social contact (e.g. greetings and farewells, introductions, giving thanks).",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Conversation",
+    "level": "A2+",
+    "descriptor": "Can generally understand clear, standard language on familiar matters directed at them, provided they can ask for repetition or reformulation from time to time.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Conversation",
+    "level": "A2+",
+    "descriptor": "Can participate in short conversations in routine contexts on topics of interest.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Conversation",
+    "level": "A2+",
+    "descriptor": "Can express how they feel in simple terms, and express thanks.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Conversation",
+    "level": "A2+",
+    "descriptor": "Can ask for a favour (e.g. to borrow something), can offer a favour, and can respond if someone asks them to do a favour for them.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Conversation",
+    "level": "A2",
+    "descriptor": "Can handle very short social exchanges but is rarely able to understand enough to keep conversation going of their own accord, though they can be made to understand if the interlocutor will take the trouble.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Conversation",
+    "level": "A2",
+    "descriptor": "Can use simple, everyday, polite forms of greeting and address.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Conversation",
+    "level": "A2",
+    "descriptor": "Can converse in simple language with peers, colleagues or members of a host family, asking questions and understanding answers relating to most routine matters.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Conversation",
+    "level": "A2",
+    "descriptor": "Can make and respond to invitations, suggestions and apologies.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Conversation",
+    "level": "A2",
+    "descriptor": "Can express how they are feeling, using very basic stock expressions.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Conversation",
+    "level": "A2",
+    "descriptor": "Can state what they like and dislike.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Conversation",
+    "level": "A1",
+    "descriptor": "Can understand everyday expressions aimed at the satisfaction of simple needs of a concrete type, delivered directly to them in clear, slow and repeated language by a sympathetic interlocutor.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Conversation",
+    "level": "A1",
+    "descriptor": "Can take part in a simple conversation of a basic factual nature on a predictable topic (e.g. their home country, family, school).",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Conversation",
+    "level": "A1",
+    "descriptor": "Can make an introduction and use basic greeting and leave-taking expressions.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Conversation",
+    "level": "A1",
+    "descriptor": "Can ask how people are and react to news.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Informal discussion (with friends) ",
+    "level": "B2+",
+    "descriptor": "Can keep up with an animated discussion between proficient users of the target language.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Informal discussion (with friends) ",
+    "level": "B2+",
+    "descriptor": "Can express their ideas and opinions with precision, and present and respond to complex lines of argument convincingly.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Informal discussion (with friends) ",
+    "level": "B2",
+    "descriptor": "Can take an active part in informal discussion in familiar contexts, commenting, putting a point of view clearly, evaluating alternative proposals and making and responding to hypotheses.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Informal discussion (with friends) ",
+    "level": "B2",
+    "descriptor": "Can with some effort catch much of what is said around them in discussion, but may find it difficult to participate effectively in discussion with several users of the target language who do not modify their language in any way.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Informal discussion (with friends) ",
+    "level": "B2",
+    "descriptor": "Can account for and sustain their opinions in discussion by providing relevant explanations, arguments and comments.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Informal discussion (with friends) ",
+    "level": "B1+",
+    "descriptor": "Can follow much of what is said around them on general topics, provided interlocutors avoid very idiomatic usage and articulate clearly.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Informal discussion (with friends) ",
+    "level": "B1+",
+    "descriptor": "Can express their thoughts about abstract or cultural topics such as music or films.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Informal discussion (with friends) ",
+    "level": "B1+",
+    "descriptor": "Can explain why something is a problem.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Informal discussion (with friends) ",
+    "level": "B1+",
+    "descriptor": "Can give brief comments on the views of others.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Informal discussion (with friends) ",
+    "level": "B1+",
+    "descriptor": "Can compare and contrast alternatives, discussing what to do, where to go, who or which to choose, etc.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Informal discussion (with friends) ",
+    "level": "B1",
+    "descriptor": "Can generally follow the main points in an informal discussion with friends provided they articulate clearly in standard language or a familiar variety.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Informal discussion (with friends) ",
+    "level": "B1",
+    "descriptor": "Can give or seek personal views and opinions in discussing topics of interest.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Informal discussion (with friends) ",
+    "level": "B1",
+    "descriptor": "Can make their opinions and reactions understood as regards solutions to problems or practical questions of where to go, what to do, or how to organise an event (e.g. an outing).",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Informal discussion (with friends) ",
+    "level": "B1",
+    "descriptor": "Can express beliefs, opinions and agreement and disagreement politely.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Informal discussion (with friends) ",
+    "level": "A2+",
+    "descriptor": "Can generally identify the topic of discussion around them when it is conducted slowly and clearly.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Informal discussion (with friends) ",
+    "level": "A2+",
+    "descriptor": "Can exchange opinions and compare things and people using simple language.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Informal discussion (with friends) ",
+    "level": "A2+",
+    "descriptor": "Can discuss what to do in the evening or at the weekend.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Informal discussion (with friends) ",
+    "level": "A2+",
+    "descriptor": "Can make and respond to suggestions.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Informal discussion (with friends) ",
+    "level": "A2+",
+    "descriptor": "Can agree and disagree with others.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Informal discussion (with friends) ",
+    "level": "A2",
+    "descriptor": "Can discuss everyday practical issues in a simple way when addressed clearly, slowly and directly.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Informal discussion (with friends) ",
+    "level": "A2",
+    "descriptor": "Can discuss what to do, where to go and make arrangements to meet.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Informal discussion (with friends) ",
+    "level": "A2",
+    "descriptor": "Can express opinions in a limited way.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Informal discussion (with friends) ",
+    "level": "A1",
+    "descriptor": "Can exchange likes and dislikes for sports, foods, etc., using a limited repertoire of expressions, when addressed clearly, slowly and directly.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Formal discussion (meetings)",
+    "level": "B2+",
+    "descriptor": "Can keep up with an animated discussion, identifying accurately arguments supporting and opposing points of view.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Formal discussion (meetings)",
+    "level": "B2+",
+    "descriptor": "Can use appropriate technical terminology when discussing their area of specialisation with other specialists.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Formal discussion (meetings)",
+    "level": "B2+",
+    "descriptor": "Can express their ideas and opinions with precision, and present and respond to complex lines of argument convincingly.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Formal discussion (meetings)",
+    "level": "B2",
+    "descriptor": "Can participate actively in routine and non-routine formal discussion.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Formal discussion (meetings)",
+    "level": "B2",
+    "descriptor": "Can follow the discussion on matters related to their field, understand in detail the points given prominence.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Formal discussion (meetings)",
+    "level": "B2",
+    "descriptor": "Can contribute, account for and sustain their opinion, evaluate alternative proposals and make and respond to hypotheses.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Formal discussion (meetings)",
+    "level": "B1+",
+    "descriptor": "Can follow much of what is said that is related to their field, provided interlocutors avoid very idiomatic usage and articulate clearly.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Formal discussion (meetings)",
+    "level": "B1+",
+    "descriptor": "Can put over a point of view clearly, but has difficulty engaging in debate.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Formal discussion (meetings)",
+    "level": "B1",
+    "descriptor": "Can take part in routine formal discussion of familiar subjects which is clearly articulated in the standard form of the language or a familiar variety and which involves the exchange of factual information, receiving instructions or the discussion of solutions to practical problems.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Formal discussion (meetings)",
+    "level": "B1",
+    "descriptor": "Can follow argumentation and discussion on a familiar or predictable topic, provided the points are made in relatively simple language and/or repeated, and opportunity is given for clarification.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Formal discussion (meetings)",
+    "level": "A2+",
+    "descriptor": "Can generally follow changes of topic in formal discussion related to their field which is conducted slowly and clearly.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Formal discussion (meetings)",
+    "level": "A2+",
+    "descriptor": "Can exchange relevant information and give their opinion on practical problems when asked directly, provided they receive some help with formulation and can ask for repetition of key points if necessary.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Formal discussion (meetings)",
+    "level": "A2",
+    "descriptor": "Can express what they think about things when addressed directly in a formal meeting, provided they can ask for repetition of key points if necessary.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Formal discussion (meetings)",
+    "level": "A1",
+    "descriptor": "No descriptors available",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Goal-oriented co-operation (cooking together, discussing a document, organising an event, etc.)",
+    "level": "B2",
+    "descriptor": "Can understand detailed instructions reliably.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Goal-oriented co-operation (cooking together, discussing a document, organising an event, etc.)",
+    "level": "B2",
+    "descriptor": "Can help along the progress of the work by inviting others to join in, express what they think, etc.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Goal-oriented co-operation (cooking together, discussing a document, organising an event, etc.)",
+    "level": "B2",
+    "descriptor": "Can outline an issue or a problem clearly, speculating about causes or consequences, and weighing advantages and disadvantages of different approaches.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Goal-oriented co-operation (cooking together, discussing a document, organising an event, etc.)",
+    "level": "B1+",
+    "descriptor": "Can follow what is said, though they may occasionally have to ask for repetition or clarification if the discussion is rapid or extended.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Goal-oriented co-operation (cooking together, discussing a document, organising an event, etc.)",
+    "level": "B1+",
+    "descriptor": "Can explain why something is a problem, discuss what to do next, and compare and contrast alternatives.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Goal-oriented co-operation (cooking together, discussing a document, organising an event, etc.)",
+    "level": "B1+",
+    "descriptor": "Can give brief comments on the views of others.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Goal-oriented co-operation (cooking together, discussing a document, organising an event, etc.)",
+    "level": "B1",
+    "descriptor": "Can generally follow what is said and, when necessary, repeat back part of what someone has said to confirm mutual understanding.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Goal-oriented co-operation (cooking together, discussing a document, organising an event, etc.)",
+    "level": "B1",
+    "descriptor": "Can make their opinions and reactions understood as regards possible solutions or the question of what to do next, giving brief reasons and explanations.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Goal-oriented co-operation (cooking together, discussing a document, organising an event, etc.)",
+    "level": "B1",
+    "descriptor": "Can invite others to give their views on how to proceed.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Goal-oriented co-operation (cooking together, discussing a document, organising an event, etc.)",
+    "level": "A2+",
+    "descriptor": "Can understand enough to manage simple, routine tasks without undue effort, asking very simply for repetition when they do not understand.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Goal-oriented co-operation (cooking together, discussing a document, organising an event, etc.)",
+    "level": "A2+",
+    "descriptor": "Can discuss what to do next, making and responding to suggestions, and asking for and giving directions.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Goal-oriented co-operation (cooking together, discussing a document, organising an event, etc.)",
+    "level": "A2",
+    "descriptor": "Can indicate when they are following and can be made to understand what is necessary, if the interlocutor takes the trouble.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Goal-oriented co-operation (cooking together, discussing a document, organising an event, etc.)",
+    "level": "A2",
+    "descriptor": "Can communicate in simple and routine tasks using simple phrases to ask for and provide things, to get simple information and to discuss what to do next.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Goal-oriented co-operation (cooking together, discussing a document, organising an event, etc.)",
+    "level": "A1",
+    "descriptor": "Can understand questions and instructions addressed carefully and slowly to them and follow short, simple directions.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Goal-oriented co-operation (cooking together, discussing a document, organising an event, etc.)",
+    "level": "A1",
+    "descriptor": "Can act on basic instructions that involve times, locations, numbers, etc.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Goal-oriented co-operation (cooking together, discussing a document, organising an event, etc.)",
+    "level": "A1",
+    "descriptor": "Can ask people for things, and give people things.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Obtaining goods and services",
+    "level": "B2+",
+    "descriptor": "Can cope linguistically to negotiate a solution to a dispute like an undeserved traffic ticket, financial responsibility for damage in a flat, or blame regarding an accident.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Obtaining goods and services",
+    "level": "B2+",
+    "descriptor": "Can outline a case for compensation, using persuasive language to demand satisfaction and state clearly the limits to any concession they are prepared to make.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Obtaining goods and services",
+    "level": "B2",
+    "descriptor": "Can state requirements and ask detailed questions regarding more complex services, e.g. rental agreements.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Obtaining goods and services",
+    "level": "B2",
+    "descriptor": "Can explain a problem which has arisen and make it clear that the provider of the service/customer must make a concession.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Obtaining goods and services",
+    "level": "B1",
+    "descriptor": "Can deal with most transactions likely to arise while travelling, arranging travel or accommodation, or dealing with authorities during a foreign visit.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Obtaining goods and services",
+    "level": "B1",
+    "descriptor": "Can ask in a shop for an explanation of the difference between two or more products serving the same purpose, in order to make a decision, posing follow-up questions as necessary.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Obtaining goods and services",
+    "level": "B1",
+    "descriptor": "Can cope with less routine situations in shops, post offices, banks, e.g. returning an unsatisfactory purchase.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Obtaining goods and services",
+    "level": "B1",
+    "descriptor": "Can make a complaint.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Obtaining goods and services",
+    "level": "B1",
+    "descriptor": "Can deal with most situations likely to arise when making travel arrangements through an agent or when actually travelling, e.g. asking a passenger where to get off for an unfamiliar destination.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Obtaining goods and services",
+    "level": "A2+",
+    "descriptor": "Can deal with common aspects of everyday living such as travel, lodging, eating and shopping.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Obtaining goods and services",
+    "level": "A2+",
+    "descriptor": "Can interact in predictable everyday situations (e.g. post office, station, shop), using a wide range of simple expressions.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Obtaining goods and services",
+    "level": "A2+",
+    "descriptor": "Can get all the information needed from a tourist office, as long as it is of a straightforward, non-specialised nature.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Obtaining goods and services",
+    "level": "A2",
+    "descriptor": "Can ask for and provide everyday goods and services.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Obtaining goods and services",
+    "level": "A2",
+    "descriptor": "Can get simple information about travel, use public transport (e.g. buses, trains, taxis), ask and give directions, and buy tickets.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Obtaining goods and services",
+    "level": "A2",
+    "descriptor": "Can ask about things and make simple transactions in shops, post offices or banks.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Obtaining goods and services",
+    "level": "A2",
+    "descriptor": "Can give and receive information about quantities, numbers, prices, etc.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Obtaining goods and services",
+    "level": "A2",
+    "descriptor": "Can make simple purchases by stating what is wanted and asking the price.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Obtaining goods and services",
+    "level": "A2",
+    "descriptor": "Can order a meal.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Obtaining goods and services",
+    "level": "A2",
+    "descriptor": "Can point out when something is wrong (e.g. “The food is cold” or “There is no light in my room”).",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Obtaining goods and services",
+    "level": "A2",
+    "descriptor": "Can ask (face-to-face) for a medical appointment and understand the reply. Can indicate the nature of a problem to a health professional, perhaps using gestures and body language.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Obtaining goods and services",
+    "level": "A1",
+    "descriptor": "Can ask people for things and give people things.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Obtaining goods and services",
+    "level": "A1",
+    "descriptor": "Can ask for food and drink using basic expressions.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Obtaining goods and services",
+    "level": "A1",
+    "descriptor": "Can handle numbers, quantities, cost and time.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Information exchange",
+    "level": "B2+",
+    "descriptor": "Can understand and exchange complex information and advice on the full range of matters related to their occupational role.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Information exchange",
+    "level": "B2+",
+    "descriptor": "Can use appropriate technical terminology when exchanging information or discussing their area of specialisation with other specialists.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Information exchange",
+    "level": "B2",
+    "descriptor": "Can pass on detailed information reliably.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Information exchange",
+    "level": "B1+",
+    "descriptor": "Can exchange, check and confirm accumulated factual information on familiar routine and non-routine matters within their field with some confidence.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Information exchange",
+    "level": "B1+",
+    "descriptor": "Can summarise and give their opinion about a short story, article, talk, discussion, interview or documentary and answer further questions of detail.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Information exchange",
+    "level": "B1",
+    "descriptor": "Can find out and pass on straightforward factual information.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Information exchange",
+    "level": "B1",
+    "descriptor": "Can ask for and follow detailed directions.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Information exchange",
+    "level": "B1",
+    "descriptor": "Can obtain more detailed information.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Information exchange",
+    "level": "B1",
+    "descriptor": "Can offer advice on simple matters within their field of experience.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Information exchange",
+    "level": "A2+",
+    "descriptor": "Can understand enough to manage simple, routine exchanges without undue effort.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Information exchange",
+    "level": "A2+",
+    "descriptor": "Can deal with practical everyday demands: finding out and passing on straightforward factual information.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Information exchange",
+    "level": "A2+",
+    "descriptor": "Can ask and answer questions about habits and routines.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Information exchange",
+    "level": "A2+",
+    "descriptor": "Can ask and answer questions about pastimes and past activities.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Information exchange",
+    "level": "A2+",
+    "descriptor": "Can ask and answer questions about plans and intentions.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Information exchange",
+    "level": "A2+",
+    "descriptor": "Can give and follow simple directions and instructions, e.g. explain how to get somewhere.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Information exchange",
+    "level": "A2",
+    "descriptor": "Can communicate in simple and routine tasks requiring a simple and direct exchange of information.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Information exchange",
+    "level": "A2",
+    "descriptor": "Can exchange limited information on familiar and routine operational matters.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Information exchange",
+    "level": "A2",
+    "descriptor": "Can ask and answer questions about what they do at work and in their free time.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Information exchange",
+    "level": "A2",
+    "descriptor": "Can ask for and give directions referring to a map or plan.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Information exchange",
+    "level": "A2",
+    "descriptor": "Can ask for and provide personal information.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Information exchange",
+    "level": "A2",
+    "descriptor": "Can ask and answer simple questions about an event (e.g. ask where and when it took place, who was there and what it was like).",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Information exchange",
+    "level": "A1",
+    "descriptor": "Can understand questions and instructions addressed carefully and slowly to them and follow short, simple directions.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Information exchange",
+    "level": "A1",
+    "descriptor": "Can ask and answer simple questions, initiate and respond to simple statements in areas of immediate need or on very familiar topics.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Information exchange",
+    "level": "A1",
+    "descriptor": "Can ask and answer questions about themselves and other people, where they live, people they know, things they have.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Information exchange",
+    "level": "A1",
+    "descriptor": "Can indicate time by lexicalised phrases like “next week”, “last Friday”, “in November”, “three o’clock”.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Information exchange",
+    "level": "A1",
+    "descriptor": "Can express numbers, quantities and cost in a limited way.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Information exchange",
+    "level": "A1",
+    "descriptor": "Can name the colour of clothes or other familiar objects and can ask the colour of such objects.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Interviewing and being interviewed",
+    "level": "B2+",
+    "descriptor": "Can carry out an effective, fluent interview, departing spontaneously from prepared questions, following up and probing interesting replies.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Interviewing and being interviewed",
+    "level": "B2",
+    "descriptor": "Can take the initiative in an interview, and expand and develop ideas with little help or prodding from an interviewer.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Interviewing and being interviewed",
+    "level": "B1+",
+    "descriptor": "Can provide concrete information required in an interview/consultation (e.g. describe symptoms to a doctor), but with limited precision.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Interviewing and being interviewed",
+    "level": "B1+",
+    "descriptor": "Can carry out a prepared interview, checking and confirming information, though they may occasionally have to ask for repetition if the other person’s response is rapid or extended.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Interviewing and being interviewed",
+    "level": "B1",
+    "descriptor": "Can take some initiative in an interview/consultation (e.g. to bring up a new subject) but is very dependent on the interviewer in the interaction.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Interviewing and being interviewed",
+    "level": "B1",
+    "descriptor": "Can describe symptoms in a simple way and ask for advice when using health services, and can understand the answer, provided this is given clearly in everyday language.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Interviewing and being interviewed",
+    "level": "B1",
+    "descriptor": "Can use a prepared questionnaire to carry out a structured interview, with some spontaneous follow-up questions.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Interviewing and being interviewed",
+    "level": "A2+",
+    "descriptor": "Can make themselves understood in an interview and communicate ideas and information on familiar topics, provided they can ask for clarification occasionally, and are given some help to express what they want to.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Interviewing and being interviewed",
+    "level": "A2+",
+    "descriptor": "Can describe to a doctor very basic symptoms and ailments such as a cold or the flu.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Interviewing and being interviewed",
+    "level": "A2",
+    "descriptor": "Can answer simple questions and respond to simple statements in an interview.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Interviewing and being interviewed",
+    "level": "A2",
+    "descriptor": "Can indicate in simple language the nature of a problem to a health professional, perhaps using gestures and body language.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Interviewing and being interviewed",
+    "level": "A1",
+    "descriptor": "Can reply in an interview to simple direct questions, put very slowly and clearly in direct, non-idiomatic language, about personal details.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Interviewing and being interviewed",
+    "level": "A1",
+    "descriptor": "Can state in simple language the nature of a problem to a health professional and answer simple questions such as “Does that hurt?” even though they have to rely on gestures and body language to reinforce the message.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Using telecommunications",
+    "level": "B2",
+    "descriptor": "Can use telecommunications for a variety of personal and professional purposes, provided they can ask for clarification if the accent or terminology is unfamiliar.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Using telecommunications",
+    "level": "B2",
+    "descriptor": "Can participate in extended casual conversation over the phone with a known person on a variety of topics.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Using telecommunications",
+    "level": "B1+",
+    "descriptor": "Can use telecommunications for everyday personal or professional purposes, provided they can ask for clarification from time to time.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Using telecommunications",
+    "level": "B1+",
+    "descriptor": "Can give important details over the (video)phone concerning an unexpected incident (e.g. a problem in a hotel, with travel arrangements, with a hire car).",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Using telecommunications",
+    "level": "B1",
+    "descriptor": "Can use telecommunications to have relatively simple but extended conversations with people they know personally.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Using telecommunications",
+    "level": "B1",
+    "descriptor": "Can use telecommunications for routine messages (e.g. arrangements for a meeting) and to obtain basic services (e.g. book a hotel room or make a medical appointment).",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Using telecommunications",
+    "level": "A2+",
+    "descriptor": "Can use telecommunications with their friends to exchange simple news, make plans and arrange to meet.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Using telecommunications",
+    "level": "A2",
+    "descriptor": "Can, given repetition and clarifications, participate in a short, simple phone conversation with a known person on a predictable topic, e.g. arrival times, arrangements to meet.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Using telecommunications",
+    "level": "A2",
+    "descriptor": "Can understand a simple message (e.g. “My flight is late. I will arrive at ten o’clock.”), confirm details of the message and pass it on by phone to other people concerned.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Oral interaction",
+    "scale": "Using telecommunications",
+    "level": "A1",
+    "descriptor": "No descriptors available",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Online interaction",
+    "scale": "Online conversation and discussion",
+    "level": "B2+",
+    "descriptor": "Can engage in online exchanges, linking their contributions to previous ones in the thread, understanding cultural implications and reacting appropriately.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Online interaction",
+    "scale": "Online conversation and discussion",
+    "level": "B2",
+    "descriptor": "Can participate actively in an online discussion, stating and responding to opinions on topics of interest at some length, provided contributors avoid unusual or complex language and allow time for responses.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Online interaction",
+    "scale": "Online conversation and discussion",
+    "level": "B2",
+    "descriptor": "Can engage in online exchanges between several participants, effectively linking their contributions to previous ones in the thread, provided a moderator helps manage the discussion.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Online interaction",
+    "scale": "Online conversation and discussion",
+    "level": "B2",
+    "descriptor": "Can recognise misunderstandings and disagreements that arise in an online interaction and deal with them, provided the interlocutor(s) are willing to co-operate.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Online interaction",
+    "scale": "Online conversation and discussion",
+    "level": "B1+",
+    "descriptor": "Can engage in real-time online exchanges with more than one participant, recognising the communicative intentions of each contributor, but may not understand details or implications without further explanation.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Online interaction",
+    "scale": "Online conversation and discussion",
+    "level": "B1+",
+    "descriptor": "Can post online accounts of social events, experiences and activities referring to embedded links and media and sharing personal feelings.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Online interaction",
+    "scale": "Online conversation and discussion",
+    "level": "B1",
+    "descriptor": "Can post a comprehensible contribution in an online discussion on a familiar topic of interest, provided they can prepare the text beforehand and use online tools to fill gaps in language and check accuracy.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Online interaction",
+    "scale": "Online conversation and discussion",
+    "level": "B1",
+    "descriptor": "Can make personal online postings about experiences, feelings and events and respond individually to the comments of others in some detail, though lexical limitations sometimes cause repetition and inappropriate formulation.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Online interaction",
+    "scale": "Online conversation and discussion",
+    "level": "A2+",
+    "descriptor": "Can introduce themselves and manage simple exchanges online, asking and answering questions and exchanging ideas on predictable everyday topics, provided enough time is allowed to formulate responses, and that they interact with one interlocutor at a time.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Online interaction",
+    "scale": "Online conversation and discussion",
+    "level": "A2+",
+    "descriptor": "Can make short descriptive online postings about everyday matters, social activities and feelings, with simple key details.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Online interaction",
+    "scale": "Online conversation and discussion",
+    "level": "A2+",
+    "descriptor": "Can comment on other people’s online postings, provided they are written/signed in simple language, reacting to embedded media by expressing feelings of surprise, interest and indifference in a simple way.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Online interaction",
+    "scale": "Online conversation and discussion",
+    "level": "A2",
+    "descriptor": "Can engage in basic social communication online (e.g. a simple message on a virtual card for special occasions, sharing news and making/confirming arrangements to meet).",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Online interaction",
+    "scale": "Online conversation and discussion",
+    "level": "A2",
+    "descriptor": "Can make brief positive or negative comments online about embedded links and media using a repertoire of basic language, though they will generally have to refer to an online translation tool and other resources.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Online interaction",
+    "scale": "Online conversation and discussion",
+    "level": "A1",
+    "descriptor": "Can formulate very simple messages and personal online postings as a series of very short sentences about hobbies, likes/dislikes, etc., relying on the aid of a translation tool.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Online interaction",
+    "scale": "Online conversation and discussion",
+    "level": "A1",
+    "descriptor": "Can use formulaic expressions and combinations of simple words/signs to post short positive and negative reactions to simple online postings and their embedded links and media, and can respond to further comments with standard expressions of thanks and apology.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Online interaction",
+    "scale": "Goal-oriented online transactions and collaboration",
+    "level": "B2+",
+    "descriptor": "Can take a lead role in online collaborative work within their area(s) of expertise, keeping the group on task by reminding it of roles, responsibilities and deadlines in order to achieve established goals.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Online interaction",
+    "scale": "Goal-oriented online transactions and collaboration",
+    "level": "B2+",
+    "descriptor": "Can engage in online collaborative or transactional exchanges within their area(s) of expertise that require negotiation of conditions and explanation of complicated details and special requirements.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Online interaction",
+    "scale": "Goal-oriented online transactions and collaboration",
+    "level": "B2+",
+    "descriptor": "Can deal with misunderstandings and unexpected problems that arise in online collaborative or transactional exchanges by responding politely and appropriately in order to help resolve the issue.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Online interaction",
+    "scale": "Goal-oriented online transactions and collaboration",
+    "level": "B2",
+    "descriptor": "Can collaborate online with a group that is working on a project, justifying proposals, seeking clarification and playing a supportive role in order to accomplish shared tasks.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Online interaction",
+    "scale": "Goal-oriented online transactions and collaboration",
+    "level": "B1+",
+    "descriptor": "Can engage in online transactions that require an extended exchange of information, provided the interlocutor(s) avoid complex language and are willing to repeat and reformulate when necessary.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Online interaction",
+    "scale": "Goal-oriented online transactions and collaboration",
+    "level": "B1+",
+    "descriptor": "Can interact online with a group that is working on a project, following straightforward instructions, seeking clarification and helping to accomplish the shared tasks.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Online interaction",
+    "scale": "Goal-oriented online transactions and collaboration",
+    "level": "B1",
+    "descriptor": "Can engage in online collaborative or transactional exchanges that require simple clarification or explanation of relevant details, such as registering for a course, tour or event, or applying for membership.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Online interaction",
+    "scale": "Goal-oriented online transactions and collaboration",
+    "level": "B1",
+    "descriptor": "Can interact online with a partner or small group working on a project, provided there are visual aids such as images, statistics and graphs to clarify more complex concepts.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Online interaction",
+    "scale": "Goal-oriented online transactions and collaboration",
+    "level": "B1",
+    "descriptor": "Can respond to instructions and ask questions or request clarifications in order to accomplish a shared task online.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Online interaction",
+    "scale": "Goal-oriented online transactions and collaboration",
+    "level": "A2+",
+    "descriptor": "Can use formulaic language to respond to routine problems arising in online transactions (e.g. concerning availability of models and special offers, delivery dates, addresses).",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Online interaction",
+    "scale": "Goal-oriented online transactions and collaboration",
+    "level": "A2+",
+    "descriptor": "Can interact online with a supportive partner in a simple collaborative task, responding to basic instructions and seeking clarification, provided there are visual aids such as images, statistics or graphs to clarify the concepts involved.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Online interaction",
+    "scale": "Goal-oriented online transactions and collaboration",
+    "level": "A2",
+    "descriptor": "Can make simple online transactions (e.g. ordering goods or enrolling in a course) by filling in an online form or questionnaire, providing personal details and confirming acceptance of terms and conditions, declining extra services, etc.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Online interaction",
+    "scale": "Goal-oriented online transactions and collaboration",
+    "level": "A2",
+    "descriptor": "Can ask basic questions about the availability of a product or feature.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Online interaction",
+    "scale": "Goal-oriented online transactions and collaboration",
+    "level": "A2",
+    "descriptor": "Can respond to simple instructions and ask simple questions in order to accomplish a shared task online with the help of a supportive interlocutor.",
+    "skill_type": "interaction"
+  },
+  {
+    "mode": "Interaction",
+    "activity": "Online interaction",
+    "scale": "Goal-oriented online transactions and collaboration",
+    "level": "A1",
+    "descriptor": "Can complete a very simple online purchase or application, providing basic personal information (e.g. name, e-mail or telephone number).",
+    "skill_type": "interaction"
+  }
+]
