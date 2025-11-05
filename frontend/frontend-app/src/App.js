@@ -99,6 +99,7 @@ import { supabase } from "./supabaseClient";
   // --- Helper for app usage logging ---
   let sessionStartTime = null;
   let sessionLogId = null;
+  let sessionConversation = []; // Track conversation for Can-Do analysis
 
   async function startSession(topic = null) {
     const user = (await supabase.auth.getUser()).data.user;
@@ -108,6 +109,7 @@ import { supabase } from "./supabaseClient";
     }
 
     sessionStartTime = new Date();
+    sessionConversation = []; // Reset conversation
 
     console.log('Starting session with topic:', topic?.title || 'No topic');
 
@@ -131,7 +133,7 @@ import { supabase } from "./supabaseClient";
     }
   }
 
-  async function endSession() {
+  async function endSession(conversation = null) {
     if (!sessionLogId || !sessionStartTime) return;
 
     const user = (await supabase.auth.getUser()).data.user;
@@ -183,10 +185,75 @@ import { supabase } from "./supabaseClient";
         .eq('id', user.id);
 
       console.log(`Monthly usage: ${currentUsage} + ${durationMinutes} = ${newTotal} minutes`);
+
+      // Analyze conversation for Can-Do achievements if we have a transcript
+      if (conversation && conversation.length > 0) {
+        console.log('Analyzing session for Can-Do achievements...');
+        analyzeSessionForCando(sessionLogId, user.id, conversation);
+      }
     }
 
     sessionLogId = null;
     sessionStartTime = null;
+    sessionConversation = [];
+  }
+
+  async function analyzeSessionForCando(sessionId, userId, conversation) {
+    try {
+      // Build transcript from conversation
+      // Format: "User: [text]\nAssistant: [text]"
+      const transcript = conversation
+        .map(msg => `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.text}`)
+        .join('\n');
+
+      // Get user's auth token
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        console.warn('No session found, cannot analyze Can-Do');
+        return;
+      }
+
+      // Call backend /analyze_session endpoint
+      const response = await fetch(`${API_BASE_URL}/analyze_session`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({
+          session_id: sessionId,
+          user_id: userId,
+          transcript: transcript
+        })
+      });
+
+      if (!response.ok) {
+        console.error('Failed to analyze session:', response.statusText);
+        return;
+      }
+
+      const result = await response.json();
+      console.log('Can-Do analysis result:', result);
+
+      // Show achievements to user if any were detected
+      if (result.new_achievements && result.new_achievements.length > 0) {
+        showAchievementsNotification(result.new_achievements);
+      }
+
+    } catch (error) {
+      console.error('Error analyzing session for Can-Do:', error);
+    }
+  }
+
+  function showAchievementsNotification(achievements) {
+    // Create a simple notification
+    const count = achievements.length;
+    const message = count === 1
+      ? `🎉 Congratulations! You've unlocked a new Can-Do achievement!`
+      : `🎉 Congratulations! You've unlocked ${count} new Can-Do achievements!`;
+
+    alert(message + '\n\nCheck your profile to see your progress!');
+    // TODO: Replace with a nicer modal/toast notification
   }
 
 
@@ -1788,8 +1855,8 @@ import { supabase } from "./supabaseClient";
     };
 
     const stopListening = useCallback(() => {
-      // End the session
-      endSession();
+      // End the session and pass conversation for Can-Do analysis
+      endSession(conversation);
 
       // Clear audio queue and reset playback state
       audioQueueRef.current = [];
@@ -1813,7 +1880,7 @@ import { supabase } from "./supabaseClient";
       }
       // Note: We keep the live transcript visible even when stopping
       // so the user can still see the last response
-    }, []); // Empty dependency array - refs don't trigger re-renders
+    }, [conversation]); // Include conversation in dependencies
 
     useEffect(() => {
       return () => {
