@@ -200,11 +200,26 @@ import { supabase } from "./supabaseClient";
 
   async function analyzeSessionForCando(sessionId, userId, conversation) {
     try {
-      // Build transcript from conversation
+      // Filter out empty messages and build transcript
       // Format: "User: [text]\nAssistant: [text]"
-      const transcript = conversation
+      const validMessages = conversation.filter(msg => msg.text && msg.text.trim().length > 0);
+
+      if (validMessages.length === 0) {
+        console.log('No valid messages in conversation, skipping Can-Do analysis');
+        return;
+      }
+
+      const transcript = validMessages
         .map(msg => `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.text}`)
         .join('\n');
+
+      console.log('Analyzing session:', { sessionId, userId, conversationLength: conversation.length, validMessages: validMessages.length, transcriptLength: transcript.length });
+
+      // Double-check transcript is not empty
+      if (!transcript || transcript.trim().length === 0) {
+        console.log('Empty transcript, skipping Can-Do analysis');
+        return;
+      }
 
       // Get user's auth token
       const { data: { session } } = await supabase.auth.getSession();
@@ -228,7 +243,12 @@ import { supabase } from "./supabaseClient";
       });
 
       if (!response.ok) {
-        console.error('Failed to analyze session:', response.statusText);
+        const errorBody = await response.text();
+        console.error('Failed to analyze session:', {
+          status: response.status,
+          statusText: response.statusText,
+          body: errorBody
+        });
         return;
       }
 
