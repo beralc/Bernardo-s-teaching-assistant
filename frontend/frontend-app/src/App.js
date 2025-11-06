@@ -136,11 +136,18 @@ import { supabase } from "./supabaseClient";
   async function endSession(conversation = null) {
     if (!sessionLogId || !sessionStartTime) return;
 
+    // Capture and clear immediately to prevent race condition with duplicate calls
+    const capturedSessionLogId = sessionLogId;
+    const capturedSessionStartTime = sessionStartTime;
+    sessionLogId = null;
+    sessionStartTime = null;
+    sessionConversation = [];
+
     const user = (await supabase.auth.getUser()).data.user;
     if (!user) return;
 
     const endTime = new Date();
-    const durationMinutes = Math.round((endTime.getTime() - sessionStartTime.getTime()) / (1000 * 60));
+    const durationMinutes = Math.round((endTime.getTime() - capturedSessionStartTime.getTime()) / (1000 * 60));
 
     // Update conversation session
     const { data, error } = await supabase
@@ -149,7 +156,7 @@ import { supabase } from "./supabaseClient";
         ended_at: endTime.toISOString(),
         duration_minutes: durationMinutes
       })
-      .eq('id', sessionLogId);
+      .eq('id', capturedSessionLogId);
 
     if (error) {
       console.error('Error ending session:', error.message);
@@ -166,7 +173,7 @@ import { supabase } from "./supabaseClient";
           action_type: 'voice_conversation',
           duration_minutes: durationMinutes,
           cost_usd: costUsd,
-          metadata: { session_id: sessionLogId }
+          metadata: { session_id: capturedSessionLogId }
         }]);
 
       // Update user's monthly total
@@ -189,13 +196,9 @@ import { supabase } from "./supabaseClient";
       // Analyze conversation for Can-Do achievements if we have a transcript
       if (conversation && conversation.length > 0) {
         console.log('Analyzing session for Can-Do achievements...');
-        analyzeSessionForCando(sessionLogId, user.id, conversation);
+        analyzeSessionForCando(capturedSessionLogId, user.id, conversation);
       }
     }
-
-    sessionLogId = null;
-    sessionStartTime = null;
-    sessionConversation = [];
   }
 
   async function analyzeSessionForCando(sessionId, userId, conversation) {
