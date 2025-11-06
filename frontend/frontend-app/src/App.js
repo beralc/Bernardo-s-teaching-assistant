@@ -2332,11 +2332,14 @@ import { supabase } from "./supabaseClient";
     const [loading, setLoading] = useState(true);
     const [sessions, setSessions] = useState([]);
     const [showConversations, setShowConversations] = useState(false);
+    const [candoData, setCandoData] = useState(null);
+    const [loadingCando, setLoadingCando] = useState(true);
 
     // Load time statistics from Supabase
     useEffect(() => {
       loadTimeStats();
       loadTranscriptions();
+      loadCanDoAchievements();
     }, []);
 
     const loadTimeStats = async () => {
@@ -2389,6 +2392,40 @@ import { supabase } from "./supabaseClient";
         return `${hours}h ${mins}m`;
       }
       return `${mins} min`;
+    };
+
+    const loadCanDoAchievements = async () => {
+      const user = (await supabase.auth.getUser()).data.user;
+      if (!user) return;
+
+      setLoadingCando(true);
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          console.warn('No session found for Can-Do fetch');
+          setLoadingCando(false);
+          return;
+        }
+
+        const response = await fetch(`${API_BASE_URL}/users/${user.id}/cando`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setCandoData(data);
+        } else {
+          console.error('Failed to fetch Can-Do achievements:', response.statusText);
+        }
+      } catch (error) {
+        console.error('Error fetching Can-Do achievements:', error);
+      } finally {
+        setLoadingCando(false);
+      }
     };
 
     const loadTranscriptions = async () => {
@@ -2503,14 +2540,76 @@ import { supabase } from "./supabaseClient";
           </div>
         </div>
 
-        {/* Can-Do Checklist */}
+        {/* Can-Do Achievements */}
         <div className={`rounded-2xl border p-6 ${cardTheme}`}>
-          <h3 className={`font-bold ${fontSizes.xl} mb-3`}>Your "Can-Do" Checklist</h3>
-          <ul className={`space-y-3 ${fontSizes.lg}`}>
-            <li className="flex items-center gap-3"><CheckIcon /> You can describe past activities and experiences.</li>
-            <li className="flex items-center gap-3"><CheckIcon /> You can handle short social conversations.</li>
-            <li className="flex items-center gap-3"><NextStepIcon /> Let's practice giving detailed explanations.</li>
-          </ul>
+          <h3 className={`font-bold ${fontSizes.xl} mb-3`}>🏆 Unlocked Achievements</h3>
+          <p className={`text-sm ${subtleText} mb-4`}>
+            CEFR Can-Do statements you've demonstrated during conversations
+          </p>
+
+          {loadingCando ? (
+            <div className="text-center py-8">
+              <p className={subtleText}>Loading achievements...</p>
+            </div>
+          ) : candoData && candoData.total_achievements > 0 ? (
+            <div className="space-y-4">
+              {/* Total Badge */}
+              <div className="flex items-center justify-between bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 p-4 rounded-lg border border-green-200 dark:border-green-800">
+                <span className="font-bold text-lg">Total Unlocked</span>
+                <span className="text-2xl font-bold text-green-600 dark:text-green-400">
+                  {candoData.total_achievements} 🎉
+                </span>
+              </div>
+
+              {/* Achievements by Level */}
+              {candoData.progress_by_level && candoData.progress_by_level.map(levelData => (
+                levelData.recent_achievements && levelData.recent_achievements.length > 0 && (
+                  <div key={levelData.level} className="space-y-2">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="font-bold text-lg bg-gradient-to-r from-purple-600 to-blue-600 text-white px-3 py-1 rounded-full">
+                        {levelData.level}
+                      </span>
+                      <span className="text-sm font-semibold text-gray-600 dark:text-gray-400">
+                        {levelData.achieved} unlocked
+                      </span>
+                    </div>
+
+                    {/* Show unlocked achievements for this level */}
+                    {levelData.recent_achievements.slice(0, 5).map((achievement, idx) => (
+                      <div
+                        key={idx}
+                        className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/10 dark:to-emerald-900/10 border-l-4 border-green-500 p-3 rounded-r-lg"
+                      >
+                        <div className="flex items-start gap-2">
+                          <span className="text-green-600 dark:text-green-400 text-xl">✓</span>
+                          <div className="flex-1">
+                            <p className={`font-medium ${fontSizes.base}`}>
+                              {achievement.descriptor}
+                            </p>
+                            <p className="text-xs text-green-600 dark:text-green-400 mt-1 flex items-center gap-2">
+                              <span>Unlocked {new Date(achievement.achieved_at).toLocaleDateString()}</span>
+                              {achievement.detected_by === 'ai_automatic' && (
+                                <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded">
+                                  AI Detected
+                                </span>
+                              )}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8 bg-gray-50 dark:bg-gray-800 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-700">
+              <p className="text-lg font-semibold mb-2">🎯 No achievements yet!</p>
+              <p className={`text-sm ${subtleText}`}>
+                Start a voice conversation to unlock your first Can-Do statements
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Conversations */}
