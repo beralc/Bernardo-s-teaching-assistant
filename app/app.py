@@ -797,8 +797,26 @@ Include any statement with confidence >= 0.6. If no statements were demonstrated
 
         result_text = response.choices[0].message.content.strip()
 
-        # Parse JSON response
+        # Log the raw response for debugging
+        print(f"GPT-4 raw response (first 500 chars): {result_text[:500]}")
+
+        # Parse JSON response - handle markdown code blocks
         import json
+        import re
+
+        # Try to extract JSON from markdown code blocks
+        json_match = re.search(r'```(?:json)?\s*(\{.*?\})\s*```', result_text, re.DOTALL)
+        if json_match:
+            result_text = json_match.group(1)
+            print("Extracted JSON from markdown code block")
+
+        # Try to find JSON object even if there's text before/after
+        if not result_text.startswith('{'):
+            json_match = re.search(r'\{.*\}', result_text, re.DOTALL)
+            if json_match:
+                result_text = json_match.group(0)
+                print("Extracted JSON from text")
+
         result = json.loads(result_text)
 
         # Add descriptor to each achievement for frontend display
@@ -813,6 +831,12 @@ Include any statement with confidence >= 0.6. If no statements were demonstrated
 
     except Exception as e:
         print(f"Error in GPT analysis: {e}")
+        # Try to get the raw response if available
+        try:
+            if 'result_text' in locals():
+                print(f"Raw GPT response that caused error: {result_text}")
+        except:
+            pass
         return {
             "detected_achievements": [],
             "error": True,
