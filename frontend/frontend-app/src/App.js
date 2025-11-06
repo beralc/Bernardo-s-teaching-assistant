@@ -2417,12 +2417,14 @@ import { supabase } from "./supabaseClient";
 
         if (response.ok) {
           const data = await response.json();
+          console.log('[ProgressView] Can-Do data loaded:', data);
           setCandoData(data);
         } else {
-          console.error('Failed to fetch Can-Do achievements:', response.statusText);
+          const errorText = await response.text();
+          console.error('[ProgressView] Failed to fetch Can-Do achievements:', response.status, errorText);
         }
       } catch (error) {
-        console.error('Error fetching Can-Do achievements:', error);
+        console.error('[ProgressView] Error fetching Can-Do achievements:', error);
       } finally {
         setLoadingCando(false);
       }
@@ -2603,7 +2605,7 @@ import { supabase } from "./supabaseClient";
               ))}
             </div>
           ) : (
-            <div className="text-center py-8 bg-gray-50 dark:bg-gray-800 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-700">
+            <div className="text-center py-8 bg-blue-50 dark:bg-blue-900/20 rounded-lg border-2 border-dashed border-blue-200 dark:border-blue-700">
               <p className="text-lg font-semibold mb-2">🎯 No achievements yet!</p>
               <p className={`text-sm ${subtleText}`}>
                 Start a voice conversation to unlock your first Can-Do statements
