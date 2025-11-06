@@ -474,9 +474,14 @@ import { supabase } from "./supabaseClient";
     // Usage stats
     const [usageStats, setUsageStats] = useState({ used: 0, limit: 30, tier: 'free' });
 
+    // Can-Do achievements
+    const [candoData, setCandoData] = useState(null);
+    const [loadingCando, setLoadingCando] = useState(false);
+
     // Load profile data on mount
     useEffect(() => {
       loadProfile();
+      fetchCanDoAchievements();
     }, []);
 
     // Sync avatar URL when parent updates
@@ -518,6 +523,41 @@ import { supabase } from "./supabaseClient";
           limit: limit,
           tier: tier
         });
+      }
+    };
+
+    const fetchCanDoAchievements = async () => {
+      const user = (await supabase.auth.getUser()).data.user;
+      if (!user) return;
+
+      setLoadingCando(true);
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          console.warn('No session found for Can-Do fetch');
+          setLoadingCando(false);
+          return;
+        }
+
+        const response = await fetch(`${API_BASE_URL}/users/${user.id}/cando`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setCandoData(data);
+          console.log('Can-Do data loaded:', data);
+        } else {
+          console.error('Failed to fetch Can-Do achievements:', response.statusText);
+        }
+      } catch (error) {
+        console.error('Error fetching Can-Do achievements:', error);
+      } finally {
+        setLoadingCando(false);
       }
     };
 
@@ -977,6 +1017,83 @@ import { supabase } from "./supabaseClient";
                   >
                     Save Learning Preferences
                   </button>
+
+                  {/* Can-Do Checklist Section */}
+                  <div className="pt-6 mt-6 border-t border-gray-200 dark:border-gray-700">
+                    <h3 className="font-bold text-xl mb-2">Can-Do Checklist</h3>
+                    <p className={`text-sm ${subtleText} mb-4`}>
+                      Track your progress through CEFR Can-Do statements. New achievements are automatically detected during voice conversations.
+                    </p>
+
+                    {loadingCando ? (
+                      <div className="text-center py-8">
+                        <p className={subtleText}>Loading your achievements...</p>
+                      </div>
+                    ) : candoData ? (
+                      <div className="space-y-4">
+                        {/* Progress Summary */}
+                        <div className={`${cardTheme} p-4 rounded-lg border`}>
+                          <div className="flex justify-between items-center mb-2">
+                            <span className="font-semibold">Your Progress</span>
+                            <span className="text-sm font-bold text-green-600">
+                              {candoData.total_achievements} achievements unlocked
+                            </span>
+                          </div>
+                          <div className="text-sm">
+                            <span className={subtleText}>Current Level: </span>
+                            <span className="font-semibold">{englishLevel}</span>
+                          </div>
+                        </div>
+
+                        {/* Achievements by Level */}
+                        {candoData.progress_by_level && candoData.progress_by_level.map(levelData => (
+                          <div key={levelData.level} className={`${cardTheme} p-4 rounded-lg border`}>
+                            <div className="flex justify-between items-center mb-3">
+                              <h4 className="font-bold text-lg">{levelData.level}</h4>
+                              <span className="text-sm font-semibold">
+                                {levelData.achieved}/{levelData.total} completed
+                              </span>
+                            </div>
+
+                            {/* Progress Bar */}
+                            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mb-3">
+                              <div
+                                className="bg-green-600 h-2 rounded-full transition-all duration-300"
+                                style={{ width: `${(levelData.achieved / levelData.total) * 100}%` }}
+                              ></div>
+                            </div>
+
+                            {/* Recent achievements for this level */}
+                            {levelData.recent_achievements && levelData.recent_achievements.length > 0 && (
+                              <div className="mt-3 space-y-2">
+                                <p className="text-xs font-semibold text-gray-600 dark:text-gray-400">Recent achievements:</p>
+                                {levelData.recent_achievements.slice(0, 3).map((achievement, idx) => (
+                                  <div key={idx} className="text-sm pl-3 border-l-2 border-green-500">
+                                    <p className={subtleText}>{achievement.descriptor}</p>
+                                    <p className="text-xs text-green-600 mt-1">
+                                      ✓ Achieved {new Date(achievement.achieved_at).toLocaleDateString()}
+                                    </p>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+
+                        {/* View All Button */}
+                        <button
+                          onClick={fetchCanDoAchievements}
+                          className={`w-full ${cardTheme} border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800 font-semibold py-2 px-4 rounded-lg transition text-sm`}
+                        >
+                          Refresh Achievements
+                        </button>
+                      </div>
+                    ) : (
+                      <div className={`${cardTheme} p-6 rounded-lg border text-center`}>
+                        <p className={subtleText}>No achievements yet. Start a voice conversation to unlock your first Can-Do statements!</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
 
@@ -1405,6 +1522,16 @@ import { supabase } from "./supabaseClient";
     const nextPlayTimeRef = useRef(0); // Track when to play next audio chunk for seamless playback
     const autoStartRequestedRef = useRef(false); // Track if auto-start was requested
     const audioChunkCountRef = useRef(0); // Count chunks for buffering strategy
+    const conversationRef = useRef([]); // Track conversation for Can-Do analysis without triggering re-renders
+
+    // Helper function to update both conversation state and ref
+    const updateConversation = (updater) => {
+      setConversation(prev => {
+        const newConversation = typeof updater === 'function' ? updater(prev) : updater;
+        conversationRef.current = newConversation;
+        return newConversation;
+      });
+    };
 
     // Load usage info on mount
     useEffect(() => {
@@ -1696,7 +1823,7 @@ import { supabase } from "./supabaseClient";
 
             // Don't change live transcript - keep previous assistant response visible
             // Just add user's words to conversation history
-            setConversation(prev => [...prev, { role: "user", text: transcript }]);
+            updateConversation(prev => [...prev, { role: "user", text: transcript }]);
 
             console.log("Calling onSaveTranscription with:", transcript);
             onSaveTranscription(transcript);
@@ -1743,7 +1870,7 @@ import { supabase } from "./supabaseClient";
           } else if (data.type === 'response.audio_transcript.done') {
             // Bot's response text is complete
             console.log("Bot transcript complete:", data.transcript);
-            setConversation(prev => [...prev, { role: "bot", text: data.transcript }]);
+            updateConversation(prev => [...prev, { role: "bot", text: data.transcript }]);
 
             // Save bot's response to database with "Bot:" prefix
             if (data.transcript) {
@@ -1856,7 +1983,8 @@ import { supabase } from "./supabaseClient";
 
     const stopListening = useCallback(() => {
       // End the session and pass conversation for Can-Do analysis
-      endSession(conversation);
+      // Use conversationRef to avoid re-creating this function when conversation changes
+      endSession(conversationRef.current);
 
       // Clear audio queue and reset playback state
       audioQueueRef.current = [];
@@ -1880,7 +2008,7 @@ import { supabase } from "./supabaseClient";
       }
       // Note: We keep the live transcript visible even when stopping
       // so the user can still see the last response
-    }, [conversation]); // Include conversation in dependencies
+    }, []); // Empty dependency array - use refs to avoid re-creating this function
 
     useEffect(() => {
       return () => {
@@ -2546,6 +2674,12 @@ import { supabase } from "./supabaseClient";
     const [newUserTier, setNewUserTier] = useState('free');
     const [newUserIsAdmin, setNewUserIsAdmin] = useState(false);
 
+    // Can-Do management state
+    const [candoUsers, setCandoUsers] = useState([]);
+    const [selectedCandoUserId, setSelectedCandoUserId] = useState(null);
+    const [selectedUserCandoData, setSelectedUserCandoData] = useState(null);
+    const [loadingCando, setLoadingCando] = useState(false);
+
     useEffect(() => {
       if (activeTab === 'codes') {
         loadCodes();
@@ -2553,6 +2687,8 @@ import { supabase } from "./supabaseClient";
         loadUsers();
       } else if (activeTab === 'users') {
         loadAllUsers();
+      } else if (activeTab === 'cando') {
+        loadCandoUsers();
       }
     }, [activeTab]);
 
@@ -3006,6 +3142,55 @@ import { supabase } from "./supabaseClient";
       setExporting(false);
     };
 
+    // Can-Do Management Functions
+    const loadCandoUsers = async () => {
+      setLoadingCando(true);
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, name, surname, english_level')
+        .order('name');
+
+      if (error) {
+        console.error('Error loading users for Can-Do:', error);
+        setMessage('Error loading users: ' + error.message);
+      } else {
+        setCandoUsers(data || []);
+      }
+      setLoadingCando(false);
+    };
+
+    const loadUserCandoData = async (userId) => {
+      setLoadingCando(true);
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          setMessage('No session found');
+          setLoadingCando(false);
+          return;
+        }
+
+        const response = await fetch(`${API_BASE_URL}/users/${userId}/cando`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setSelectedUserCandoData(data);
+          setSelectedCandoUserId(userId);
+        } else {
+          setMessage('Error loading Can-Do data: ' + response.statusText);
+        }
+      } catch (error) {
+        console.error('Error loading user Can-Do data:', error);
+        setMessage('Error: ' + error.message);
+      }
+      setLoadingCando(false);
+    };
+
     return (
       <section aria-label="Admin dashboard" className="flex flex-col gap-6">
         <div>
@@ -3044,6 +3229,16 @@ import { supabase } from "./supabaseClient";
             }`}
           >
             Users
+          </button>
+          <button
+            onClick={() => setActiveTab('cando')}
+            className={`px-6 py-3 font-semibold ${fontSizes.lg} transition ${
+              activeTab === 'cando'
+                ? 'border-b-2 border-green-600 text-green-600'
+                : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+            }`}
+          >
+            Can-Do
           </button>
         </div>
 
@@ -3520,6 +3715,102 @@ import { supabase } from "./supabaseClient";
                 </div>
               )}
             </div>
+          </div>
+        )}
+
+        {/* Can-Do Management Tab */}
+        {activeTab === 'cando' && (
+          <div className={`rounded-2xl border p-6 ${cardTheme}`}>
+            <h3 className={`font-bold ${fontSizes.xl} mb-4`}>Can-Do Achievement Management</h3>
+            <p className={`${subtleText} mb-6`}>View and manage learner Can-Do achievements for research tracking.</p>
+
+            {loadingCando ? (
+              <p className={subtleText}>Loading...</p>
+            ) : (
+              <>
+                {/* User Selection */}
+                <div className="mb-6">
+                  <label className={`text-sm font-semibold ${subtleText} mb-2 block`}>Select User</label>
+                  <select
+                    value={selectedCandoUserId || ''}
+                    onChange={(e) => loadUserCandoData(e.target.value)}
+                    className={`w-full px-4 py-3 rounded-lg border ${cardTheme}`}
+                  >
+                    <option value="">-- Select a user --</option>
+                    {candoUsers.map(user => (
+                      <option key={user.id} value={user.id}>
+                        {user.name} {user.surname} ({user.english_level || 'No level'})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* User Can-Do Data */}
+                {selectedUserCandoData && (
+                  <div className="space-y-4">
+                    {/* Summary */}
+                    <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg border border-green-200 dark:border-green-800">
+                      <h4 className="font-bold text-lg mb-2">Progress Summary</h4>
+                      <p className="text-sm">
+                        <span className="font-semibold">Total Achievements:</span> {selectedUserCandoData.total_achievements}
+                      </p>
+                    </div>
+
+                    {/* Progress by Level */}
+                    {selectedUserCandoData.progress_by_level && selectedUserCandoData.progress_by_level.map(levelData => (
+                      <div key={levelData.level} className="border border-gray-200 dark:border-gray-700 p-4 rounded-lg">
+                        <div className="flex justify-between items-center mb-3">
+                          <h4 className="font-bold text-lg">{levelData.level}</h4>
+                          <span className="text-sm font-semibold bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-100 px-3 py-1 rounded-full">
+                            {levelData.achieved}/{levelData.total}
+                          </span>
+                        </div>
+
+                        {/* Progress Bar */}
+                        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mb-4">
+                          <div
+                            className="bg-green-600 h-2 rounded-full"
+                            style={{ width: `${(levelData.achieved / levelData.total) * 100}%` }}
+                          ></div>
+                        </div>
+
+                        {/* Recent Achievements */}
+                        {levelData.recent_achievements && levelData.recent_achievements.length > 0 && (
+                          <div className="space-y-2">
+                            <p className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">Recent Achievements:</p>
+                            {levelData.recent_achievements.slice(0, 5).map((achievement, idx) => (
+                              <div key={idx} className="text-sm bg-gray-50 dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-700">
+                                <p className="mb-1">{achievement.descriptor}</p>
+                                <div className="flex justify-between items-center text-xs">
+                                  <span className={subtleText}>
+                                    {new Date(achievement.achieved_at).toLocaleDateString()}
+                                    {achievement.detected_by === 'ai_automatic' && ' • AI Detected'}
+                                    {achievement.detected_by === 'admin_manual' && ' • Manually Added'}
+                                  </span>
+                                  {achievement.confidence_score && (
+                                    <span className="font-semibold">
+                                      {(achievement.confidence_score * 100).toFixed(0)}% confidence
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+
+                    {/* Refresh Button */}
+                    <button
+                      onClick={() => loadUserCandoData(selectedCandoUserId)}
+                      className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-lg transition"
+                    >
+                      Refresh Data
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
           </div>
         )}
       </section>
