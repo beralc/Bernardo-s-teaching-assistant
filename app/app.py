@@ -514,9 +514,9 @@ def get_user_cando_achievements(user_id):
 
         statements = statements_resp.json()
 
-        # Get user's achievements
+        # Get user's achievements WITH statement details
         achievements_resp = requests.get(
-            f'{SUPABASE_URL}/rest/v1/user_cando_achievements?user_id=eq.{user_id}&select=*',
+            f'{SUPABASE_URL}/rest/v1/user_cando_achievements?user_id=eq.{user_id}&select=*,cando_statements(level,descriptor,skill_type)&order=achieved_at.desc',
             headers=headers
         )
 
@@ -525,6 +525,20 @@ def get_user_cando_achievements(user_id):
 
         achievements = achievements_resp.json()
         achieved_ids = {a['cando_id'] for a in achievements if a.get('admin_approved') != False}
+
+        # Map achievements to statement details for frontend
+        achievements_by_statement = {}
+        for ach in achievements:
+            if ach.get('admin_approved') != False and 'cando_statements' in ach:
+                stmt_data = ach['cando_statements']
+                achievements_by_statement[ach['cando_id']] = {
+                    'descriptor': stmt_data.get('descriptor'),
+                    'level': stmt_data.get('level'),
+                    'skill_type': stmt_data.get('skill_type'),
+                    'achieved_at': ach.get('achieved_at'),
+                    'detected_by': ach.get('detected_by'),
+                    'confidence_score': ach.get('confidence_score')
+                }
 
         # Group statements by level and calculate progress
         levels_data = {}
@@ -535,13 +549,19 @@ def get_user_cando_achievements(user_id):
                     'level': level,
                     'total': 0,
                     'achieved': 0,
-                    'statements': []
+                    'statements': [],
+                    'recent_achievements': []
                 }
 
             is_achieved = stmt['id'] in achieved_ids
             levels_data[level]['total'] += 1
             if is_achieved:
                 levels_data[level]['achieved'] += 1
+                # Add to recent achievements
+                if stmt['id'] in achievements_by_statement:
+                    levels_data[level]['recent_achievements'].append(
+                        achievements_by_statement[stmt['id']]
+                    )
 
             levels_data[level]['statements'].append({
                 'id': stmt['id'],
@@ -550,19 +570,28 @@ def get_user_cando_achievements(user_id):
                 'is_achieved': is_achieved
             })
 
-        # Calculate percentages
+        # Calculate percentages and sort recent achievements
         for level_data in levels_data.values():
             total = level_data['total']
             achieved = level_data['achieved']
             level_data['percentage'] = round((achieved / total * 100), 1) if total > 0 else 0
+            # Sort recent achievements by date (most recent first)
+            level_data['recent_achievements'].sort(
+                key=lambda x: x.get('achieved_at', ''),
+                reverse=True
+            )
 
         # Order levels
         level_order = ['A1', 'A2', 'A2+', 'B1', 'B1+', 'B2', 'B2+', 'C1', 'C2']
         ordered_levels = [levels_data[lvl] for lvl in level_order if lvl in levels_data]
 
+        # Calculate total achievements
+        total_achievements = len(achieved_ids)
+
         return jsonify({
             "user_id": user_id,
-            "levels": ordered_levels
+            "total_achievements": total_achievements,
+            "progress_by_level": ordered_levels
         })
 
     except Exception as e:
