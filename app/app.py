@@ -746,18 +746,19 @@ def analyze_transcript_with_gpt(transcript, statements, user_level):
             for i, stmt in enumerate(statements)
         ])
 
-        prompt = f"""You are an expert CEFR language assessor analyzing a learner's English conversation transcript.
+        prompt = f"""You are an expert CEFR language assessor analyzing a learner's English conversation transcript for a PhD research project on senior language learners.
 
-The learner is at CEFR level: {user_level}
+The learner's assigned level is: {user_level}
+IMPORTANT: The learner may demonstrate capabilities ABOVE this assigned level. Recognize ALL achievements.
 
-Analyze the following conversation transcript and identify which Can-Do statements the learner has CLEARLY DEMONSTRATED.
+Analyze the conversation transcript and identify which Can-Do statements the learner has DEMONSTRATED through their language production.
 
-IMPORTANT CRITERIA:
-- Only mark as achieved if there is CLEAR, CONCRETE evidence in the transcript
-- The learner must have PRODUCED language (speaking/interaction), not just comprehended
-- Look for actual demonstrations, not potential ability
-- Be conservative - when in doubt, don't mark as achieved
-- Focus on what the learner actually DID, not what they might be able to do
+ASSESSMENT CRITERIA:
+- The learner must have PRODUCED the language (speaking/interaction), not just comprehended it
+- Look for evidence of the capability described in the Can-Do statement
+- The learner may perform ABOVE their assigned level - recognize this
+- Use confidence scores to indicate strength of evidence (0.6+ = demonstrated, 0.8+ = clearly demonstrated, 0.95+ = exceptionally demonstrated)
+- Focus on what the learner ACTUALLY DID in the conversation
 
 TRANSCRIPT:
 {transcript}
@@ -765,9 +766,9 @@ TRANSCRIPT:
 CAN-DO STATEMENTS TO EVALUATE:
 {statements_text}
 
-For each Can-Do statement that was CLEARLY DEMONSTRATED, respond with:
-1. The statement ID (in brackets)
-2. Confidence score (0.0 to 1.0)
+For each Can-Do statement demonstrated in the transcript, respond with:
+1. The statement ID (in brackets from above)
+2. Confidence score (0.6-1.0, where 0.6 = minimal evidence, 1.0 = perfect demonstration)
 3. A brief excerpt from the transcript showing the evidence (max 100 words)
 
 Respond in JSON format:
@@ -776,12 +777,12 @@ Respond in JSON format:
     {{
       "cando_id": "uuid-here",
       "confidence": 0.85,
-      "evidence": "Brief excerpt showing clear demonstration..."
+      "evidence": "Brief excerpt from transcript that demonstrates this capability..."
     }}
   ]
 }}
 
-If no statements were clearly demonstrated, return an empty array."""
+Include any statement with confidence >= 0.6. If no statements were demonstrated, return an empty array."""
 
         # Call GPT-4
         response = openai.ChatCompletion.create(
