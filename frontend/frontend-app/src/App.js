@@ -963,7 +963,7 @@ import { supabase } from "./supabaseClient";
                           ? 'bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-100'
                           : usageStats.tier === 'starter'
                           ? 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-100'
-                          : 'bg-gray-100 dark:bg-gray-800'
+                          : 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-100'
                       }`}>
                         {TIER_LIMITS[usageStats.tier].name} Tier
                       </span>
@@ -1000,7 +1000,7 @@ import { supabase } from "./supabaseClient";
                         </p>
                       )}
                       {usageStats.limit !== -1 && usageStats.used < usageStats.limit && (
-                        <p className="text-xs text-gray-600 dark:text-gray-400">
+                        <p className="text-xs text-gray-700 dark:text-gray-400">
                           {usageStats.limit - usageStats.used} minutes remaining
                         </p>
                       )}
@@ -1055,19 +1055,7 @@ import { supabase } from "./supabaseClient";
                     </select>
                   </div>
 
-                  <div>
-                    <label className={`text-sm font-semibold ${subtleText} mb-1 block`}>Preferred Accent</label>
-                    <select
-                      value={preferredAccent}
-                      onChange={(e) => setPreferredAccent(e.target.value)}
-                      className={`w-full px-3 py-2 rounded-lg border ${cardTheme}`}
-                    >
-                      <option value="American">American</option>
-                      <option value="British">British</option>
-                      <option value="Australian">Australian</option>
-                      <option value="Other">Other</option>
-                    </select>
-                  </div>
+                  {/* Preferred Accent - REMOVED */}
 
                   <div>
                     <label className={`text-sm font-semibold ${subtleText} mb-1 block`}>Study Frequency</label>
