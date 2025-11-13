@@ -1374,7 +1374,10 @@ import { supabase } from "./supabaseClient";
                       </p>
 
                       <button
-                          onClick={() => setShowConfirmation(false)}
+                          onClick={() => {
+                              setShowConfirmation(false);
+                              setIsSignUp(false); // Switch to login mode
+                          }}
                           className="px-8 py-4 bg-green-600 hover:bg-green-700 text-white text-xl font-bold rounded-xl shadow-lg transition"
                       >
                           Back to Login
