@@ -194,10 +194,11 @@ import { supabase } from "./supabaseClient";
       console.log(`Monthly usage: ${currentUsage} + ${durationMinutes} = ${newTotal} minutes`);
 
       // Analyze conversation for Can-Do achievements if we have a transcript
-      if (conversation && conversation.length > 0) {
-        console.log('Analyzing session for Can-Do achievements...');
-        analyzeSessionForCando(capturedSessionLogId, user.id, conversation);
-      }
+      // DISABLED FOR NOW - Can-Do system not in use
+      // if (conversation && conversation.length > 0) {
+      //   console.log('Analyzing session for Can-Do achievements...');
+      //   analyzeSessionForCando(capturedSessionLogId, user.id, conversation);
+      // }
     }
   }
 
@@ -504,7 +505,7 @@ import { supabase } from "./supabaseClient";
     // Load profile data on mount
     useEffect(() => {
       loadProfile();
-      fetchCanDoAchievements();
+      // fetchCanDoAchievements(); // DISABLED - Can-Do system not in use
     }, []);
 
     // Sync avatar URL when parent updates
@@ -1041,8 +1042,8 @@ import { supabase } from "./supabaseClient";
                     Save Learning Preferences
                   </button>
 
-                  {/* Can-Do Checklist Section */}
-                  <div className="pt-6 mt-6 border-t border-gray-200 dark:border-gray-700">
+                  {/* Can-Do Checklist Section - DISABLED FOR NOW */}
+                  {/* <div className="pt-6 mt-6 border-t border-gray-200 dark:border-gray-700">
                     <h3 className="font-bold text-xl mb-2">Can-Do Checklist</h3>
                     <p className={`text-sm ${subtleText} mb-4`}>
                       Track your progress through CEFR Can-Do statements. New achievements are automatically detected during voice conversations.
@@ -1054,7 +1055,6 @@ import { supabase } from "./supabaseClient";
                       </div>
                     ) : candoData ? (
                       <div className="space-y-4">
-                        {/* Progress Summary */}
                         <div className={`${cardTheme} p-4 rounded-lg border`}>
                           <div className="flex justify-between items-center mb-2">
                             <span className="font-semibold">Your Progress</span>
@@ -1068,7 +1068,6 @@ import { supabase } from "./supabaseClient";
                           </div>
                         </div>
 
-                        {/* Achievements by Level */}
                         {candoData.progress_by_level && candoData.progress_by_level.map(levelData => (
                           <div key={levelData.level} className={`${cardTheme} p-4 rounded-lg border`}>
                             <div className="flex justify-between items-center mb-3">
@@ -1078,7 +1077,6 @@ import { supabase } from "./supabaseClient";
                               </span>
                             </div>
 
-                            {/* Progress Bar */}
                             <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mb-3">
                               <div
                                 className="bg-green-600 h-2 rounded-full transition-all duration-300"
@@ -1086,7 +1084,6 @@ import { supabase } from "./supabaseClient";
                               ></div>
                             </div>
 
-                            {/* Recent achievements for this level */}
                             {levelData.recent_achievements && levelData.recent_achievements.length > 0 && (
                               <div className="mt-3 space-y-2">
                                 <p className="text-xs font-semibold text-gray-600 dark:text-gray-400">Recent achievements:</p>
@@ -1103,7 +1100,6 @@ import { supabase } from "./supabaseClient";
                           </div>
                         ))}
 
-                        {/* View All Button */}
                         <button
                           onClick={fetchCanDoAchievements}
                           className={`w-full ${cardTheme} border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800 font-semibold py-2 px-4 rounded-lg transition text-sm`}
@@ -1116,7 +1112,7 @@ import { supabase } from "./supabaseClient";
                         <p className={subtleText}>No achievements yet. Start a voice conversation to unlock your first Can-Do statements!</p>
                       </div>
                     )}
-                  </div>
+                  </div> */}
                 </div>
               )}
 
@@ -1386,7 +1382,7 @@ import { supabase } from "./supabaseClient";
                                   required
                               />
                               <p className="text-sm text-gray-600 -mt-2">
-                                Don't have a code? <a href="mailto:bernardomorales@example.com?subject=Invitation%20Code%20Request" className="text-green-600 hover:underline font-semibold">Request one here</a>
+                                Don't have a code? <a href="mailto:bernardm@ucm.es?subject=Invitation%20Code%20Request" className="text-green-600 hover:underline font-semibold">Request one here</a>
                               </p>
                               <div className="grid grid-cols-2 gap-3">
                                   <input
@@ -2327,7 +2323,10 @@ import { supabase } from "./supabaseClient";
     const [timeStats, setTimeStats] = useState({
       totalMinutes: 0,
       dailyAverageMinutes: 0,
-      todayMinutes: 0
+      todayMinutes: 0,
+      conversationCount: 0,
+      topicDiversity: 0,
+      currentStreak: 0
     });
     const [loading, setLoading] = useState(true);
     const [sessions, setSessions] = useState([]);
@@ -2339,17 +2338,17 @@ import { supabase } from "./supabaseClient";
     useEffect(() => {
       loadTimeStats();
       loadTranscriptions();
-      loadCanDoAchievements();
+      // loadCanDoAchievements(); // DISABLED - Can-Do system not in use
     }, []);
 
     const loadTimeStats = async () => {
       const user = (await supabase.auth.getUser()).data.user;
       if (!user) return;
 
-      // Fetch all conversation sessions for this user
+      // Fetch all conversation sessions for this user (including topic)
       const { data: sessions, error } = await supabase
         .from('conversation_sessions')
-        .select('duration_minutes, started_at')
+        .select('duration_minutes, started_at, topic')
         .eq('user_id', user.id)
         .not('duration_minutes', 'is', null);
 
@@ -2375,10 +2374,58 @@ import { supabase } from "./supabaseClient";
         const daysSinceStart = Math.max(1, Math.ceil((Date.now() - firstSessionDate) / (1000 * 60 * 60 * 24)));
         const dailyAverageMinutes = Math.round(totalMinutes / daysSinceStart);
 
+        // NEW METRICS
+        // 1. Conversation count
+        const conversationCount = sessions.length;
+
+        // 2. Topic diversity - count unique topics
+        const uniqueTopics = new Set(sessions.map(s => s.topic).filter(t => t && t.trim() !== ''));
+        const topicDiversity = uniqueTopics.size;
+
+        // 3. Consistency streak - consecutive days with practice
+        const sessionDates = sessions
+          .map(s => {
+            const date = new Date(s.started_at);
+            date.setHours(0, 0, 0, 0);
+            return date.getTime();
+          })
+          .sort((a, b) => b - a); // Sort descending (most recent first)
+
+        const uniqueDates = [...new Set(sessionDates)];
+
+        let currentStreak = 0;
+        const todayStart = new Date();
+        todayStart.setHours(0, 0, 0, 0);
+        const yesterdayStart = new Date(todayStart);
+        yesterdayStart.setDate(yesterdayStart.getDate() - 1);
+
+        // Start from today or yesterday
+        let checkDate = uniqueDates.includes(todayStart.getTime())
+          ? todayStart.getTime()
+          : (uniqueDates.includes(yesterdayStart.getTime()) ? yesterdayStart.getTime() : null);
+
+        if (checkDate) {
+          currentStreak = 1;
+          for (let i = 1; i < uniqueDates.length; i++) {
+            const expectedDate = new Date(checkDate);
+            expectedDate.setDate(expectedDate.getDate() - i);
+            expectedDate.setHours(0, 0, 0, 0);
+
+            if (uniqueDates[i] === expectedDate.getTime()) {
+              currentStreak++;
+            } else {
+              break;
+            }
+          }
+        }
+
         setTimeStats({
           totalMinutes,
           dailyAverageMinutes,
-          todayMinutes
+          todayMinutes,
+          conversationCount,
+          topicDiversity,
+          currentStreak
         });
       }
 
@@ -2542,8 +2589,42 @@ import { supabase } from "./supabaseClient";
           </div>
         </div>
 
-        {/* Can-Do Achievements */}
+        {/* Learning Milestones */}
         <div className={`rounded-2xl border p-6 ${cardTheme}`}>
+          <h3 className={`font-bold ${fontSizes.xl} mb-4`}>Your Learning Journey</h3>
+          <div className="grid grid-cols-3 gap-4">
+            <div className="text-center">
+              <div className={`${subtleText} ${fontSizes.base}`}>Conversations</div>
+              <div className={`${fontSizes.xxl} font-bold mt-1 text-green-600 dark:text-green-400`}>
+                {timeStats.conversationCount}
+              </div>
+              <div className={`${subtleText} text-sm mt-1`}>
+                {timeStats.conversationCount === 1 ? 'session' : 'sessions'}
+              </div>
+            </div>
+            <div className="text-center">
+              <div className={`${subtleText} ${fontSizes.base}`}>Practice Streak</div>
+              <div className={`${fontSizes.xxl} font-bold mt-1 text-orange-600 dark:text-orange-400`}>
+                {timeStats.currentStreak}
+              </div>
+              <div className={`${subtleText} text-sm mt-1`}>
+                {timeStats.currentStreak === 1 ? 'day' : 'days'}
+              </div>
+            </div>
+            <div className="text-center">
+              <div className={`${subtleText} ${fontSizes.base}`}>Topics Explored</div>
+              <div className={`${fontSizes.xxl} font-bold mt-1 text-blue-600 dark:text-blue-400`}>
+                {timeStats.topicDiversity}
+              </div>
+              <div className={`${subtleText} text-sm mt-1`}>
+                {timeStats.topicDiversity === 1 ? 'topic' : 'topics'}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Can-Do Achievements - DISABLED FOR NOW */}
+        {/* <div className={`rounded-2xl border p-6 ${cardTheme}`}>
           <h3 className={`font-bold ${fontSizes.xl} mb-3`}>🏆 Unlocked Achievements</h3>
           <p className={`text-sm ${subtleText} mb-4`}>
             CEFR Can-Do statements you've demonstrated during conversations
@@ -2555,7 +2636,6 @@ import { supabase } from "./supabaseClient";
             </div>
           ) : candoData && candoData.total_achievements > 0 ? (
             <div className="space-y-4">
-              {/* Total Badge */}
               <div className="flex items-center justify-between bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 p-4 rounded-lg border border-green-200 dark:border-green-800">
                 <span className="font-bold text-lg">Total Unlocked</span>
                 <span className="text-2xl font-bold text-green-600 dark:text-green-400">
@@ -2563,7 +2643,6 @@ import { supabase } from "./supabaseClient";
                 </span>
               </div>
 
-              {/* Achievements by Level */}
               {candoData.progress_by_level && candoData.progress_by_level.map(levelData => (
                 levelData.recent_achievements && levelData.recent_achievements.length > 0 && (
                   <div key={levelData.level} className="space-y-2">
@@ -2576,7 +2655,6 @@ import { supabase } from "./supabaseClient";
                       </span>
                     </div>
 
-                    {/* Show unlocked achievements for this level */}
                     {levelData.recent_achievements.slice(0, 5).map((achievement, idx) => (
                       <div
                         key={idx}
@@ -2612,7 +2690,7 @@ import { supabase } from "./supabaseClient";
               </p>
             </div>
           )}
-        </div>
+        </div> */}
 
         {/* Conversations */}
         <div className={`rounded-2xl border p-6 ${cardTheme}`}>
