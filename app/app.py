@@ -32,10 +32,12 @@ openai.api_key = OPENAI_API_KEY
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 
-@app.route("/")
-def index():
-    # Renders index.html from the templates folder
-    return render_template("index.html")
+# DISABLED: Old template route removed for security
+# The React app on Vercel is the main frontend
+# @app.route("/")
+# def index():
+#     # Renders index.html from the templates folder
+#     return render_template("index.html")
 
 @app.route("/clear_context", methods=["POST"])
 def clear_context():
