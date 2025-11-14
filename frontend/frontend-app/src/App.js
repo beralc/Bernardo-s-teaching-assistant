@@ -3584,6 +3584,171 @@ import { supabase } from "./supabaseClient";
       setExporting(false);
     };
 
+    // Research Data Export Functions
+    const exportAllUsers = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select(`
+            id,
+            name,
+            surname,
+            age,
+            native_language,
+            country,
+            study_method,
+            institution_name,
+            english_level,
+            tier,
+            monthly_voice_minutes_used,
+            created_at,
+            updated_at
+          `)
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        // Convert to CSV
+        const headers = ['ID', 'Name', 'Surname', 'Age', 'Native Language', 'Country', 'Study Method', 'Institution', 'CEFR Level', 'Tier', 'Minutes Used', 'Created At', 'Updated At'];
+        const csvRows = [headers.join(',')];
+
+        data.forEach(user => {
+          const row = [
+            user.id,
+            user.name || '',
+            user.surname || '',
+            user.age || '',
+            user.native_language || '',
+            user.country || '',
+            user.study_method || '',
+            user.institution_name || '',
+            user.english_level || '',
+            user.tier || 'free',
+            user.monthly_voice_minutes_used || 0,
+            user.created_at || '',
+            user.updated_at || ''
+          ];
+          csvRows.push(row.map(field => `"${String(field).replace(/"/g, '""')}"`).join(','));
+        });
+
+        const csv = csvRows.join('\n');
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `users_export_${new Date().toISOString().split('T')[0]}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+
+        setMessage(`Exported ${data.length} users successfully!`);
+      } catch (error) {
+        console.error('Export error:', error);
+        setMessage('Error exporting users: ' + error.message);
+      }
+    };
+
+    const exportAllSessions = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('conversation_sessions')
+          .select(`
+            id,
+            user_id,
+            started_at,
+            ended_at,
+            duration_minutes,
+            topic,
+            created_at
+          `)
+          .order('started_at', { ascending: false });
+
+        if (error) throw error;
+
+        // Convert to CSV
+        const headers = ['Session ID', 'User ID', 'Started At', 'Ended At', 'Duration (min)', 'Topic', 'Created At'];
+        const csvRows = [headers.join(',')];
+
+        data.forEach(session => {
+          const row = [
+            session.id,
+            session.user_id,
+            session.started_at || '',
+            session.ended_at || '',
+            session.duration_minutes || 0,
+            session.topic || '',
+            session.created_at || ''
+          ];
+          csvRows.push(row.map(field => `"${String(field).replace(/"/g, '""')}"`).join(','));
+        });
+
+        const csv = csvRows.join('\n');
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `sessions_export_${new Date().toISOString().split('T')[0]}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+
+        setMessage(`Exported ${data.length} sessions successfully!`);
+      } catch (error) {
+        console.error('Export error:', error);
+        setMessage('Error exporting sessions: ' + error.message);
+      }
+    };
+
+    const exportAllTranscriptions = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('transcriptions')
+          .select(`
+            id,
+            user_id,
+            session_id,
+            text,
+            created_at
+          `)
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        // Convert to CSV
+        const headers = ['Transcription ID', 'User ID', 'Session ID', 'Text', 'Created At'];
+        const csvRows = [headers.join(',')];
+
+        data.forEach(transcript => {
+          const row = [
+            transcript.id,
+            transcript.user_id,
+            transcript.session_id || '',
+            transcript.text || '',
+            transcript.created_at || ''
+          ];
+          csvRows.push(row.map(field => `"${String(field).replace(/"/g, '""')}"`).join(','));
+        });
+
+        const csv = csvRows.join('\n');
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `transcriptions_export_${new Date().toISOString().split('T')[0]}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+
+        setMessage(`Exported ${data.length} transcriptions successfully!`);
+      } catch (error) {
+        console.error('Export error:', error);
+        setMessage('Error exporting transcriptions: ' + error.message);
+      }
+    };
+
     // Can-Do Management Functions
     const loadCandoUsers = async () => {
       setLoadingCando(true);
@@ -3681,6 +3846,16 @@ import { supabase } from "./supabaseClient";
             }`}
           >
             Can-Do
+          </button>
+          <button
+            onClick={() => setActiveTab('export')}
+            className={`px-6 py-3 font-semibold ${fontSizes.lg} transition ${
+              activeTab === 'export'
+                ? 'border-b-2 border-green-600 text-green-600'
+                : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+            }`}
+          >
+            📊 Research Data
           </button>
         </div>
 
@@ -4156,6 +4331,59 @@ import { supabase } from "./supabaseClient";
                   </table>
                 </div>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* Research Data Export Tab */}
+        {activeTab === 'export' && (
+          <div className="space-y-6">
+            <div className={`rounded-2xl border p-6 ${cardTheme}`}>
+              <h3 className={`font-bold ${fontSizes.xl} mb-4`}>Export Research Data</h3>
+              <p className={`${subtleText} mb-6`}>
+                Download all data as CSV files for analysis in Excel, SPSS, or R. Each export includes all records with timestamps.
+              </p>
+
+              <div className="space-y-3">
+                <button
+                  onClick={exportAllUsers}
+                  className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 rounded-xl transition flex items-center justify-center gap-3"
+                >
+                  <span className="text-2xl">📥</span>
+                  <div className="text-left">
+                    <div className="font-bold">Export All Users & Profiles</div>
+                    <div className="text-sm opacity-90">Demographics, study method, institution, CEFR level, tier, usage data</div>
+                  </div>
+                </button>
+
+                <button
+                  onClick={exportAllSessions}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-6 rounded-xl transition flex items-center justify-center gap-3"
+                >
+                  <span className="text-2xl">📥</span>
+                  <div className="text-left">
+                    <div className="font-bold">Export All Conversation Sessions</div>
+                    <div className="text-sm opacity-90">Session IDs, user IDs, duration, topics, timestamps</div>
+                  </div>
+                </button>
+
+                <button
+                  onClick={exportAllTranscriptions}
+                  className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-4 px-6 rounded-xl transition flex items-center justify-center gap-3"
+                >
+                  <span className="text-2xl">📥</span>
+                  <div className="text-left">
+                    <div className="font-bold">Export All Transcriptions</div>
+                    <div className="text-sm opacity-90">Full conversation transcripts with user/session IDs and timestamps</div>
+                  </div>
+                </button>
+              </div>
+
+              <div className={`mt-6 p-4 rounded-xl bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800`}>
+                <p className={`text-sm ${subtleText}`}>
+                  <strong>💡 Tip:</strong> Files are named with today's date (YYYY-MM-DD). Use these CSV files in statistical software like SPSS, R, or Excel for your PhD analysis.
+                </p>
+              </div>
             </div>
           </div>
         )}
