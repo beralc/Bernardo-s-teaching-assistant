@@ -3129,8 +3129,6 @@ import { supabase } from "./supabaseClient";
         loadUsers();
       } else if (activeTab === 'users') {
         loadAllUsers();
-      } else if (activeTab === 'cando') {
-        loadCandoUsers();
       }
     }, [activeTab]);
 
@@ -3838,16 +3836,6 @@ import { supabase } from "./supabaseClient";
             Users
           </button>
           <button
-            onClick={() => setActiveTab('cando')}
-            className={`px-6 py-3 font-semibold ${fontSizes.lg} transition ${
-              activeTab === 'cando'
-                ? 'border-b-2 border-green-600 text-green-600'
-                : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
-            }`}
-          >
-            Can-Do
-          </button>
-          <button
             onClick={() => setActiveTab('export')}
             className={`px-6 py-3 font-semibold ${fontSizes.lg} transition ${
               activeTab === 'export'
@@ -4377,12 +4365,6 @@ import { supabase } from "./supabaseClient";
                     <div className="text-sm opacity-90">Full conversation transcripts with user/session IDs and timestamps</div>
                   </div>
                 </button>
-              </div>
-
-              <div className={`mt-6 p-4 rounded-xl bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800`}>
-                <p className={`text-sm ${subtleText}`}>
-                  <strong>💡 Tip:</strong> Files are named with today's date (YYYY-MM-DD). Use these CSV files in statistical software like SPSS, R, or Excel for your PhD analysis.
-                </p>
               </div>
             </div>
           </div>
