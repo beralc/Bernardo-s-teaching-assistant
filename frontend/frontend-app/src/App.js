@@ -496,6 +496,7 @@ import { supabase } from "./supabaseClient";
     const [interests, setInterests] = useState([]);
     const [preferredAccent, setPreferredAccent] = useState('American');
     const [studyFrequency, setStudyFrequency] = useState('Daily');
+    const [voicePreference, setVoicePreference] = useState('sage'); // AI voice preference
 
     // Usage stats
     const [usageStats, setUsageStats] = useState({ used: 0, limit: 30, tier: 'free' });
@@ -541,6 +542,7 @@ import { supabase } from "./supabaseClient";
         setInterests(data.interests || []);
         setPreferredAccent(data.preferred_accent || 'American');
         setStudyFrequency(data.study_frequency || 'Daily');
+        setVoicePreference(data.voice_preference || 'sage');
         setAvatarUrl(data.avatar_url || '');
 
         // Load usage stats
@@ -610,6 +612,7 @@ import { supabase } from "./supabaseClient";
           interests,
           preferred_accent: preferredAccent,
           study_frequency: studyFrequency,
+          voice_preference: voicePreference,
           avatar_url: avatarUrl,
           updated_at: new Date().toISOString()
         });
@@ -1056,6 +1059,25 @@ import { supabase } from "./supabaseClient";
                   </div>
 
                   {/* Preferred Accent - REMOVED */}
+
+                  <div>
+                    <label className={`text-sm font-semibold ${subtleText} mb-1 block`}>AI Voice Assistant</label>
+                    <select
+                      value={voicePreference}
+                      onChange={(e) => setVoicePreference(e.target.value)}
+                      className={`w-full px-3 py-2 rounded-lg border ${cardTheme}`}
+                    >
+                      <option value="sage">Jennifer (USA) - Clear, professional</option>
+                      <option value="shimmer">Sarah (USA) - Gentle, warm</option>
+                      <option value="coral">Emma (USA) - Bright, energetic</option>
+                      <option value="ballad">Peter (UK) - Calm, British</option>
+                      <option value="echo">Michael (USA) - Warm, friendly</option>
+                      <option value="onyx">David (USA) - Deep, authoritative</option>
+                      <option value="ash">James (USA) - Smooth, articulate</option>
+                      <option value="verse">Sofia (USA) - Expressive, dynamic</option>
+                    </select>
+                    <p className={`text-xs ${subtleText} mt-1`}>Choose the voice that sounds best to you. Changes apply to your next conversation.</p>
+                  </div>
 
                   <div>
                     <label className={`text-sm font-semibold ${subtleText} mb-1 block`}>Study Frequency</label>
@@ -1980,10 +2002,16 @@ import { supabase } from "./supabaseClient";
 
         let sessionResponse, session_id, websocket_url, ephemeral_token;
         try {
+          // Get current user ID
+          const { data: { user } } = await supabase.auth.getUser();
+
           sessionResponse = await fetch(`${API_BASE_URL}/webrtc_session`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ topic: selectedTopic }),
+            body: JSON.stringify({
+              topic: selectedTopic,
+              user_id: user?.id
+            }),
             signal: controller.signal
           });
 

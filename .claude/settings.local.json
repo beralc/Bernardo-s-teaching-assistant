@@ -1,13 +1,18 @@
 {
   "permissions": {
     "allow": [
-      "Read(//Users/bernardomorales/Desktop/**)",
-      "Bash(find:*)",
-      "Bash(grep:*)",
-      "WebSearch",
-      "WebFetch(domain:community.openai.com)",
-      "WebFetch(domain:platform.openai.com)",
-      "WebFetch(domain:github.com)"
+      "Bash(cd:*)",
+      "Bash(test:*)",
+      "Bash(curl -s https://bernardo-s-teaching-assistant.onrender.com/)",
+      "Bash(curl -s -X GET \"https://bernardo-s-teaching-assistant.onrender.com/users/34d2ac20-19be-437d-8e5f-6def8a4a520d/cando\" -H \"Content-Type: application/json\")",
+      "Bash(jq:*)",
+      "WebFetch(domain:github.com)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(curl:*)",
+      "WebFetch(domain:vercel.com)",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": []

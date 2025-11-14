@@ -101,6 +101,7 @@ def webrtc_session():
         # Check if there's a topic in the request
         data = request.json or {}
         topic = data.get('topic')
+        user_id = data.get('user_id')
 
         if topic:
             # Add topic context to the prompt data
@@ -109,6 +110,27 @@ def webrtc_session():
                 "description": topic.get('description', ''),
                 "instructions": "Please start the conversation by introducing this topic and engaging the user in a natural, friendly way remember always in english."
             }
+
+        # Fetch user's voice preference from Supabase
+        voice = "sage"  # Default voice
+        if user_id and SUPABASE_URL and SUPABASE_SERVICE_KEY:
+            try:
+                supabase_headers = {
+                    "apikey": SUPABASE_SERVICE_KEY,
+                    "Authorization": f"Bearer {SUPABASE_SERVICE_KEY}",
+                    "Content-Type": "application/json"
+                }
+                profile_response = requests.get(
+                    f"{SUPABASE_URL}/rest/v1/profiles?id=eq.{user_id}&select=voice_preference",
+                    headers=supabase_headers
+                )
+                if profile_response.status_code == 200:
+                    profiles = profile_response.json()
+                    if profiles and len(profiles) > 0:
+                        voice = profiles[0].get('voice_preference', 'sage')
+            except Exception as e:
+                print(f"Error fetching voice preference: {e}")
+                # Continue with default voice if fetch fails
 
         # Convert the entire prompt data to a JSON string
         instructions_str = json.dumps(prompt_data)
@@ -123,7 +145,7 @@ def webrtc_session():
         }
         body = {
             "model": realtime_model_name, # Use the defined model name
-            "voice": "sage",
+            "voice": voice,
             "modalities": ["audio", "text"],
             "instructions": instructions_str,
             # Audio format configuration
