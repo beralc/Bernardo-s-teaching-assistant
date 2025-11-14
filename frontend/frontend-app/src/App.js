@@ -4329,16 +4329,16 @@ import { supabase } from "./supabaseClient";
             <div className={`rounded-2xl border p-6 ${cardTheme}`}>
               <h3 className={`font-bold ${fontSizes.xl} mb-4`}>Export Research Data</h3>
               <p className={`${subtleText} mb-6`}>
-                Download all data as CSV files for analysis in Excel, SPSS, or R. Each export includes all records with timestamps.
+                Download all data as CSV files for analysis. Each export includes all records with timestamps.
               </p>
 
               <div className="space-y-3">
                 <button
                   onClick={exportAllUsers}
-                  className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 rounded-xl transition flex items-center justify-center gap-3"
+                  className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 rounded-xl transition flex flex-col items-center justify-center gap-2"
                 >
                   <span className="text-2xl">📥</span>
-                  <div className="text-left">
+                  <div className="text-center">
                     <div className="font-bold">Export All Users & Profiles</div>
                     <div className="text-sm opacity-90">Demographics, study method, institution, CEFR level, tier, usage data</div>
                   </div>
@@ -4346,10 +4346,10 @@ import { supabase } from "./supabaseClient";
 
                 <button
                   onClick={exportAllSessions}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-6 rounded-xl transition flex items-center justify-center gap-3"
+                  className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 rounded-xl transition flex flex-col items-center justify-center gap-2"
                 >
                   <span className="text-2xl">📥</span>
-                  <div className="text-left">
+                  <div className="text-center">
                     <div className="font-bold">Export All Conversation Sessions</div>
                     <div className="text-sm opacity-90">Session IDs, user IDs, duration, topics, timestamps</div>
                   </div>
@@ -4357,10 +4357,10 @@ import { supabase } from "./supabaseClient";
 
                 <button
                   onClick={exportAllTranscriptions}
-                  className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-4 px-6 rounded-xl transition flex items-center justify-center gap-3"
+                  className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 rounded-xl transition flex flex-col items-center justify-center gap-2"
                 >
                   <span className="text-2xl">📥</span>
-                  <div className="text-left">
+                  <div className="text-center">
                     <div className="font-bold">Export All Transcriptions</div>
                     <div className="text-sm opacity-90">Full conversation transcripts with user/session IDs and timestamps</div>
                   </div>
