@@ -516,13 +516,13 @@ import { supabase } from "./supabaseClient";
       if (currentAvatarUrl && currentAvatarUrl !== avatarUrl) {
         setAvatarUrl(currentAvatarUrl);
       }
-    }, [currentAvatarUrl]);
+    }, [currentAvatarUrl, avatarUrl]);
 
     const loadProfile = async () => {
       const user = (await supabase.auth.getUser()).data.user;
       if (!user) return;
 
-      const { data, error } = await supabase
+      const { data, error: _profileError } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', user.id)
@@ -556,7 +556,7 @@ import { supabase } from "./supabaseClient";
       }
     };
 
-    const fetchCanDoAchievements = async () => {
+    const _fetchCanDoAchievements = async () => {
       const user = (await supabase.auth.getUser()).data.user;
       if (!user) return;
 
@@ -1234,7 +1234,7 @@ import { supabase } from "./supabaseClient";
       const [isSignUp, setIsSignUp] = useState(false);
       const [message, setMessage] = useState('');
       const [invitationCode, setInvitationCode] = useState('');
-      const [validatingCode, setValidatingCode] = useState(false);
+      const [_validatingCode, setValidatingCode] = useState(false);
       const [showConfirmation, setShowConfirmation] = useState(false);
       const [premiumDays, setPremiumDays] = useState(0);
 
@@ -1920,6 +1920,7 @@ import { supabase } from "./supabaseClient";
       } catch (error) {
         console.error('Error decoding audio:', error);
       }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     // Function to play queued audio chunks with seamless scheduling
@@ -2000,7 +2001,7 @@ import { supabase } from "./supabaseClient";
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 minute timeout
 
-        let sessionResponse, session_id, websocket_url, ephemeral_token;
+        let sessionResponse, _session_id, websocket_url, ephemeral_token;
         try {
           // Get current user ID
           const { data: { user } } = await supabase.auth.getUser();
@@ -2028,7 +2029,7 @@ import { supabase } from "./supabaseClient";
           const responseData = await sessionResponse.json();
           console.log('Session data received:', { session_id: responseData.session_id, websocket_url: responseData.websocket_url });
 
-          session_id = responseData.session_id;
+          _session_id = responseData.session_id;
           websocket_url = responseData.websocket_url;
           ephemeral_token = responseData.ephemeral_token;
         } catch (fetchError) {
@@ -2360,6 +2361,7 @@ import { supabase } from "./supabaseClient";
           }
         }, 800);
       }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedTopic, speaking]);
 
     // Existing text chat integration (now replaced by real-time speech)
@@ -2596,11 +2598,11 @@ import { supabase } from "./supabaseClient";
       topicDiversity: 0,
       currentStreak: 0
     });
-    const [loading, setLoading] = useState(true);
+    const [_loading, setLoading] = useState(true);
     const [sessions, setSessions] = useState([]);
     const [showConversations, setShowConversations] = useState(false);
-    const [candoData, setCandoData] = useState(null);
-    const [loadingCando, setLoadingCando] = useState(true);
+    const [_candoData, setCandoData] = useState(null);
+    const [_loadingCando, setLoadingCando] = useState(true);
 
     // Load time statistics from Supabase
     useEffect(() => {
@@ -2709,7 +2711,7 @@ import { supabase } from "./supabaseClient";
       return `${mins} min`;
     };
 
-    const loadCanDoAchievements = async () => {
+    const _loadCanDoAchievements = async () => {
       const user = (await supabase.auth.getUser()).data.user;
       if (!user) return;
 
@@ -3185,7 +3187,7 @@ import { supabase } from "./supabaseClient";
       const randomPart = Math.random().toString(36).substring(2, 8).toUpperCase();
       const code = `${newCodePrefix}${randomPart}`;
 
-      const { data, error } = await supabase
+      const { data: _data, error } = await supabase
         .from('invitation_codes')
         .insert([{
           code,
@@ -3776,7 +3778,7 @@ import { supabase } from "./supabaseClient";
     };
 
     // Can-Do Management Functions
-    const loadCandoUsers = async () => {
+    const _loadCandoUsers = async () => {
       setLoadingCando(true);
       const { data, error } = await supabase
         .from('profiles')
@@ -4511,7 +4513,7 @@ import { supabase } from "./supabaseClient";
   strokeLinejoin="round"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>;
   const AdminIcon = ({ color = "currentColor", className = "" }) => <svg className={`w-8 h-8 ${className}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"
   strokeLinejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>;
-  const CheckIcon = () => <svg className="w-6 h-6 text-green-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3}
+  const _CheckIcon = () => <svg className="w-6 h-6 text-green-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3}
   d="M5 13l4 4L19 7" /></svg>;
-  const NextStepIcon = () => <svg className="w-6 h-6 text-orange-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round"
+  const _NextStepIcon = () => <svg className="w-6 h-6 text-orange-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round"
   strokeWidth={3} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>;
