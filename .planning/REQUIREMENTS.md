@@ -11,12 +11,12 @@ Requirements to make the app ready for doctoral research data collection.
 
 Spanish seniors learning English need UI in their native language to reduce cognitive load.
 
-- [ ] **I18N-01**: Detect browser language on app load (navigator.language)
-- [ ] **I18N-02**: Show Spanish UI if browser is `es` or `es-*`, English for all other languages
-- [ ] **I18N-03**: Create translation files for all user-facing text (es.json, en.json)
-- [ ] **I18N-04**: Translate: navigation, buttons, labels, instructions, tooltips, error messages
-- [ ] **I18N-05**: Keep AI conversation always in English (practice target language)
-- [ ] **I18N-06**: Persist language preference in localStorage (allow manual override later if needed)
+- [x] **I18N-01**: Detect browser language on app load (navigator.language)
+- [x] **I18N-02**: Show Spanish UI if browser is `es` or `es-*`, English for all other languages
+- [x] **I18N-03**: Create translation files for all user-facing text (es.json, en.json)
+- [x] **I18N-04**: Translate: navigation, buttons, labels, instructions, tooltips, error messages
+- [x] **I18N-05**: Keep AI conversation always in English (practice target language)
+- [x] **I18N-06**: Persist language preference in localStorage (allow manual override later if needed)
 
 ### Can-Do System (Priority: Critical - Phase 2)
 
@@ -101,12 +101,12 @@ Deferred to after data collection begins.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| I18N-01 | Phase 1 | Pending |
-| I18N-02 | Phase 1 | Pending |
-| I18N-03 | Phase 1 | Pending |
-| I18N-04 | Phase 1 | Pending |
-| I18N-05 | Phase 1 | Pending |
-| I18N-06 | Phase 1 | Pending |
+| I18N-01 | Phase 1 | Complete |
+| I18N-02 | Phase 1 | Complete |
+| I18N-03 | Phase 1 | Complete |
+| I18N-04 | Phase 1 | Complete |
+| I18N-05 | Phase 1 | Complete |
+| I18N-06 | Phase 1 | Complete |
 | CANDO-01 | Phase 2 | Pending |
 | CANDO-02 | Phase 2 | Pending |
 | CANDO-03 | Phase 2 | Pending |
@@ -144,4 +144,4 @@ Deferred to after data collection begins.
 
 ---
 *Requirements defined: 2026-01-23*
-*Last updated: 2026-01-23 after adding i18n as Phase 1*
+*Last updated: 2026-01-23 after completing Phase 1 (i18n)*
