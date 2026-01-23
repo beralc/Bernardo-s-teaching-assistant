@@ -295,7 +295,7 @@ async function analyzeSessionForCando(sessionId, userId, conversation) {
     const [selectedTopic, setSelectedTopic] = useState(null);
     const [avatarUrl, setAvatarUrl] = useState('');
     const [isAdmin, setIsAdmin] = useState(false);
-    const { t } = useLanguage();
+    const { t, language, setLanguage } = useLanguage();
 
     // Font size mappings for different elements based on fontStep
     const fontSizes = useMemo(() => {
@@ -394,6 +394,13 @@ async function analyzeSessionForCando(sessionId, userId, conversation) {
               </div>
             </button>
             <div className="flex items-center gap-2">
+              <button
+                className={`px-3 py-2 rounded-xl border text-sm font-semibold ${cardTheme} hover:opacity-80 transition-opacity`}
+                onClick={() => setLanguage(language === 'es' ? 'en' : 'es')}
+                aria-label="Change language"
+              >
+                {language === 'es' ? '🇬🇧 EN' : '🇪🇸 ES'}
+              </button>
               <button
                 className={`px-4 py-2 rounded-xl border text-sm font-semibold ${cardTheme} hover:opacity-80 transition-opacity`}
                 onClick={() => setContrast(v => !v)} aria-pressed={contrast}
@@ -1250,7 +1257,7 @@ async function analyzeSessionForCando(sessionId, userId, conversation) {
     const [validatingCode, setValidatingCode] = useState(false);
       const [showConfirmation, setShowConfirmation] = useState(false);
       const [premiumDays, setPremiumDays] = useState(0);
-      const { t } = useLanguage();
+      const { t, language, setLanguage } = useLanguage();
 
       // Profile fields for signup
       const [name, setName] = useState('');
@@ -1424,7 +1431,16 @@ async function analyzeSessionForCando(sessionId, userId, conversation) {
       }
 
       return (
-          <div className="bg-gray-50 text-gray-900 min-h-screen flex flex-col justify-center items-center text-center p-8">
+          <div className="bg-gray-50 text-gray-900 min-h-screen flex flex-col justify-center items-center text-center p-8 relative">
+              {/* Language Toggle */}
+              <button
+                className="absolute top-4 right-4 px-3 py-2 rounded-xl border border-gray-300 bg-white text-sm font-semibold hover:bg-gray-100 transition"
+                onClick={() => setLanguage(language === 'es' ? 'en' : 'es')}
+                aria-label="Change language"
+              >
+                {language === 'es' ? '🇬🇧 English' : '🇪🇸 Español'}
+              </button>
+
               <div className="max-w-md w-full">
                   <div className="mx-auto w-24 h-24 mb-6 bg-green-100 rounded-3xl flex items-center justify-center">
                      <AppIcon />
