@@ -1,0 +1,294 @@
+{
+  "app": {
+    "title": "Bernardo's English Helper",
+    "loading": "Loading...",
+    "beta": "BETA"
+  },
+  "nav": {
+    "starters": "Starters",
+    "talk": "Talk",
+    "progress": "Progress",
+    "admin": "Admin"
+  },
+  "auth": {
+    "welcome": "Welcome to Bernardo's English Helper",
+    "subtitle": "A safe and friendly space to practice speaking English at your own pace.",
+    "email": "Your email",
+    "password": "Your password",
+    "invitationCode": "Invitation Code (required)",
+    "noCode": "Don't have a code?",
+    "requestCode": "Request one here",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "age": "Age",
+    "selectLanguage": "Select your native language...",
+    "selectCountry": "Select your country...",
+    "studyMethod": "Are you studying at an academy or with an app?",
+    "academyName": "Academy name",
+    "appName": "App name",
+    "tutorName": "Tutor name (optional)",
+    "pleaseSpecify": "Please specify",
+    "signUp": "Sign Up",
+    "logIn": "Log In",
+    "loading": "Loading...",
+    "alreadyHaveAccount": "Already have an account? Log In",
+    "needAccount": "Need an account? Sign Up",
+    "loggedIn": "Logged in successfully!",
+    "logOut": "Log Out"
+  },
+  "confirmation": {
+    "title": "Check Your Email!",
+    "sentTo": "We've sent a confirmation link to",
+    "nextSteps": "Next Steps:",
+    "step1": "1. Open your email inbox",
+    "step2": "2. Look for an email from Bernardo's English Helper",
+    "step3": "3. Click the confirmation link",
+    "step4": "4. Come back here and log in!",
+    "premiumDays": "You have {days} days of premium access!",
+    "noEmail": "Didn't receive the email? Check your spam folder or contact support.",
+    "backToLogin": "Back to Login"
+  },
+  "account": {
+    "title": "Account Settings",
+    "tabs": {
+      "personal": "Personal",
+      "learning": "Learning",
+      "security": "Security"
+    },
+    "profile": {
+      "title": "Your Profile",
+      "uploadHint": "Click the camera icon to upload a photo",
+      "name": "Name",
+      "surname": "Surname",
+      "age": "Age",
+      "nativeLanguage": "Native Language",
+      "country": "Country",
+      "selectLanguage": "Select language...",
+      "selectCountry": "Select country...",
+      "email": "Email",
+      "accountCreated": "Account Created",
+      "saveChanges": "Save Changes",
+      "cancel": "Cancel",
+      "editProfile": "Edit Profile"
+    },
+    "usage": {
+      "title": "Voice Minutes This Month",
+      "used": "used",
+      "remaining": "remaining",
+      "unlimited": "Unlimited",
+      "tier": "Your Tier",
+      "upgradeHint": "Contact support to upgrade"
+    },
+    "voice": {
+      "title": "Preferred Voice",
+      "hint": "Choose the voice that sounds best to you. Changes apply to your next conversation."
+    },
+    "achievements": {
+      "title": "Your Achievements",
+      "loading": "Loading your achievements...",
+      "empty": "No achievements yet. Start a voice conversation to unlock your first Can-Do statements!",
+      "unlocked": "Unlocked"
+    },
+    "security": {
+      "title": "Change Password",
+      "newPassword": "New Password",
+      "confirmPassword": "Confirm Password",
+      "updatePassword": "Update Password",
+      "passwordMismatch": "Passwords do not match",
+      "passwordTooShort": "Password must be at least 6 characters",
+      "passwordUpdated": "Password updated successfully!"
+    },
+    "loading": "Loading account information..."
+  },
+  "talk": {
+    "readyTitle": "Ready to Practice?",
+    "readySubtitle": "Tap the large button to start speaking.",
+    "startButton": "Tap to Talk",
+    "topicIntro": "Great choice! Let's talk about \"{topic}\". {description}. I'll start us off - are you ready?",
+    "defaultGreeting": "Hello! When you're ready, tap the big green button to start talking.",
+    "connecting": "Connecting...",
+    "listening": "Listening...",
+    "stopButton": "Tap to Stop",
+    "aiResponse": "Assistant's response will appear here...",
+    "limitReached": {
+      "title": "Monthly Limit Reached",
+      "message": "You've used all your voice minutes for this month.",
+      "nextReset": "Your minutes will reset on the 1st of next month.",
+      "upgradeHint": "Need more practice time? Contact support about upgrading your plan."
+    },
+    "errors": {
+      "listening": "Error during listening. Please try again.",
+      "general": "Error occurred. Please try again.",
+      "connection": "Connection error. Please check your internet and try again."
+    },
+    "timer": {
+      "remaining": "{minutes} min remaining",
+      "unlimited": "Unlimited"
+    }
+  },
+  "starters": {
+    "title": "Conversation Starters",
+    "subtitle": "Choose a topic and start talking with the assistant.",
+    "start": "Start",
+    "topics": {
+      "dailyRoutine": {
+        "title": "Daily Routine",
+        "description": "Describe your typical day"
+      },
+      "hobbies": {
+        "title": "Hobbies & Interests",
+        "description": "Discuss your favorite activities"
+      },
+      "food": {
+        "title": "Food & Cooking",
+        "description": "Discuss recipes and meals"
+      },
+      "travel": {
+        "title": "Travel & Places",
+        "description": "Share travel experiences"
+      },
+      "family": {
+        "title": "Family & Friends",
+        "description": "Talk about important people"
+      },
+      "weather": {
+        "title": "Weather & Seasons",
+        "description": "Discuss the weather"
+      },
+      "health": {
+        "title": "Health & Wellness",
+        "description": "Talk about staying healthy"
+      },
+      "shopping": {
+        "title": "Shopping",
+        "description": "Discuss shopping experiences"
+      },
+      "entertainment": {
+        "title": "Entertainment",
+        "description": "Movies, TV, books, and music"
+      },
+      "work": {
+        "title": "Work & Career",
+        "description": "Discuss your profession"
+      }
+    }
+  },
+  "progress": {
+    "title": "Your Progress",
+    "subtitle": "Track your English learning journey",
+    "totalSessions": "Total Sessions",
+    "totalMinutes": "Total Minutes",
+    "currentStreak": "Current Streak",
+    "days": "days",
+    "recentActivity": "Recent Activity",
+    "noActivity": "No activity yet. Start a conversation to begin tracking your progress!"
+  },
+  "admin": {
+    "title": "Admin Dashboard",
+    "tabs": {
+      "users": "Users",
+      "codes": "Codes",
+      "research": "Research Data"
+    },
+    "users": {
+      "title": "User Management",
+      "search": "Search users...",
+      "createUser": "Create User",
+      "email": "Email",
+      "name": "Name",
+      "tier": "Tier",
+      "level": "Level",
+      "joined": "Joined",
+      "actions": "Actions",
+      "deleteConfirm": "Are you sure you want to delete this user?",
+      "delete": "Delete",
+      "resetPassword": "Reset Password",
+      "changeTier": "Change Tier"
+    },
+    "codes": {
+      "title": "Invitation Codes",
+      "generate": "Generate Code",
+      "code": "Code",
+      "uses": "Uses",
+      "maxUses": "Max Uses",
+      "premium": "Premium",
+      "created": "Created"
+    },
+    "research": {
+      "title": "Research Data Export",
+      "exportSessions": "Export Sessions",
+      "exportTranscripts": "Export Transcripts",
+      "exportUsers": "Export Users"
+    }
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "close": "Close",
+    "delete": "Delete",
+    "edit": "Edit",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "confirm": "Confirm",
+    "yes": "Yes",
+    "no": "No",
+    "back": "Back",
+    "next": "Next",
+    "submit": "Submit",
+    "retry": "Try Again",
+    "select": "Select..."
+  },
+  "accessibility": {
+    "profile": "Profile",
+    "close": "Close",
+    "decreaseText": "Decrease text size",
+    "increaseText": "Increase text size",
+    "highContrast": "Toggle high contrast"
+  },
+  "languages": {
+    "Spanish": "Spanish",
+    "Portuguese": "Portuguese",
+    "French": "French",
+    "German": "German",
+    "Italian": "Italian",
+    "Mandarin": "Mandarin",
+    "Japanese": "Japanese",
+    "Korean": "Korean",
+    "Arabic": "Arabic",
+    "Russian": "Russian",
+    "Hindi": "Hindi",
+    "Other": "Other"
+  },
+  "studyMethods": {
+    "Academy": "Academy",
+    "App": "App",
+    "Self-study": "Self-study",
+    "Private tutor": "Private tutor",
+    "Other": "Other"
+  },
+  "levels": {
+    "A1": "A1 - Beginner",
+    "A2": "A2 - Elementary",
+    "B1": "B1 - Intermediate",
+    "B2": "B2 - Upper Intermediate",
+    "C1": "C1 - Advanced",
+    "C2": "C2 - Proficient"
+  },
+  "tiers": {
+    "free": "Free",
+    "starter": "Starter",
+    "premium": "Premium",
+    "enterprise": "Enterprise"
+  },
+  "voices": {
+    "alloy": "Alloy (Neutral)",
+    "ash": "Ash (Warm male)",
+    "ballad": "Ballad (Warm female)",
+    "coral": "Coral (Clear female)",
+    "echo": "Echo (Soft male)",
+    "sage": "Sage (Calm)",
+    "shimmer": "Shimmer (Bright female)",
+    "verse": "Verse (Expressive)"
+  }
+}

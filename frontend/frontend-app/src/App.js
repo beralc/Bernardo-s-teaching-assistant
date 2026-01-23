@@ -1,5 +1,6 @@
 import React, { useMemo, useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "./supabaseClient";
+import { useLanguage } from "./LanguageContext";
 
   const API_BASE_URL = process.env.REACT_APP_FLASK_API_URL || 'http://127.0.0.1:5000';
 
@@ -31,6 +32,7 @@ import { supabase } from "./supabaseClient";
   export default function SeniorFirstEnglishAssistant() {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [loading, setLoading] = useState(true);
+    const { t } = useLanguage();
 
     useEffect(() => {
       const { data: authListener } = supabase.auth.onAuthStateChange(
@@ -52,7 +54,7 @@ import { supabase } from "./supabaseClient";
     }, []);
 
     if (loading) {
-      return <div className="min-h-screen grid place-items-center bg-gray-50 text-gray-900">Loading...</div>; // Simple loading state
+      return <div className="min-h-screen grid place-items-center bg-gray-50 text-gray-900">{t('app.loading')}</div>;
     }
 
     if (!isLoggedIn) {
@@ -293,6 +295,7 @@ async function analyzeSessionForCando(sessionId, userId, conversation) {
     const [selectedTopic, setSelectedTopic] = useState(null);
     const [avatarUrl, setAvatarUrl] = useState('');
     const [isAdmin, setIsAdmin] = useState(false);
+    const { t } = useLanguage();
 
     // Font size mappings for different elements based on fontStep
     const fontSizes = useMemo(() => {
@@ -387,7 +390,7 @@ async function analyzeSessionForCando(sessionId, userId, conversation) {
             >
               <AppIcon />
               <div className="leading-tight">
-                <div className="font-bold text-lg md:text-xl">Bernardo's English Helper</div>
+                <div className="font-bold text-lg md:text-xl">{t('app.title')}</div>
               </div>
             </button>
             <div className="flex items-center gap-2">
@@ -444,12 +447,12 @@ async function analyzeSessionForCando(sessionId, userId, conversation) {
         <nav className={`sticky bottom-0 border-t ${contrast ? 'border-gray-700' : 'border-gray-800'} ${headerTheme}`}>
           <div className="mx-auto max-w-5xl px-4">
             <div className={`grid ${isAdmin ? 'grid-cols-4' : 'grid-cols-3'} gap-2 py-2`}>
-              <NavButton active={tab === "starters"} onClick={() => setTab("starters")} label="Starters" icon={<BookIcon active={tab === 'starters'} />} activeColor={activeNavText} inactiveColor={inactiveNavText}
+              <NavButton active={tab === "starters"} onClick={() => setTab("starters")} label={t('nav.starters')} icon={<BookIcon active={tab === 'starters'} />} activeColor={activeNavText} inactiveColor={inactiveNavText}
   />
-              <NavButton active={tab === "talk"} onClick={() => setTab("talk")} label="Talk" icon={<MicIcon active={tab === 'talk'} />} activeColor={activeNavText} inactiveColor={inactiveNavText} />
-              <NavButton active={tab === "progress"} onClick={() => setTab("progress")} label="Progress" icon={<ChartIcon active={tab === 'progress'} />} activeColor={activeNavText}
+              <NavButton active={tab === "talk"} onClick={() => setTab("talk")} label={t('nav.talk')} icon={<MicIcon active={tab === 'talk'} />} activeColor={activeNavText} inactiveColor={inactiveNavText} />
+              <NavButton active={tab === "progress"} onClick={() => setTab("progress")} label={t('nav.progress')} icon={<ChartIcon active={tab === 'progress'} />} activeColor={activeNavText}
   inactiveColor={inactiveNavText} />
-              {isAdmin && <NavButton active={tab === "admin"} onClick={() => setTab("admin")} label="Admin" icon={<AdminIcon active={tab === 'admin'} />} activeColor={activeNavText} inactiveColor={inactiveNavText} />}
+              {isAdmin && <NavButton active={tab === "admin"} onClick={() => setTab("admin")} label={t('nav.admin')} icon={<AdminIcon active={tab === 'admin'} />} activeColor={activeNavText} inactiveColor={inactiveNavText} />}
             </div>
           </div>
         </nav>
@@ -474,6 +477,7 @@ async function analyzeSessionForCando(sessionId, userId, conversation) {
   // --- Account Modal Component ---
   function AccountModal({ userInfo, onClose, onLogout, onSave, theme, cardTheme, subtleText, currentAvatarUrl }) {
     const [activeTab, setActiveTab] = useState('personal'); // 'personal' | 'learning' | 'security'
+    const { t } = useLanguage();
     // eslint-disable-next-line no-unused-vars
     const [isEditingPassword, setIsEditingPassword] = useState(false);
     const [newPassword, setNewPassword] = useState('');
@@ -723,8 +727,8 @@ async function analyzeSessionForCando(sessionId, userId, conversation) {
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={onClose}>
         <div className={`${cardTheme} rounded-3xl border p-8 max-w-2xl w-full mx-4 shadow-2xl max-h-[90vh] overflow-y-auto`} onClick={(e) => e.stopPropagation()}>
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold">Account Settings</h2>
-            <button onClick={onClose} className="text-3xl hover:opacity-70" aria-label="Close">×</button>
+            <h2 className="text-2xl font-bold">{t('account.title')}</h2>
+            <button onClick={onClose} className="text-3xl hover:opacity-70" aria-label={t('common.close')}>×</button>
           </div>
 
           {/* Tab Navigation */}
@@ -733,19 +737,19 @@ async function analyzeSessionForCando(sessionId, userId, conversation) {
               onClick={() => setActiveTab('personal')}
               className={`px-4 py-2 font-semibold transition ${activeTab === 'personal' ? 'border-b-2 border-green-600 text-green-600' : subtleText}`}
             >
-              Personal
+              {t('account.tabs.personal')}
             </button>
             <button
               onClick={() => setActiveTab('learning')}
               className={`px-4 py-2 font-semibold transition ${activeTab === 'learning' ? 'border-b-2 border-green-600 text-green-600' : subtleText}`}
             >
-              Learning
+              {t('account.tabs.learning')}
             </button>
             <button
               onClick={() => setActiveTab('security')}
               className={`px-4 py-2 font-semibold transition ${activeTab === 'security' ? 'border-b-2 border-green-600 text-green-600' : subtleText}`}
             >
-              Security
+              {t('account.tabs.security')}
             </button>
           </div>
 
@@ -790,11 +794,11 @@ async function analyzeSessionForCando(sessionId, userId, conversation) {
                         )}
                       </div>
                       <div>
-                        <h3 className="font-bold text-xl">{name || surname ? `${name} ${surname}` : 'Your Profile'}</h3>
+                        <h3 className="font-bold text-xl">{name || surname ? `${name} ${surname}` : t('account.profile.title')}</h3>
                         <p className={`text-sm ${subtleText}`}>{userInfo.email}</p>
-                        {uploadingPhoto && <p className="text-sm text-green-600">Uploading photo...</p>}
+                        {uploadingPhoto && <p className="text-sm text-green-600">{t('common.loading')}</p>}
                         {isEditingProfile && !avatarUrl && (
-                          <p className="text-xs text-green-600 mt-1">Click the camera icon to upload a photo</p>
+                          <p className="text-xs text-green-600 mt-1">{t('account.profile.uploadHint')}</p>
                         )}
                       </div>
                     </div>
@@ -1219,14 +1223,14 @@ async function analyzeSessionForCando(sessionId, userId, conversation) {
                       onClick={onLogout}
                       className={`w-full ${cardTheme} border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800 font-bold py-3 px-6 rounded-2xl transition`}
                     >
-                      Log Out
+                      {t('auth.logOut')}
                     </button>
                   </div>
                 </div>
               )}
             </div>
           ) : (
-            <p>Loading account information...</p>
+            <p>{t('account.loading')}</p>
           )}
         </div>
       </div>
@@ -1246,6 +1250,7 @@ async function analyzeSessionForCando(sessionId, userId, conversation) {
     const [validatingCode, setValidatingCode] = useState(false);
       const [showConfirmation, setShowConfirmation] = useState(false);
       const [premiumDays, setPremiumDays] = useState(0);
+      const { t } = useLanguage();
 
       // Profile fields for signup
       const [name, setName] = useState('');
@@ -1377,18 +1382,18 @@ async function analyzeSessionForCando(sessionId, userId, conversation) {
                       <div className="mx-auto w-32 h-32 mb-8 bg-green-100 rounded-full flex items-center justify-center">
                           <span className="text-6xl">📧</span>
                       </div>
-                      <h1 className="text-5xl font-extrabold mb-6 text-green-700">Check Your Email!</h1>
+                      <h1 className="text-5xl font-extrabold mb-6 text-green-700">{t('confirmation.title')}</h1>
                       <p className="text-2xl text-gray-700 mb-8 leading-relaxed">
-                          We've sent a confirmation link to <strong className="text-green-600">{email}</strong>
+                          {t('confirmation.sentTo')} <strong className="text-green-600">{email}</strong>
                       </p>
 
                       <div className="bg-blue-50 border-2 border-blue-300 rounded-2xl p-6 mb-8">
-                          <p className="text-lg text-gray-800 font-semibold mb-4">📬 Next Steps:</p>
+                          <p className="text-lg text-gray-800 font-semibold mb-4">📬 {t('confirmation.nextSteps')}</p>
                           <ol className="text-left text-lg text-gray-700 space-y-3 ml-4">
-                              <li>1️⃣ Open your email inbox</li>
-                              <li>2️⃣ Look for an email from Bernardo's English Helper</li>
-                              <li>3️⃣ Click the confirmation link</li>
-                              <li>4️⃣ Come back here and log in!</li>
+                              <li>1️⃣ {t('confirmation.step1')}</li>
+                              <li>2️⃣ {t('confirmation.step2')}</li>
+                              <li>3️⃣ {t('confirmation.step3')}</li>
+                              <li>4️⃣ {t('confirmation.step4')}</li>
                           </ol>
                       </div>
 
@@ -1401,7 +1406,7 @@ async function analyzeSessionForCando(sessionId, userId, conversation) {
                       )}
 
                       <p className="text-gray-500 text-sm mb-6">
-                          Didn't receive the email? Check your spam folder or contact support.
+                          {t('confirmation.noEmail')}
                       </p>
 
                       <button
@@ -1411,7 +1416,7 @@ async function analyzeSessionForCando(sessionId, userId, conversation) {
                           }}
                           className="px-8 py-4 bg-green-600 hover:bg-green-700 text-white text-xl font-bold rounded-xl shadow-lg transition"
                       >
-                          Back to Login
+                          {t('confirmation.backToLogin')}
                       </button>
                   </div>
               </div>
@@ -1424,13 +1429,13 @@ async function analyzeSessionForCando(sessionId, userId, conversation) {
                   <div className="mx-auto w-24 h-24 mb-6 bg-green-100 rounded-3xl flex items-center justify-center">
                      <AppIcon />
                   </div>
-                  <h1 className="text-4xl font-bold mb-4">Welcome to Bernardo's English Helper</h1>
-                  <p className="text-xl text-gray-600 mb-8">A safe and friendly space to practice speaking English at your own pace.</p>
+                  <h1 className="text-4xl font-bold mb-4">{t('auth.welcome')}</h1>
+                  <p className="text-xl text-gray-600 mb-8">{t('auth.subtitle')}</p>
 
                   <form onSubmit={handleAuth} className="flex flex-col gap-4 text-left">
                       <input
                           type="email"
-                          placeholder="Your email"
+                          placeholder={t('auth.email')}
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
                           className="w-full px-5 py-3 rounded-xl border border-gray-300 focus:ring-green-500 focus:border-green-500 text-lg"
@@ -1438,7 +1443,7 @@ async function analyzeSessionForCando(sessionId, userId, conversation) {
                       />
                       <input
                           type="password"
-                          placeholder="Your password"
+                          placeholder={t('auth.password')}
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
                           className="w-full px-5 py-3 rounded-xl border border-gray-300 focus:ring-green-500 focus:border-green-500 text-lg"
@@ -1449,19 +1454,19 @@ async function analyzeSessionForCando(sessionId, userId, conversation) {
                           <>
                               <input
                                   type="text"
-                                  placeholder="Invitation Code (required)"
+                                  placeholder={t('auth.invitationCode')}
                                   value={invitationCode}
                                   onChange={(e) => setInvitationCode(e.target.value.toUpperCase())}
                                   className="w-full px-5 py-3 rounded-xl border border-gray-300 focus:ring-green-500 focus:border-green-500 text-lg font-mono tracking-wider"
                                   required
                               />
                               <p className="text-sm text-gray-600 -mt-2">
-                                Don't have a code? <a href="mailto:bernardm@ucm.es?subject=Invitation%20Code%20Request" className="text-green-600 hover:underline font-semibold">Request one here</a>
+                                {t('auth.noCode')} <a href="mailto:bernardm@ucm.es?subject=Invitation%20Code%20Request" className="text-green-600 hover:underline font-semibold">{t('auth.requestCode')}</a>
                               </p>
                               <div className="grid grid-cols-2 gap-3">
                                   <input
                                       type="text"
-                                      placeholder="First name"
+                                      placeholder={t('auth.firstName')}
                                       value={name}
                                       onChange={(e) => setName(e.target.value)}
                                       className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-green-500 focus:border-green-500"
@@ -1469,7 +1474,7 @@ async function analyzeSessionForCando(sessionId, userId, conversation) {
                                   />
                                   <input
                                       type="text"
-                                      placeholder="Last name"
+                                      placeholder={t('auth.lastName')}
                                       value={surname}
                                       onChange={(e) => setSurname(e.target.value)}
                                       className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-green-500 focus:border-green-500"
@@ -1478,7 +1483,7 @@ async function analyzeSessionForCando(sessionId, userId, conversation) {
                               </div>
                               <input
                                   type="number"
-                                  placeholder="Age"
+                                  placeholder={t('auth.age')}
                                   value={age}
                                   onChange={(e) => setAge(e.target.value)}
                                   className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-green-500 focus:border-green-500"
@@ -1489,19 +1494,19 @@ async function analyzeSessionForCando(sessionId, userId, conversation) {
                                   className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-green-500 focus:border-green-500"
                                   required
                               >
-                                  <option value="">Select your native language...</option>
-                                  <option value="Spanish">Spanish</option>
-                                  <option value="Portuguese">Portuguese</option>
-                                  <option value="French">French</option>
-                                  <option value="German">German</option>
-                                  <option value="Italian">Italian</option>
-                                  <option value="Mandarin">Mandarin</option>
-                                  <option value="Japanese">Japanese</option>
-                                  <option value="Korean">Korean</option>
-                                  <option value="Arabic">Arabic</option>
-                                  <option value="Russian">Russian</option>
-                                  <option value="Hindi">Hindi</option>
-                                  <option value="Other">Other</option>
+                                  <option value="">{t('auth.selectLanguage')}</option>
+                                  <option value="Spanish">{t('languages.Spanish')}</option>
+                                  <option value="Portuguese">{t('languages.Portuguese')}</option>
+                                  <option value="French">{t('languages.French')}</option>
+                                  <option value="German">{t('languages.German')}</option>
+                                  <option value="Italian">{t('languages.Italian')}</option>
+                                  <option value="Mandarin">{t('languages.Mandarin')}</option>
+                                  <option value="Japanese">{t('languages.Japanese')}</option>
+                                  <option value="Korean">{t('languages.Korean')}</option>
+                                  <option value="Arabic">{t('languages.Arabic')}</option>
+                                  <option value="Russian">{t('languages.Russian')}</option>
+                                  <option value="Hindi">{t('languages.Hindi')}</option>
+                                  <option value="Other">{t('languages.Other')}</option>
                               </select>
                               <select
                                   value={country}
@@ -1509,7 +1514,7 @@ async function analyzeSessionForCando(sessionId, userId, conversation) {
                                   className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-green-500 focus:border-green-500"
                                   required
                               >
-                                  <option value="">Select your country...</option>
+                                  <option value="">{t('auth.selectCountry')}</option>
                                   <option value="Spain">Spain</option>
                                   <option value="Afghanistan">Afghanistan</option>
                                   <option value="Albania">Albania</option>
@@ -1708,12 +1713,12 @@ async function analyzeSessionForCando(sessionId, userId, conversation) {
                                   onChange={(e) => setEnglishLevel(e.target.value)}
                                   className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-green-500 focus:border-green-500"
                               >
-                                  <option value="A1">A1 - Beginner</option>
-                                  <option value="A2">A2 - Elementary</option>
-                                  <option value="B1">B1 - Intermediate</option>
-                                  <option value="B2">B2 - Upper Intermediate</option>
-                                  <option value="C1">C1 - Advanced</option>
-                                  <option value="C2">C2 - Proficient</option>
+                                  <option value="A1">{t('levels.A1')}</option>
+                                  <option value="A2">{t('levels.A2')}</option>
+                                  <option value="B1">{t('levels.B1')}</option>
+                                  <option value="B2">{t('levels.B2')}</option>
+                                  <option value="C1">{t('levels.C1')}</option>
+                                  <option value="C2">{t('levels.C2')}</option>
                               </select>
                               <select
                                   value={studyMethod}
@@ -1721,17 +1726,17 @@ async function analyzeSessionForCando(sessionId, userId, conversation) {
                                   className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-green-500 focus:border-green-500"
                                   required
                               >
-                                  <option value="">Are you studying at an academy or with an app?</option>
-                                  <option value="Academy">Academy</option>
-                                  <option value="App">App</option>
-                                  <option value="Self-study">Self-study</option>
-                                  <option value="Private tutor">Private tutor</option>
-                                  <option value="Other">Other</option>
+                                  <option value="">{t('auth.studyMethod')}</option>
+                                  <option value="Academy">{t('studyMethods.Academy')}</option>
+                                  <option value="App">{t('studyMethods.App')}</option>
+                                  <option value="Self-study">{t('studyMethods.Self-study')}</option>
+                                  <option value="Private tutor">{t('studyMethods.Private tutor')}</option>
+                                  <option value="Other">{t('studyMethods.Other')}</option>
                               </select>
                               {(studyMethod === 'Academy' || studyMethod === 'App' || studyMethod === 'Private tutor' || studyMethod === 'Other') && (
                                   <input
                                       type="text"
-                                      placeholder={studyMethod === 'Academy' ? 'Academy name' : studyMethod === 'App' ? 'App name' : studyMethod === 'Private tutor' ? 'Tutor name (optional)' : 'Please specify'}
+                                      placeholder={studyMethod === 'Academy' ? t('auth.academyName') : studyMethod === 'App' ? t('auth.appName') : studyMethod === 'Private tutor' ? t('auth.tutorName') : t('auth.pleaseSpecify')}
                                       value={institutionName}
                                       onChange={(e) => setInstitutionName(e.target.value)}
                                       className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-green-500 focus:border-green-500"
@@ -1746,14 +1751,14 @@ async function analyzeSessionForCando(sessionId, userId, conversation) {
                           className="w-full text-xl font-semibold bg-green-600 text-white py-5 px-8 rounded-2xl shadow-lg hover:bg-green-700 transition"
                           disabled={loading}
                       >
-                          {loading ? 'Loading...' : (isSignUp ? 'Sign Up' : 'Log In')}
+                          {loading ? t('auth.loading') : (isSignUp ? t('auth.signUp') : t('auth.logIn'))}
                       </button>
                       <button
                           type="button"
                           onClick={() => setIsSignUp(prev => !prev)}
                           className="w-full text-lg font-semibold text-green-600 py-3"
                       >
-                          {isSignUp ? 'Already have an account? Log In' : 'Need an account? Sign Up'}
+                          {isSignUp ? t('auth.alreadyHaveAccount') : t('auth.needAccount')}
                       </button>
                   </form>
                   {message && <p className="mt-4 text-red-500 text-lg">{message}</p>}
@@ -1787,8 +1792,10 @@ async function analyzeSessionForCando(sessionId, userId, conversation) {
     const [elapsedSeconds, setElapsedSeconds] = useState(0);
     const conversationStartTimeRef = useRef(null);
     const [connectingToBackend, setConnectingToBackend] = useState(false);
+    const { t } = useLanguage();
 
     // Initialize conversation with topic-specific greeting if a topic is selected
+    // Note: AI greeting stays in English as it's the practice language
     const getInitialMessage = () => {
       if (selectedTopic) {
         return `Great choice! Let's talk about "${selectedTopic.title}". ${selectedTopic.description}. I'll start us off - are you ready?`;
@@ -1807,7 +1814,7 @@ async function analyzeSessionForCando(sessionId, userId, conversation) {
     const audioQueueRef = useRef([]); // Queue for bot audio playback
     const isPlayingRef = useRef(false); // Track if audio is currently playing
     const currentResponseTextRef = useRef(''); // Accumulate bot response text
-    const [liveTranscript, setLiveTranscript] = useState("Assistant's response will appear here...");
+    const [liveTranscript, setLiveTranscript] = useState("");
     const hasAutoStartedRef = useRef(false); // Track if we've auto-started for this topic
     const nextPlayTimeRef = useRef(0); // Track when to play next audio chunk for seamless playback
     const autoStartRequestedRef = useRef(false); // Track if auto-start was requested
@@ -2423,10 +2430,9 @@ async function analyzeSessionForCando(sessionId, userId, conversation) {
         {/* Usage Warning/Info Banner */}
         {!loadingUsage && limitReached && (
           <div className="bg-orange-100 dark:bg-orange-900 border border-orange-300 dark:border-orange-700 rounded-xl p-4">
-            <h3 className="font-bold text-orange-800 dark:text-orange-100 mb-1">Monthly Limit Reached</h3>
+            <h3 className="font-bold text-orange-800 dark:text-orange-100 mb-1">{t('talk.limitReached.title')}</h3>
             <p className="text-sm text-orange-700 dark:text-orange-200">
-              You've used all {TIER_LIMITS[userTier].monthlyMinutes} minutes this month ({TIER_LIMITS[userTier].name} tier).
-              Your usage will reset on {new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1).toLocaleDateString()}.
+              {t('talk.limitReached.message')} ({TIER_LIMITS[userTier].monthlyMinutes} min, {t(`tiers.${userTier}`)})
             </p>
           </div>
         )}
@@ -2466,16 +2472,16 @@ async function analyzeSessionForCando(sessionId, userId, conversation) {
         <div className={`flex-1 flex flex-col justify-center items-center text-center rounded-3xl border p-8 ${cardTheme}`}>
           {connectingToBackend ? (
             <>
-              <h2 className={`${fontSizes.xxxl} font-bold mb-2`}>Connecting...</h2>
+              <h2 className={`${fontSizes.xxxl} font-bold mb-2`}>{t('talk.connecting')}</h2>
               <p className={`${subtleText} ${fontSizes.lg} mb-8`}>
-                Waking up the server (first use may take up to 60 seconds)
+                {t('talk.connecting')}
               </p>
               <div className="w-16 h-16 border-4 border-green-600 border-t-transparent rounded-full animate-spin"></div>
             </>
           ) : (
             <>
-              <h2 className={`${fontSizes.xxxl} font-bold mb-2`}>Ready to Talk?</h2>
-              <p className={`${subtleText} ${fontSizes.lg} mb-8`}>Tap the large button to start speaking.</p>
+              <h2 className={`${fontSizes.xxxl} font-bold mb-2`}>{t('talk.readyTitle')}</h2>
+              <p className={`${subtleText} ${fontSizes.lg} mb-8`}>{t('talk.readySubtitle')}</p>
               {/* Fitts's Law: An unmissable primary action button. */}
               <button
                   onClick={handleToggleSpeaking}
@@ -2553,6 +2559,10 @@ async function analyzeSessionForCando(sessionId, userId, conversation) {
 
   // ConversationStartersView: Topic-based conversation starters
   function ConversationStartersView({ cardTheme, subtleText, fontSizes, onStartConversation }) {
+    const { t } = useLanguage();
+
+    // Topic titles/descriptions stay in English as they're practice topics
+    // But the UI labels are translated
     const topics = [
       { title: "Ordering Coffee", description: "Practice ordering at a cafe", icon: "☕️" },
       { title: "Talking About Hobbies", description: "Discuss your favorite activities", icon: "🎨" },
@@ -2572,8 +2582,8 @@ async function analyzeSessionForCando(sessionId, userId, conversation) {
     return (
       <section aria-label="Conversation starters" className="flex flex-col gap-6">
          <div>
-           <h2 className={`${fontSizes.xxxl} font-bold`}>Conversation Starters</h2>
-           <p className={`${subtleText} ${fontSizes.lg} mt-1`}>Choose a topic and start talking with the assistant.</p>
+           <h2 className={`${fontSizes.xxxl} font-bold`}>{t('starters.title')}</h2>
+           <p className={`${subtleText} ${fontSizes.lg} mt-1`}>{t('starters.subtitle')}</p>
          </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {topics.map((topic, idx) => (
@@ -2586,7 +2596,7 @@ async function analyzeSessionForCando(sessionId, userId, conversation) {
               <button
                 onClick={() => handleStartTopic(topic)}
                 className={`mt-4 rounded-xl px-5 py-3 ${fontSizes.lg} font-semibold bg-green-600 text-white hover:bg-green-700 transition`}>
-                Start Conversation
+                {t('starters.start')}
               </button>
             </article>
           ))}
