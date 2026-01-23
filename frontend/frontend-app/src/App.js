@@ -99,7 +99,8 @@ import { supabase } from "./supabaseClient";
   // --- Helper for app usage logging ---
   let sessionStartTime = null;
   let sessionLogId = null;
-  let sessionConversation = []; // Track conversation for Can-Do analysis
+  // eslint-disable-next-line no-unused-vars
+let sessionConversation = []; // Track conversation for Can-Do analysis
 
   async function startSession(topic = null) {
     const user = (await supabase.auth.getUser()).data.user;
@@ -150,6 +151,7 @@ import { supabase } from "./supabaseClient";
     const durationMinutes = Math.round((endTime.getTime() - capturedSessionStartTime.getTime()) / (1000 * 60));
 
     // Update conversation session
+    // eslint-disable-next-line no-unused-vars
     const { data, error } = await supabase
       .from('conversation_sessions')
       .update({
@@ -202,7 +204,8 @@ import { supabase } from "./supabaseClient";
     }
   }
 
-  async function analyzeSessionForCando(sessionId, userId, conversation) {
+  // eslint-disable-next-line no-unused-vars
+async function analyzeSessionForCando(sessionId, userId, conversation) {
     try {
       // Filter out empty messages and build transcript
       // Format: "User: [text]\nAssistant: [text]"
@@ -471,6 +474,7 @@ import { supabase } from "./supabaseClient";
   // --- Account Modal Component ---
   function AccountModal({ userInfo, onClose, onLogout, onSave, theme, cardTheme, subtleText, currentAvatarUrl }) {
     const [activeTab, setActiveTab] = useState('personal'); // 'personal' | 'learning' | 'security'
+    // eslint-disable-next-line no-unused-vars
     const [isEditingPassword, setIsEditingPassword] = useState(false);
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
@@ -502,7 +506,9 @@ import { supabase } from "./supabaseClient";
     const [usageStats, setUsageStats] = useState({ used: 0, limit: 30, tier: 'free' });
 
     // Can-Do achievements
+    // eslint-disable-next-line no-unused-vars
     const [candoData, setCandoData] = useState(null);
+    // eslint-disable-next-line no-unused-vars
     const [loadingCando, setLoadingCando] = useState(false);
 
     // Load profile data on mount
@@ -522,7 +528,8 @@ import { supabase } from "./supabaseClient";
       const user = (await supabase.auth.getUser()).data.user;
       if (!user) return;
 
-      const { data, error: _profileError } = await supabase
+      // eslint-disable-next-line no-unused-vars
+    const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', user.id)
@@ -556,7 +563,8 @@ import { supabase } from "./supabaseClient";
       }
     };
 
-    const _fetchCanDoAchievements = async () => {
+    // eslint-disable-next-line no-unused-vars
+  const fetchCanDoAchievements = async () => {
       const user = (await supabase.auth.getUser()).data.user;
       if (!user) return;
 
@@ -1234,7 +1242,8 @@ import { supabase } from "./supabaseClient";
       const [isSignUp, setIsSignUp] = useState(false);
       const [message, setMessage] = useState('');
       const [invitationCode, setInvitationCode] = useState('');
-      const [_validatingCode, setValidatingCode] = useState(false);
+      // eslint-disable-next-line no-unused-vars
+    const [validatingCode, setValidatingCode] = useState(false);
       const [showConfirmation, setShowConfirmation] = useState(false);
       const [premiumDays, setPremiumDays] = useState(0);
 
@@ -2001,7 +2010,7 @@ import { supabase } from "./supabaseClient";
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 minute timeout
 
-        let sessionResponse, _session_id, websocket_url, ephemeral_token;
+        let sessionResponse, websocket_url, ephemeral_token;
         try {
           // Get current user ID
           const { data: { user } } = await supabase.auth.getUser();
@@ -2029,7 +2038,6 @@ import { supabase } from "./supabaseClient";
           const responseData = await sessionResponse.json();
           console.log('Session data received:', { session_id: responseData.session_id, websocket_url: responseData.websocket_url });
 
-          _session_id = responseData.session_id;
           websocket_url = responseData.websocket_url;
           ephemeral_token = responseData.ephemeral_token;
         } catch (fetchError) {
@@ -2598,11 +2606,14 @@ import { supabase } from "./supabaseClient";
       topicDiversity: 0,
       currentStreak: 0
     });
-    const [_loading, setLoading] = useState(true);
+    // eslint-disable-next-line no-unused-vars
+    const [loading, setLoading] = useState(true);
     const [sessions, setSessions] = useState([]);
     const [showConversations, setShowConversations] = useState(false);
-    const [_candoData, setCandoData] = useState(null);
-    const [_loadingCando, setLoadingCando] = useState(true);
+    // eslint-disable-next-line no-unused-vars
+    const [candoData, setCandoData] = useState(null);
+    // eslint-disable-next-line no-unused-vars
+    const [loadingCando, setLoadingCando] = useState(true);
 
     // Load time statistics from Supabase
     useEffect(() => {
@@ -2711,7 +2722,8 @@ import { supabase } from "./supabaseClient";
       return `${mins} min`;
     };
 
-    const _loadCanDoAchievements = async () => {
+    // eslint-disable-next-line no-unused-vars
+    const loadCanDoAchievements = async () => {
       const user = (await supabase.auth.getUser()).data.user;
       if (!user) return;
 
@@ -3187,7 +3199,8 @@ import { supabase } from "./supabaseClient";
       const randomPart = Math.random().toString(36).substring(2, 8).toUpperCase();
       const code = `${newCodePrefix}${randomPart}`;
 
-      const { data: _data, error } = await supabase
+      // eslint-disable-next-line no-unused-vars
+      const { data, error } = await supabase
         .from('invitation_codes')
         .insert([{
           code,
@@ -3778,7 +3791,8 @@ import { supabase } from "./supabaseClient";
     };
 
     // Can-Do Management Functions
-    const _loadCandoUsers = async () => {
+    // eslint-disable-next-line no-unused-vars
+    const loadCandoUsers = async () => {
       setLoadingCando(true);
       const { data, error } = await supabase
         .from('profiles')
@@ -4513,7 +4527,9 @@ import { supabase } from "./supabaseClient";
   strokeLinejoin="round"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>;
   const AdminIcon = ({ color = "currentColor", className = "" }) => <svg className={`w-8 h-8 ${className}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"
   strokeLinejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>;
-  const _CheckIcon = () => <svg className="w-6 h-6 text-green-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3}
+  // eslint-disable-next-line no-unused-vars
+const CheckIcon = () => <svg className="w-6 h-6 text-green-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3}
   d="M5 13l4 4L19 7" /></svg>;
-  const _NextStepIcon = () => <svg className="w-6 h-6 text-orange-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round"
+  // eslint-disable-next-line no-unused-vars
+const NextStepIcon = () => <svg className="w-6 h-6 text-orange-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round"
   strokeWidth={3} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>;
