@@ -30,6 +30,12 @@ If everything else fails, the transcription logging and CEFR Can-Do tracking mus
 
 <!-- Current milestone: Research Instrument Readiness -->
 
+#### Internationalization (Priority 1 - Accessibility for Spanish Seniors)
+- [ ] **I18N-01**: Detect browser language (Spanish vs other)
+- [ ] **I18N-02**: Show UI in Spanish if browser is Spanish, English otherwise
+- [ ] **I18N-03**: Translate all user-facing text (buttons, labels, instructions, error messages)
+- [ ] **I18N-04**: Keep AI conversation in English (that's the practice language)
+
 #### Data Collection for Thesis (Critical)
 - [ ] **DATA-01**: Re-enable Can-Do achievement detection after voice sessions
 - [ ] **DATA-02**: Export conversation transcripts in discourse analysis format (turn-by-turn with timestamps)
@@ -62,7 +68,7 @@ If everything else fails, the transcription logging and CEFR Can-Do tracking mus
 
 - Real-time chat/messaging between users — not relevant to research design
 - Mobile native app — web is sufficient for study, seniors use tablets/laptops
-- Multi-language support — research focused on English only
+- Multi-language AI conversation — research focused on English practice (UI can be localized)
 - Gamification beyond Can-Do achievements — avoid confounding variables
 - Video recording — audio transcription is primary data source
 - Social features (forums, groups) — controlled individual sessions required
@@ -113,6 +119,7 @@ If everything else fails, the transcription logging and CEFR Can-Do tracking mus
 | Single-page React app | Simplicity for senior users, fast deployment | ✓ Good |
 | Flask backend for OpenAI orchestration | Keeps API keys server-side, enables prompt.json customization | ✓ Good |
 | Disable Can-Do analysis temporarily | Was causing UI issues, needs re-integration | ⚠️ Revisit |
+| Spanish/English UI based on browser | Participants are Spanish seniors learning English—UI in native language reduces cognitive load | — Pending |
 
 ---
 
@@ -146,4 +153,4 @@ Based on thesis requirements (Chapter 6-7), the following capabilities are neede
 **Need:** Re-enable + add validation against human judgment
 
 ---
-*Last updated: 2026-01-23 after /gsd:new-project initialization*
+*Last updated: 2026-01-23 after adding i18n as priority 1*
