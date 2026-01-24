@@ -48,6 +48,8 @@ export function AdminView({ cardTheme, subtleText, fontSizes, contrast }) {
       loadUsers();
     } else if (activeTab === 'users') {
       loadAllUsers();
+    } else if (activeTab === 'cando') {
+      loadCandoUsers();
     }
   }, [activeTab]);
 
@@ -556,7 +558,6 @@ export function AdminView({ cardTheme, subtleText, fontSizes, contrast }) {
     }
   };
 
-  // eslint-disable-next-line no-unused-vars
   const loadCandoUsers = async () => {
     setLoadingCando(true);
     const { data, error } = await supabase
