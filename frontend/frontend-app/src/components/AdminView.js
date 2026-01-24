@@ -749,12 +749,12 @@ export function AdminView({ cardTheme, subtleText, fontSizes, contrast }) {
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className={`text-sm font-semibold ${subtleText} mb-1 block`}>Code Prefix</label>
-                  <input type="text" value={newCodePrefix} onChange={(e) => setNewCodePrefix(e.target.value.toUpperCase())} className={`w-full px-3 py-2 rounded-lg border ${cardTheme} font-mono`} placeholder="BETA" />
+                  <label htmlFor="code-prefix" className={`text-sm font-semibold ${subtleText} mb-1 block`}>Code Prefix</label>
+                  <input id="code-prefix" name="code-prefix" type="text" value={newCodePrefix} onChange={(e) => setNewCodePrefix(e.target.value.toUpperCase())} className={`w-full px-3 py-2 rounded-lg border ${cardTheme} font-mono`} placeholder="BETA" />
                 </div>
                 <div>
-                  <label className={`text-sm font-semibold ${subtleText} mb-1 block`}>Tag</label>
-                  <select value={newCodeTag} onChange={(e) => setNewCodeTag(e.target.value)} className={`w-full px-3 py-2 rounded-lg border ${cardTheme}`}>
+                  <label htmlFor="code-tag" className={`text-sm font-semibold ${subtleText} mb-1 block`}>Tag</label>
+                  <select id="code-tag" name="code-tag" value={newCodeTag} onChange={(e) => setNewCodeTag(e.target.value)} className={`w-full px-3 py-2 rounded-lg border ${cardTheme}`}>
                     <option value="BETA">Beta Tester</option>
                     <option value="FOUNDER">Founding Member</option>
                     <option value="SCHOOL">School Access</option>
@@ -765,22 +765,22 @@ export function AdminView({ cardTheme, subtleText, fontSizes, contrast }) {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className={`text-sm font-semibold ${subtleText} mb-1 block`}>Max Uses (-1 = unlimited)</label>
-                  <input type="number" value={newCodeMaxUses} onChange={(e) => setNewCodeMaxUses(parseInt(e.target.value))} className={`w-full px-3 py-2 rounded-lg border ${cardTheme}`} />
+                  <label htmlFor="code-max-uses" className={`text-sm font-semibold ${subtleText} mb-1 block`}>Max Uses (-1 = unlimited)</label>
+                  <input id="code-max-uses" name="code-max-uses" type="number" value={newCodeMaxUses} onChange={(e) => setNewCodeMaxUses(parseInt(e.target.value))} className={`w-full px-3 py-2 rounded-lg border ${cardTheme}`} />
                 </div>
                 <div>
-                  <label className={`text-sm font-semibold ${subtleText} mb-1 block`}>
-                    <input type="checkbox" checked={newCodeGrantsPremium} onChange={(e) => setNewCodeGrantsPremium(e.target.checked)} className="mr-2" />
+                  <label htmlFor="code-grants-premium" className={`text-sm font-semibold ${subtleText} mb-1 block`}>
+                    <input id="code-grants-premium" name="code-grants-premium" type="checkbox" checked={newCodeGrantsPremium} onChange={(e) => setNewCodeGrantsPremium(e.target.checked)} className="mr-2" />
                     Grants Premium Access
                   </label>
                   {newCodeGrantsPremium && (
-                    <input type="number" value={newCodePremiumDays} onChange={(e) => setNewCodePremiumDays(parseInt(e.target.value))} className={`w-full px-3 py-2 rounded-lg border ${cardTheme} mt-2`} placeholder="Days of premium" />
+                    <input id="code-premium-days" name="code-premium-days" type="number" value={newCodePremiumDays} onChange={(e) => setNewCodePremiumDays(parseInt(e.target.value))} className={`w-full px-3 py-2 rounded-lg border ${cardTheme} mt-2`} placeholder="Days of premium" />
                   )}
                 </div>
               </div>
               <div>
-                <label className={`text-sm font-semibold ${subtleText} mb-1 block`}>Description</label>
-                <input type="text" value={newCodeDescription} onChange={(e) => setNewCodeDescription(e.target.value)} className={`w-full px-3 py-2 rounded-lg border ${cardTheme}`} placeholder="e.g., Beta testers batch 1" />
+                <label htmlFor="code-description" className={`text-sm font-semibold ${subtleText} mb-1 block`}>Description</label>
+                <input id="code-description" name="code-description" type="text" value={newCodeDescription} onChange={(e) => setNewCodeDescription(e.target.value)} className={`w-full px-3 py-2 rounded-lg border ${cardTheme}`} placeholder="e.g., Beta testers batch 1" />
               </div>
               <button onClick={generateCode} disabled={generating} className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-xl transition disabled:opacity-50">
                 {generating ? 'Generating...' : 'Generate Code'}
@@ -908,32 +908,32 @@ export function AdminView({ cardTheme, subtleText, fontSizes, contrast }) {
                 <h4 className={`font-bold ${fontSizes.lg} mb-4`}>Create New User</h4>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className={`text-sm font-semibold ${subtleText} mb-1 block`}>Email *</label>
-                    <input type="email" value={newUserEmail} onChange={(e) => setNewUserEmail(e.target.value)} className={`w-full px-3 py-2 rounded-lg border ${cardTheme}`} placeholder="user@example.com" />
+                    <label htmlFor="new-user-email" className={`text-sm font-semibold ${subtleText} mb-1 block`}>Email *</label>
+                    <input id="new-user-email" name="new-user-email" type="email" value={newUserEmail} onChange={(e) => setNewUserEmail(e.target.value)} className={`w-full px-3 py-2 rounded-lg border ${cardTheme}`} placeholder="user@example.com" />
                   </div>
                   <div>
-                    <label className={`text-sm font-semibold ${subtleText} mb-1 block`}>Password *</label>
-                    <input type="password" value={newUserPassword} onChange={(e) => setNewUserPassword(e.target.value)} className={`w-full px-3 py-2 rounded-lg border ${cardTheme}`} placeholder="Min. 6 characters" />
+                    <label htmlFor="new-user-password" className={`text-sm font-semibold ${subtleText} mb-1 block`}>Password *</label>
+                    <input id="new-user-password" name="new-user-password" type="password" value={newUserPassword} onChange={(e) => setNewUserPassword(e.target.value)} className={`w-full px-3 py-2 rounded-lg border ${cardTheme}`} placeholder="Min. 6 characters" />
                   </div>
                   <div>
-                    <label className={`text-sm font-semibold ${subtleText} mb-1 block`}>First Name</label>
-                    <input type="text" value={newUserName} onChange={(e) => setNewUserName(e.target.value)} className={`w-full px-3 py-2 rounded-lg border ${cardTheme}`} />
+                    <label htmlFor="new-user-name" className={`text-sm font-semibold ${subtleText} mb-1 block`}>First Name</label>
+                    <input id="new-user-name" name="new-user-name" type="text" value={newUserName} onChange={(e) => setNewUserName(e.target.value)} className={`w-full px-3 py-2 rounded-lg border ${cardTheme}`} />
                   </div>
                   <div>
-                    <label className={`text-sm font-semibold ${subtleText} mb-1 block`}>Last Name</label>
-                    <input type="text" value={newUserSurname} onChange={(e) => setNewUserSurname(e.target.value)} className={`w-full px-3 py-2 rounded-lg border ${cardTheme}`} />
+                    <label htmlFor="new-user-surname" className={`text-sm font-semibold ${subtleText} mb-1 block`}>Last Name</label>
+                    <input id="new-user-surname" name="new-user-surname" type="text" value={newUserSurname} onChange={(e) => setNewUserSurname(e.target.value)} className={`w-full px-3 py-2 rounded-lg border ${cardTheme}`} />
                   </div>
                   <div>
-                    <label className={`text-sm font-semibold ${subtleText} mb-1 block`}>Tier</label>
-                    <select value={newUserTier} onChange={(e) => setNewUserTier(e.target.value)} className={`w-full px-3 py-2 rounded-lg border ${cardTheme}`}>
+                    <label htmlFor="new-user-tier" className={`text-sm font-semibold ${subtleText} mb-1 block`}>Tier</label>
+                    <select id="new-user-tier" name="new-user-tier" value={newUserTier} onChange={(e) => setNewUserTier(e.target.value)} className={`w-full px-3 py-2 rounded-lg border ${cardTheme}`}>
                       <option value="free">Free</option>
                       <option value="premium">Premium</option>
                       <option value="unlimited">Unlimited</option>
                     </select>
                   </div>
                   <div className="flex items-center">
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input type="checkbox" checked={newUserIsAdmin} onChange={(e) => setNewUserIsAdmin(e.target.checked)} className="w-5 h-5" />
+                    <label htmlFor="new-user-is-admin" className="flex items-center gap-2 cursor-pointer">
+                      <input id="new-user-is-admin" name="new-user-is-admin" type="checkbox" checked={newUserIsAdmin} onChange={(e) => setNewUserIsAdmin(e.target.checked)} className="w-5 h-5" />
                       <span className={`font-semibold ${fontSizes.base}`}>Is Admin</span>
                     </label>
                   </div>
@@ -1031,8 +1031,8 @@ export function AdminView({ cardTheme, subtleText, fontSizes, contrast }) {
           {loadingCando ? <p className={subtleText}>Loading...</p> : (
             <>
               <div className="mb-6">
-                <label className={`text-sm font-semibold ${subtleText} mb-2 block`}>Select User</label>
-                <select value={selectedCandoUserId || ''} onChange={(e) => loadUserCandoData(e.target.value)} className={`w-full px-4 py-3 rounded-lg border ${cardTheme}`}>
+                <label htmlFor="cando-user-select" className={`text-sm font-semibold ${subtleText} mb-2 block`}>Select User</label>
+                <select id="cando-user-select" name="cando-user-select" value={selectedCandoUserId || ''} onChange={(e) => loadUserCandoData(e.target.value)} className={`w-full px-4 py-3 rounded-lg border ${cardTheme}`}>
                   <option value="">-- Select a user --</option>
                   {candoUsers.map(user => (
                     <option key={user.id} value={user.id}>{user.name} {user.surname} ({user.english_level || 'No level'})</option>
