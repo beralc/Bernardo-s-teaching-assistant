@@ -198,7 +198,14 @@
     "noActivity": "No activity yet. Start a conversation to begin tracking your progress!",
     "session": "session",
     "day": "day",
-    "topic": "topic"
+    "topic": "topic",
+    "cando": {
+      "title": "Can-Do Achievements",
+      "totalAchievements": "Total Achievements",
+      "loading": "Loading achievements...",
+      "noAchievements": "No achievements yet",
+      "startConversation": "Start a conversation to unlock your first Can-Do statements!"
+    }
   },
   "admin": {
     "title": "Admin Dashboard",

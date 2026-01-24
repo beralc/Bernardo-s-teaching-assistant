@@ -198,7 +198,14 @@
     "noActivity": "Aún no hay actividad. ¡Inicia una conversación para empezar a registrar tu progreso!",
     "session": "sesión",
     "day": "día",
-    "topic": "tema"
+    "topic": "tema",
+    "cando": {
+      "title": "Logros Alcanzados",
+      "totalAchievements": "Logros Totales",
+      "loading": "Cargando logros...",
+      "noAchievements": "Aún no hay logros",
+      "startConversation": "¡Inicia una conversación para desbloquear tus primeros logros!"
+    }
   },
   "admin": {
     "title": "Panel de administración",

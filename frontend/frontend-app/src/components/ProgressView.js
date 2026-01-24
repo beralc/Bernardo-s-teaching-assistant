@@ -287,13 +287,13 @@ export function ProgressView({ cardTheme, subtleText, fontSizes, contrast }) {
 
       {/* Can-Do Achievements Section */}
       <div className={`rounded-2xl border p-6 ${cardTheme}`}>
-        <h3 className={`font-bold ${fontSizes.xl} mb-4`}>Can-Do Achievements</h3>
+        <h3 className={`font-bold ${fontSizes.xl} mb-4`}>{t('progress.cando.title')}</h3>
         {loadingCando ? (
-          <p className={`${subtleText} text-center py-4`}>Loading achievements...</p>
+          <p className={`${subtleText} text-center py-4`}>{t('progress.cando.loading')}</p>
         ) : candoData && candoData.progress_by_level && candoData.progress_by_level.length > 0 ? (
           <div className="space-y-4">
             <div className="flex items-center justify-between mb-2">
-              <span className={`${fontSizes.lg} font-semibold`}>Total Achievements</span>
+              <span className={`${fontSizes.lg} font-semibold`}>{t('progress.cando.totalAchievements')}</span>
               <span className={`${fontSizes.xl} font-bold text-green-600 dark:text-green-400`}>
                 {candoData.total_achievements}
               </span>
@@ -326,8 +326,8 @@ export function ProgressView({ cardTheme, subtleText, fontSizes, contrast }) {
           </div>
         ) : (
           <div className={`text-center py-8 ${subtleText}`}>
-            <p className="mb-2">No achievements yet</p>
-            <p className={`text-sm`}>Start a conversation to unlock your first Can-Do statements!</p>
+            <p className="mb-2">{t('progress.cando.noAchievements')}</p>
+            <p className={`text-sm`}>{t('progress.cando.startConversation')}</p>
           </div>
         )}
       </div>
