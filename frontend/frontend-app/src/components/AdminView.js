@@ -654,23 +654,23 @@ export function AdminView({ cardTheme, subtleText, fontSizes, contrast }) {
         console.log(`Processing session ${analyzed + 1}/${sessions.length}: ${sess.id}`);
         setReanalyzeProgress(`Analyzing session ${analyzed + 1}/${sessions.length}...`);
 
-        // Get transcriptions for this session
-        const { data: transcriptions, error: transError } = await supabase
-          .from('transcriptions')
-          .select('text')
+        // Get conversation messages for this session
+        const { data: messages, error: msgError } = await supabase
+          .from('conversation_messages')
+          .select('role, content')
           .eq('session_id', sess.id)
           .order('created_at', { ascending: true });
 
-        console.log(`Session ${sess.id} transcriptions:`, transcriptions?.length || 0, transError);
+        console.log(`Session ${sess.id} messages:`, messages?.length || 0, msgError);
 
-        if (transError || !transcriptions || transcriptions.length === 0) {
-          console.log(`Skipping session ${sess.id}: no transcriptions`);
+        if (msgError || !messages || messages.length === 0) {
+          console.log(`Skipping session ${sess.id}: no messages`);
           analyzed++;
           continue;
         }
 
-        // Build transcript
-        const transcript = transcriptions.map(t => t.text).join('\n');
+        // Build transcript from conversation messages
+        const transcript = messages.map(m => `${m.role === 'user' ? 'Learner' : 'Teacher'}: ${m.content}`).join('\n');
         console.log(`Session ${sess.id} transcript length: ${transcript.length}`);
 
         if (transcript.trim().length < 20) {
