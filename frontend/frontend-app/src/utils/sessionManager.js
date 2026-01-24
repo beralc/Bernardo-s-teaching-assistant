@@ -138,6 +138,10 @@ export async function endSession(conversation = null) {
     if (conversation && conversation.length > 0) {
       console.log('Analyzing session for Can-Do achievements...');
       analyzeSessionForCando(capturedSessionLogId, user.id, conversation);
+
+      // Also analyze for corrective feedback patterns (SLA research)
+      console.log('Analyzing session for feedback patterns...');
+      analyzeSessionForFeedback(capturedSessionLogId, user.id, conversation);
     }
   }
 }
@@ -200,6 +204,60 @@ export async function analyzeSessionForCando(sessionId, userId, conversation) {
 
   } catch (error) {
     console.error('Error analyzing session for Can-Do:', error);
+  }
+}
+
+export async function analyzeSessionForFeedback(sessionId, userId, conversation) {
+  try {
+    const validMessages = conversation.filter(msg => msg.text && msg.text.trim().length > 0);
+
+    if (validMessages.length < 4) {
+      console.log('Conversation too short for feedback analysis (need at least 4 turns)');
+      return;
+    }
+
+    // Format transcript as array of {role, content} for feedback analysis
+    const transcript = validMessages.map(msg => ({
+      role: msg.role === 'user' ? 'user' : 'assistant',
+      content: msg.text
+    }));
+
+    console.log('Analyzing session for feedback:', { sessionId, userId, turns: transcript.length });
+
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      console.warn('No session found, cannot analyze feedback');
+      return;
+    }
+
+    const response = await fetch(`${API_BASE_URL}/analyze_feedback`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session.access_token}`
+      },
+      body: JSON.stringify({
+        session_id: sessionId,
+        user_id: userId,
+        transcript: transcript
+      })
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      console.error('Failed to analyze feedback:', {
+        status: response.status,
+        statusText: response.statusText,
+        body: errorBody
+      });
+      return;
+    }
+
+    const result = await response.json();
+    console.log('Feedback analysis result:', result);
+
+  } catch (error) {
+    console.error('Error analyzing session for feedback:', error);
   }
 }
 

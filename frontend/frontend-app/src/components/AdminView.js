@@ -772,6 +772,107 @@ export function AdminView({ cardTheme, subtleText, fontSizes, contrast }) {
     setExporting(false);
   };
 
+  // Export feedback analysis data (FEED-04, Chapter 11)
+  const exportFeedbackAnalysis = async () => {
+    setExporting(true);
+    setMessage('');
+
+    try {
+      // Get all feedback instances
+      const { data: feedbackData, error: feedbackError } = await supabase
+        .from('feedback_instances')
+        .select(`
+          user_id,
+          session_id,
+          turn_number,
+          feedback_type,
+          learner_utterance,
+          learner_error,
+          ai_response,
+          corrected_form,
+          uptake_detected,
+          uptake_type,
+          modified_output,
+          confidence_score,
+          evidence_notes,
+          created_at
+        `)
+        .order('created_at', { ascending: true });
+
+      if (feedbackError) throw feedbackError;
+
+      if (!feedbackData || feedbackData.length === 0) {
+        setMessage('No feedback data found. Run some conversations first.');
+        setExporting(false);
+        return;
+      }
+
+      // Get user profiles
+      const userIds = [...new Set(feedbackData.map(f => f.user_id))];
+      const participantCodes = anonymizeExport ? generateParticipantCodes(userIds) : null;
+
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, english_level')
+        .in('id', userIds);
+
+      if (profilesError) throw profilesError;
+      const profileMap = {};
+      profiles?.forEach(p => { profileMap[p.id] = p; });
+
+      // Build CSV
+      const headers = [
+        'participant_id', 'participant_level', 'session_date', 'turn_number',
+        'feedback_type', 'learner_error', 'corrected_form',
+        'uptake_detected', 'uptake_type', 'modified_output',
+        'confidence', 'learner_utterance', 'ai_response', 'notes'
+      ];
+      const csvRows = [headers.join(',')];
+
+      feedbackData.forEach(fb => {
+        const profile = profileMap[fb.user_id];
+        const participantId = anonymizeExport ? participantCodes[fb.user_id] : fb.user_id;
+
+        const row = [
+          participantId,
+          profile?.english_level || 'Unknown',
+          fb.created_at?.split('T')[0] || '',
+          fb.turn_number || '',
+          fb.feedback_type || '',
+          `"${(fb.learner_error || '').replace(/"/g, '""')}"`,
+          `"${(fb.corrected_form || '').replace(/"/g, '""')}"`,
+          fb.uptake_detected ? 'Yes' : 'No',
+          fb.uptake_type || '',
+          fb.modified_output ? 'Yes' : 'No',
+          fb.confidence_score ? fb.confidence_score.toFixed(2) : '',
+          `"${(fb.learner_utterance || '').replace(/"/g, '""').replace(/\n/g, ' ')}"`,
+          `"${(fb.ai_response || '').replace(/"/g, '""').replace(/\n/g, ' ')}"`,
+          `"${(fb.evidence_notes || '').replace(/"/g, '""')}"`
+        ];
+        csvRows.push(row.join(','));
+      });
+
+      // Download
+      const csv = csvRows.join('\n');
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const suffix = anonymizeExport ? '_anonymized' : '';
+      a.download = `feedback_analysis${suffix}_${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+
+      setMessage(`Exported ${feedbackData.length} feedback instances!`);
+    } catch (error) {
+      setMessage('Error exporting feedback data: ' + error.message);
+    }
+
+    setExporting(false);
+  };
+
   const loadCandoUsers = async () => {
     setLoadingCando(true);
     const { data, error } = await supabase
@@ -1290,6 +1391,17 @@ export function AdminView({ cardTheme, subtleText, fontSizes, contrast }) {
                 <div className="text-center">
                   <div className="font-bold">Export Can-Do Achievements</div>
                   <div className="text-sm opacity-90">CEFR achievements with confidence scores and evidence (Chapter 13)</div>
+                </div>
+              </button>
+              <button
+                onClick={exportFeedbackAnalysis}
+                disabled={exporting}
+                className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-bold py-4 px-6 rounded-xl transition flex flex-col items-center justify-center gap-2"
+              >
+                <span className="text-2xl">💬</span>
+                <div className="text-center">
+                  <div className="font-bold">Export Feedback Analysis</div>
+                  <div className="text-sm opacity-90">Recasts, expansions, corrections, uptake patterns (Chapter 11)</div>
                 </div>
               </button>
             </div>

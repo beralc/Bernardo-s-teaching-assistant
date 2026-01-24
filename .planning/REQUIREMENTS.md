@@ -35,10 +35,10 @@ Spanish seniors learning English need UI in their native language to reduce cogn
 
 ### Feedback Tracking (Priority: High - Phase 4)
 
-- [ ] **FEED-01**: Tag AI responses by feedback type (recast, expansion, explicit_correction, none)
-- [ ] **FEED-02**: Detect when learner utterance follows feedback (potential uptake)
-- [ ] **FEED-03**: Mark modified output instances (learner self-corrects after feedback)
-- [ ] **FEED-04**: Store feedback sequences in separate table for analysis
+- [x] **FEED-01**: Tag AI responses by feedback type (recast, expansion, explicit_correction, none)
+- [x] **FEED-02**: Detect when learner utterance follows feedback (potential uptake)
+- [x] **FEED-03**: Mark modified output instances (learner self-corrects after feedback)
+- [x] **FEED-04**: Store feedback sequences in separate table for analysis
 
 ### Discourse Metrics (Priority: High - Phase 5)
 
@@ -116,10 +116,10 @@ Deferred to after data collection begins.
 | EXPORT-02 | Phase 3 | Complete |
 | EXPORT-03 | Phase 3 | Complete |
 | EXPORT-04 | Phase 3 | Complete |
-| FEED-01 | Phase 4 | Pending |
-| FEED-02 | Phase 4 | Pending |
-| FEED-03 | Phase 4 | Pending |
-| FEED-04 | Phase 4 | Pending |
+| FEED-01 | Phase 4 | Complete |
+| FEED-02 | Phase 4 | Complete |
+| FEED-03 | Phase 4 | Complete |
+| FEED-04 | Phase 4 | Complete |
 | DISC-01 | Phase 5 | Pending |
 | DISC-02 | Phase 5 | Pending |
 | DISC-03 | Phase 5 | Pending |
@@ -144,4 +144,4 @@ Deferred to after data collection begins.
 
 ---
 *Requirements defined: 2026-01-23*
-*Last updated: 2026-01-24 after completing Phase 3 (Data Export)*
+*Last updated: 2026-01-24 after completing Phase 4 (Feedback Tracking)*
