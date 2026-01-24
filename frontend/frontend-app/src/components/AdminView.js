@@ -667,6 +667,7 @@ export function AdminView({ cardTheme, subtleText, fontSizes, contrast }) {
 
         // Call analyze_session endpoint
         try {
+          console.log(`Calling analyze_session for session ${sess.id}, transcript length: ${transcript.length}`);
           const response = await fetch(`${API_BASE_URL}/analyze_session`, {
             method: 'POST',
             headers: {
@@ -680,11 +681,17 @@ export function AdminView({ cardTheme, subtleText, fontSizes, contrast }) {
             })
           });
 
+          console.log(`Response status for session ${sess.id}: ${response.status}`);
+
           if (response.ok) {
             const result = await response.json();
+            console.log(`Analysis result for session ${sess.id}:`, result);
             if (result.new_achievements) {
               newAchievements += result.new_achievements.length;
             }
+          } else {
+            const errorText = await response.text();
+            console.error(`Error response for session ${sess.id}: ${response.status}`, errorText);
           }
         } catch (err) {
           console.error('Error analyzing session:', sess.id, err);

@@ -670,11 +670,11 @@ def analyze_session_cando():
                 'apikey': SUPABASE_SERVICE_KEY
             }
             profile_resp = requests.get(
-                f'{SUPABASE_URL}/rest/v1/profiles?id=eq.{user_id}&select=cefr_level',
+                f'{SUPABASE_URL}/rest/v1/profiles?id=eq.{user_id}&select=english_level',
                 headers=headers
             )
             if profile_resp.status_code == 200 and profile_resp.json():
-                user_level = profile_resp.json()[0].get('cefr_level', 'A2')
+                user_level = profile_resp.json()[0].get('english_level', 'A2')
             else:
                 user_level = 'A2'  # Default
 
