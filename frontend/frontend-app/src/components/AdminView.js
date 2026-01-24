@@ -43,6 +43,11 @@ export function AdminView({ cardTheme, subtleText, fontSizes, contrast }) {
   const [reanalyzingCando, setReanalyzingCando] = useState(false);
   const [reanalyzeProgress, setReanalyzeProgress] = useState('');
 
+  // Research export settings
+  const [anonymizeExport, setAnonymizeExport] = useState(true);
+  const [researchStartDate, setResearchStartDate] = useState('');
+  const [researchEndDate, setResearchEndDate] = useState('');
+
   useEffect(() => {
     if (activeTab === 'codes') {
       loadCodes();
@@ -560,6 +565,213 @@ export function AdminView({ cardTheme, subtleText, fontSizes, contrast }) {
     }
   };
 
+  // Helper to generate participant codes (P001, P002, ...)
+  const generateParticipantCodes = (userIds) => {
+    const sorted = [...userIds].sort();
+    const codeMap = {};
+    sorted.forEach((id, index) => {
+      codeMap[id] = `P${String(index + 1).padStart(3, '0')}`;
+    });
+    return codeMap;
+  };
+
+  // Export discourse analysis format (for thesis Chapter 7)
+  const exportDiscourseAnalysis = async () => {
+    if (!researchStartDate || !researchEndDate) {
+      setMessage('Please select both start and end dates for export');
+      return;
+    }
+
+    setExporting(true);
+    setMessage('');
+
+    try {
+      // Get sessions in date range
+      const { data: sessions, error: sessionsError } = await supabase
+        .from('conversation_sessions')
+        .select('id, user_id, started_at, ended_at, duration_minutes, topic')
+        .gte('started_at', researchStartDate)
+        .lte('started_at', researchEndDate + 'T23:59:59')
+        .order('started_at', { ascending: true });
+
+      if (sessionsError) throw sessionsError;
+
+      if (!sessions || sessions.length === 0) {
+        setMessage('No sessions found in this date range');
+        setExporting(false);
+        return;
+      }
+
+      // Get user profiles for level info
+      const userIds = [...new Set(sessions.map(s => s.user_id))];
+      const participantCodes = anonymizeExport ? generateParticipantCodes(userIds) : null;
+
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, name, surname, english_level')
+        .in('id', userIds);
+
+      if (profilesError) throw profilesError;
+      const profileMap = {};
+      profiles?.forEach(p => { profileMap[p.id] = p; });
+
+      // Get all messages
+      const sessionIds = sessions.map(s => s.id);
+      const { data: messages, error: messagesError } = await supabase
+        .from('conversation_messages')
+        .select('session_id, role, content, created_at')
+        .in('session_id', sessionIds)
+        .order('created_at', { ascending: true });
+
+      if (messagesError) throw messagesError;
+
+      // Build CSV with discourse analysis format
+      const headers = [
+        'participant_id', 'session_id', 'session_date', 'topic', 'duration_min',
+        'user_level', 'turn_number', 'speaker', 'timestamp', 'utterance', 'word_count'
+      ];
+      const csvRows = [headers.join(',')];
+
+      sessions.forEach(session => {
+        const sessionMsgs = messages?.filter(m => m.session_id === session.id) || [];
+        const profile = profileMap[session.user_id];
+        const participantId = anonymizeExport ? participantCodes[session.user_id] : session.user_id;
+        const sessionId = anonymizeExport ? `S${session.id.substring(0, 8)}` : session.id;
+
+        sessionMsgs.forEach((msg, turnIndex) => {
+          const wordCount = msg.content ? msg.content.split(/\s+/).length : 0;
+          const row = [
+            participantId,
+            sessionId,
+            session.started_at?.split('T')[0] || '',
+            `"${(session.topic || 'Free conversation').replace(/"/g, '""')}"`,
+            session.duration_minutes || 0,
+            profile?.english_level || 'Unknown',
+            turnIndex + 1,
+            msg.role === 'user' ? 'Learner' : 'AI',
+            msg.created_at || '',
+            `"${(msg.content || '').replace(/"/g, '""').replace(/\n/g, ' ')}"`,
+            wordCount
+          ];
+          csvRows.push(row.join(','));
+        });
+      });
+
+      // Download
+      const csv = csvRows.join('\n');
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const suffix = anonymizeExport ? '_anonymized' : '';
+      a.download = `discourse_analysis${suffix}_${researchStartDate}_to_${researchEndDate}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+
+      const totalTurns = csvRows.length - 1;
+      setMessage(`Exported ${sessions.length} sessions (${totalTurns} turns) for discourse analysis!`);
+    } catch (error) {
+      setMessage('Error exporting discourse data: ' + error.message);
+    }
+
+    setExporting(false);
+  };
+
+  // Export Can-Do achievements (CANDO-05)
+  const exportCanDoAchievements = async () => {
+    setExporting(true);
+    setMessage('');
+
+    try {
+      // Get all achievements with statement details
+      const { data: achievements, error: achievementsError } = await supabase
+        .from('user_cando_achievements')
+        .select(`
+          user_id,
+          cando_id,
+          session_id,
+          detected_by,
+          confidence_score,
+          evidence_text,
+          created_at,
+          cando_statements (
+            level,
+            skill_type,
+            descriptor
+          )
+        `)
+        .order('created_at', { ascending: true });
+
+      if (achievementsError) throw achievementsError;
+
+      if (!achievements || achievements.length === 0) {
+        setMessage('No Can-Do achievements found');
+        setExporting(false);
+        return;
+      }
+
+      // Get user profiles
+      const userIds = [...new Set(achievements.map(a => a.user_id))];
+      const participantCodes = anonymizeExport ? generateParticipantCodes(userIds) : null;
+
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, name, surname, english_level')
+        .in('id', userIds);
+
+      if (profilesError) throw profilesError;
+      const profileMap = {};
+      profiles?.forEach(p => { profileMap[p.id] = p; });
+
+      // Build CSV
+      const headers = [
+        'participant_id', 'participant_level', 'cando_level', 'skill_type',
+        'descriptor', 'confidence', 'detected_by', 'date', 'evidence'
+      ];
+      const csvRows = [headers.join(',')];
+
+      achievements.forEach(achievement => {
+        const profile = profileMap[achievement.user_id];
+        const participantId = anonymizeExport ? participantCodes[achievement.user_id] : achievement.user_id;
+        const stmt = achievement.cando_statements;
+
+        const row = [
+          participantId,
+          profile?.english_level || 'Unknown',
+          stmt?.level || '',
+          stmt?.skill_type || '',
+          `"${(stmt?.descriptor || '').replace(/"/g, '""')}"`,
+          achievement.confidence_score ? achievement.confidence_score.toFixed(2) : '',
+          achievement.detected_by || 'unknown',
+          achievement.created_at?.split('T')[0] || '',
+          `"${(achievement.evidence_text || '').replace(/"/g, '""').replace(/\n/g, ' ')}"`
+        ];
+        csvRows.push(row.join(','));
+      });
+
+      // Download
+      const csv = csvRows.join('\n');
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const suffix = anonymizeExport ? '_anonymized' : '';
+      a.download = `cando_achievements${suffix}_${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+
+      setMessage(`Exported ${achievements.length} Can-Do achievements!`);
+    } catch (error) {
+      setMessage('Error exporting Can-Do achievements: ' + error.message);
+    }
+
+    setExporting(false);
+  };
+
   const loadCandoUsers = async () => {
     setLoadingCando(true);
     const { data, error } = await supabase
@@ -1008,31 +1220,97 @@ export function AdminView({ cardTheme, subtleText, fontSizes, contrast }) {
 
       {activeTab === 'export' && (
         <div className="space-y-6">
+          {/* Research Data Export Section */}
           <div className={`rounded-2xl border p-6 ${cardTheme}`}>
-            <h3 className={`font-bold ${fontSizes.xl} mb-4`}>Export Research Data</h3>
-            <p className={`${subtleText} mb-6`}>Download all data as CSV files for analysis.</p>
+            <h3 className={`font-bold ${fontSizes.xl} mb-2`}>Research Data Export</h3>
+            <p className={`${subtleText} mb-6`}>Export data for thesis analysis with anonymization support.</p>
+
+            {/* Export Settings */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
+              <div>
+                <label htmlFor="research-start-date" className={`text-sm font-semibold ${subtleText} mb-1 block`}>Start Date</label>
+                <input
+                  id="research-start-date"
+                  name="research-start-date"
+                  type="date"
+                  value={researchStartDate}
+                  onChange={(e) => setResearchStartDate(e.target.value)}
+                  className={`w-full px-3 py-2 rounded-lg border ${cardTheme}`}
+                />
+              </div>
+              <div>
+                <label htmlFor="research-end-date" className={`text-sm font-semibold ${subtleText} mb-1 block`}>End Date</label>
+                <input
+                  id="research-end-date"
+                  name="research-end-date"
+                  type="date"
+                  value={researchEndDate}
+                  onChange={(e) => setResearchEndDate(e.target.value)}
+                  className={`w-full px-3 py-2 rounded-lg border ${cardTheme}`}
+                />
+              </div>
+              <div className="flex items-end">
+                <label htmlFor="anonymize-toggle" className="flex items-center gap-3 cursor-pointer p-2">
+                  <input
+                    id="anonymize-toggle"
+                    name="anonymize-toggle"
+                    type="checkbox"
+                    checked={anonymizeExport}
+                    onChange={(e) => setAnonymizeExport(e.target.checked)}
+                    className="w-5 h-5"
+                  />
+                  <div>
+                    <span className={`font-semibold ${fontSizes.base}`}>Anonymize Data</span>
+                    <p className={`text-xs ${subtleText}`}>Replace IDs with P001, P002...</p>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            {/* Primary Research Exports */}
+            <div className="space-y-3 mb-6">
+              <h4 className={`font-semibold ${fontSizes.lg} mb-2`}>Thesis Analysis Exports</h4>
+              <button
+                onClick={exportDiscourseAnalysis}
+                disabled={exporting || !researchStartDate || !researchEndDate}
+                className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-bold py-4 px-6 rounded-xl transition flex flex-col items-center justify-center gap-2"
+              >
+                <span className="text-2xl">📊</span>
+                <div className="text-center">
+                  <div className="font-bold">Export Discourse Analysis Data</div>
+                  <div className="text-sm opacity-90">Turn-by-turn format with participant codes, timestamps, word counts (Chapter 7)</div>
+                </div>
+              </button>
+              <button
+                onClick={exportCanDoAchievements}
+                disabled={exporting}
+                className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-bold py-4 px-6 rounded-xl transition flex flex-col items-center justify-center gap-2"
+              >
+                <span className="text-2xl">🎯</span>
+                <div className="text-center">
+                  <div className="font-bold">Export Can-Do Achievements</div>
+                  <div className="text-sm opacity-90">CEFR achievements with confidence scores and evidence (Chapter 13)</div>
+                </div>
+              </button>
+            </div>
+
+            {/* Secondary Exports */}
             <div className="space-y-3">
-              <button onClick={exportAllUsers} className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 rounded-xl transition flex flex-col items-center justify-center gap-2">
-                <span className="text-2xl">📥</span>
-                <div className="text-center">
-                  <div className="font-bold">Export All Users & Profiles</div>
-                  <div className="text-sm opacity-90">Demographics, study method, institution, CEFR level, tier, usage data</div>
-                </div>
-              </button>
-              <button onClick={exportAllSessions} className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 rounded-xl transition flex flex-col items-center justify-center gap-2">
-                <span className="text-2xl">📥</span>
-                <div className="text-center">
-                  <div className="font-bold">Export All Conversation Sessions</div>
-                  <div className="text-sm opacity-90">Session IDs, user IDs, duration, topics, timestamps</div>
-                </div>
-              </button>
-              <button onClick={exportAllTranscriptions} className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 rounded-xl transition flex flex-col items-center justify-center gap-2">
-                <span className="text-2xl">📥</span>
-                <div className="text-center">
-                  <div className="font-bold">Export All Transcriptions</div>
-                  <div className="text-sm opacity-90">Full conversation transcripts with user/session IDs and timestamps</div>
-                </div>
-              </button>
+              <h4 className={`font-semibold ${fontSizes.lg} mb-2 ${subtleText}`}>Raw Data Exports</h4>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <button onClick={exportAllUsers} disabled={exporting} className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-bold py-3 px-4 rounded-xl transition text-sm">
+                  <div className="font-bold">Export Users</div>
+                  <div className="text-xs opacity-90">Profiles & demographics</div>
+                </button>
+                <button onClick={exportAllSessions} disabled={exporting} className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-bold py-3 px-4 rounded-xl transition text-sm">
+                  <div className="font-bold">Export Sessions</div>
+                  <div className="text-xs opacity-90">Metadata & durations</div>
+                </button>
+                <button onClick={exportAllTranscriptions} disabled={exporting} className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-bold py-3 px-4 rounded-xl transition text-sm">
+                  <div className="font-bold">Export Transcriptions</div>
+                  <div className="text-xs opacity-90">Raw conversation text</div>
+                </button>
+              </div>
             </div>
           </div>
         </div>

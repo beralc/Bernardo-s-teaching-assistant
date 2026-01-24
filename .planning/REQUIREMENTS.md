@@ -20,18 +20,18 @@ Spanish seniors learning English need UI in their native language to reduce cogn
 
 ### Can-Do System (Priority: Critical - Phase 2)
 
-- [ ] **CANDO-01**: Re-enable Can-Do achievement detection after voice session ends
-- [ ] **CANDO-02**: Store AI confidence score (0.6-1.0) with each achievement
-- [ ] **CANDO-03**: Display Can-Do achievements in user profile with unlock dates
-- [ ] **CANDO-04**: Admin can view all Can-Do achievements per user
-- [ ] **CANDO-05**: Export Can-Do achievements as CSV with user_id, statement_id, confidence, date
+- [x] **CANDO-01**: Re-enable Can-Do achievement detection after voice session ends
+- [x] **CANDO-02**: Store AI confidence score (0.6-1.0) with each achievement
+- [x] **CANDO-03**: Display Can-Do achievements in user profile with unlock dates
+- [x] **CANDO-04**: Admin can view all Can-Do achievements per user
+- [x] **CANDO-05**: Export Can-Do achievements as CSV with user_id, statement_id, confidence, date
 
 ### Data Export (Priority: Critical - Phase 3)
 
-- [ ] **EXPORT-01**: Export transcripts in discourse analysis format (speaker, timestamp, text, turn_number)
-- [ ] **EXPORT-02**: Export by date range and user cohort (for experimental vs control groups)
-- [ ] **EXPORT-03**: Export sessions with metadata (duration, topic, total_turns, user_level)
-- [ ] **EXPORT-04**: Anonymize exports (replace user identifiers with participant codes P001, P002...)
+- [x] **EXPORT-01**: Export transcripts in discourse analysis format (speaker, timestamp, text, turn_number)
+- [x] **EXPORT-02**: Export by date range and user cohort (for experimental vs control groups)
+- [x] **EXPORT-03**: Export sessions with metadata (duration, topic, total_turns, user_level)
+- [x] **EXPORT-04**: Anonymize exports (replace user identifiers with participant codes P001, P002...)
 
 ### Feedback Tracking (Priority: High - Phase 4)
 
@@ -107,15 +107,15 @@ Deferred to after data collection begins.
 | I18N-04 | Phase 1 | Complete |
 | I18N-05 | Phase 1 | Complete |
 | I18N-06 | Phase 1 | Complete |
-| CANDO-01 | Phase 2 | Pending |
-| CANDO-02 | Phase 2 | Pending |
-| CANDO-03 | Phase 2 | Pending |
-| CANDO-04 | Phase 2 | Pending |
-| CANDO-05 | Phase 2 | Pending |
-| EXPORT-01 | Phase 3 | Pending |
-| EXPORT-02 | Phase 3 | Pending |
-| EXPORT-03 | Phase 3 | Pending |
-| EXPORT-04 | Phase 3 | Pending |
+| CANDO-01 | Phase 2 | Complete |
+| CANDO-02 | Phase 2 | Complete |
+| CANDO-03 | Phase 2 | Complete |
+| CANDO-04 | Phase 2 | Complete |
+| CANDO-05 | Phase 2 | Complete |
+| EXPORT-01 | Phase 3 | Complete |
+| EXPORT-02 | Phase 3 | Complete |
+| EXPORT-03 | Phase 3 | Complete |
+| EXPORT-04 | Phase 3 | Complete |
 | FEED-01 | Phase 4 | Pending |
 | FEED-02 | Phase 4 | Pending |
 | FEED-03 | Phase 4 | Pending |
@@ -144,4 +144,4 @@ Deferred to after data collection begins.
 
 ---
 *Requirements defined: 2026-01-23*
-*Last updated: 2026-01-23 after completing Phase 1 (i18n)*
+*Last updated: 2026-01-24 after completing Phase 3 (Data Export)*
