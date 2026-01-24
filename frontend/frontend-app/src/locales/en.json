@@ -124,7 +124,8 @@
     "timer": {
       "remaining": "{minutes} min remaining",
       "unlimited": "Unlimited"
-    }
+    },
+    "todaysConversation": "Today's Conversation"
   },
   "starters": {
     "title": "Conversation Starters",
@@ -174,14 +175,30 @@
     }
   },
   "progress": {
-    "title": "Your Progress",
-    "subtitle": "Track your English learning journey",
-    "totalSessions": "Total Sessions",
-    "totalMinutes": "Total Minutes",
-    "currentStreak": "Current Streak",
+    "title": "Your Progress Report",
+    "updated": "Updated",
+    "practiceTime": "Practice Time",
+    "totalTime": "Total Time",
+    "dailyAverage": "Daily Average",
+    "today": "Today",
+    "learningJourney": "Your Learning Journey",
+    "conversations": "Conversations",
+    "sessions": "sessions",
+    "practiceStreak": "Practice Streak",
     "days": "days",
-    "recentActivity": "Recent Activity",
-    "noActivity": "No activity yet. Start a conversation to begin tracking your progress!"
+    "topicsExplored": "Topics Explored",
+    "topics": "topics",
+    "myConversations": "My Conversations",
+    "viewConversations": "View My Conversations",
+    "hideConversations": "Hide Conversations",
+    "searchPlaceholder": "Search conversations...",
+    "noMatchingConversations": "No conversations match your search.",
+    "noConversationsYet": "No conversations yet. Start talking!",
+    "noTranscripts": "No transcripts saved for this conversation.",
+    "noActivity": "No activity yet. Start a conversation to begin tracking your progress!",
+    "session": "session",
+    "day": "day",
+    "topic": "topic"
   },
   "admin": {
     "title": "Admin Dashboard",
@@ -237,7 +254,9 @@
     "next": "Next",
     "submit": "Submit",
     "retry": "Try Again",
-    "select": "Select..."
+    "select": "Select...",
+    "darkMode": "Dark Mode",
+    "lightMode": "Light Mode"
   },
   "accessibility": {
     "profile": "Profile",

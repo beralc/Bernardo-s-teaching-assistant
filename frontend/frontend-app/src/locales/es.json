@@ -1,6 +1,6 @@
 {
   "app": {
-    "title": "Asistente de Inglés de Bernardo",
+    "title": "Bernardo's English Helper",
     "loading": "Cargando...",
     "beta": "BETA"
   },
@@ -11,7 +11,7 @@
     "admin": "Admin"
   },
   "auth": {
-    "welcome": "Bienvenido al Asistente de Inglés de Bernardo",
+    "welcome": "Bienvenido a Bernardo's English Helper",
     "subtitle": "Un espacio seguro y amigable para practicar inglés a tu propio ritmo.",
     "email": "Tu correo electrónico",
     "password": "Tu contraseña",
@@ -41,7 +41,7 @@
     "sentTo": "Hemos enviado un enlace de confirmación a",
     "nextSteps": "Próximos pasos:",
     "step1": "1. Abre tu bandeja de entrada",
-    "step2": "2. Busca un correo del Asistente de Inglés de Bernardo",
+    "step2": "2. Busca un correo de Bernardo's English Helper",
     "step3": "3. Haz clic en el enlace de confirmación",
     "step4": "4. ¡Vuelve aquí e inicia sesión!",
     "premiumDays": "¡Tienes {days} días de acceso premium!",
@@ -124,7 +124,8 @@
     "timer": {
       "remaining": "{minutes} min restantes",
       "unlimited": "Ilimitado"
-    }
+    },
+    "todaysConversation": "Conversación de Hoy"
   },
   "starters": {
     "title": "Temas de conversación",
@@ -174,14 +175,30 @@
     }
   },
   "progress": {
-    "title": "Tu progreso",
-    "subtitle": "Sigue tu viaje de aprendizaje de inglés",
-    "totalSessions": "Sesiones totales",
-    "totalMinutes": "Minutos totales",
-    "currentStreak": "Racha actual",
+    "title": "Tu Informe de Progreso",
+    "updated": "Actualizado",
+    "practiceTime": "Tiempo de Práctica",
+    "totalTime": "Tiempo Total",
+    "dailyAverage": "Promedio Diario",
+    "today": "Hoy",
+    "learningJourney": "Tu Viaje de Aprendizaje",
+    "conversations": "Conversaciones",
+    "sessions": "sesiones",
+    "practiceStreak": "Racha de Práctica",
     "days": "días",
-    "recentActivity": "Actividad reciente",
-    "noActivity": "Aún no hay actividad. ¡Inicia una conversación para empezar a registrar tu progreso!"
+    "topicsExplored": "Temas Explorados",
+    "topics": "temas",
+    "myConversations": "Mis Conversaciones",
+    "viewConversations": "Ver Mis Conversaciones",
+    "hideConversations": "Ocultar Conversaciones",
+    "searchPlaceholder": "Buscar conversaciones...",
+    "noMatchingConversations": "No hay conversaciones que coincidan con tu búsqueda.",
+    "noConversationsYet": "Aún no hay conversaciones. ¡Empieza a hablar!",
+    "noTranscripts": "No hay transcripciones guardadas para esta conversación.",
+    "noActivity": "Aún no hay actividad. ¡Inicia una conversación para empezar a registrar tu progreso!",
+    "session": "sesión",
+    "day": "día",
+    "topic": "tema"
   },
   "admin": {
     "title": "Panel de administración",
@@ -237,7 +254,9 @@
     "next": "Siguiente",
     "submit": "Enviar",
     "retry": "Intentar de nuevo",
-    "select": "Seleccionar..."
+    "select": "Seleccionar...",
+    "darkMode": "Modo Oscuro",
+    "lightMode": "Modo Claro"
   },
   "accessibility": {
     "profile": "Perfil",

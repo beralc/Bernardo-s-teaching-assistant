@@ -405,7 +405,7 @@ async function analyzeSessionForCando(sessionId, userId, conversation) {
                 className={`px-4 py-2 rounded-xl border text-sm font-semibold ${cardTheme} hover:opacity-80 transition-opacity`}
                 onClick={() => setContrast(v => !v)} aria-pressed={contrast}
               >
-                {contrast ? "Light Mode" : "Dark Mode"}
+                {contrast ? t('common.lightMode') : t('common.darkMode')}
               </button>
               <div className={`flex items-center rounded-xl border ${cardTheme}`}>
                 <button
@@ -2512,7 +2512,7 @@ async function analyzeSessionForCando(sessionId, userId, conversation) {
         
         {/* Conversation History */}
         <div className={`rounded-3xl border p-5 ${cardTheme}`}>
-          <h3 className={`font-bold ${fontSizes.xl} mb-4`}>Today's Conversation</h3>
+          <h3 className={`font-bold ${fontSizes.xl} mb-4`}>{t('talk.todaysConversation')}</h3>
           <ul className="space-y-4">
             {conversation.map((msg, i) => (
               <ChatBubble key={i} role={msg.role} text={msg.text} fontSizes={fontSizes} />
@@ -2623,6 +2623,7 @@ async function analyzeSessionForCando(sessionId, userId, conversation) {
 
   // ProgressView: Your learning progress dashboard with time tracking and conversation history
   function ProgressView({ cardTheme, subtleText, fontSizes, contrast }) {
+    const { t } = useLanguage();
     const [conversationSearch, setConversationSearch] = useState('');
     const [timeStats, setTimeStats] = useState({
       totalMinutes: 0,
@@ -2868,28 +2869,28 @@ async function analyzeSessionForCando(sessionId, userId, conversation) {
     return (
       <section aria-label="Progress dashboard" className="flex flex-col gap-6">
         <div>
-           <h2 className={`${fontSizes.xxxl} font-bold`}>Your Progress Report</h2>
-           <p className={`${subtleText} ${fontSizes.lg} mt-1`}>Updated: October 29, 2025</p>
+           <h2 className={`${fontSizes.xxxl} font-bold`}>{t('progress.title')}</h2>
+           <p className={`${subtleText} ${fontSizes.lg} mt-1`}>{t('progress.updated')}: {new Date().toLocaleDateString()}</p>
          </div>
 
          {/* Time Statistics */}
          <div className={`rounded-2xl border p-6 ${cardTheme}`}>
-          <h3 className={`font-bold ${fontSizes.xl} mb-4`}>Practice Time</h3>
+          <h3 className={`font-bold ${fontSizes.xl} mb-4`}>{t('progress.practiceTime')}</h3>
           <div className="grid grid-cols-3 gap-4">
             <div className="text-center">
-              <div className={`${subtleText} ${fontSizes.base}`}>Total Time</div>
+              <div className={`${subtleText} ${fontSizes.base}`}>{t('progress.totalTime')}</div>
               <div className={`${fontSizes.xxl} font-bold mt-1 text-green-600 dark:text-green-400`}>
                 {formatTime(timeStats.totalMinutes)}
               </div>
             </div>
             <div className="text-center">
-              <div className={`${subtleText} ${fontSizes.base}`}>Daily Average</div>
+              <div className={`${subtleText} ${fontSizes.base}`}>{t('progress.dailyAverage')}</div>
               <div className={`${fontSizes.xxl} font-bold mt-1 text-blue-600 dark:text-blue-400`}>
                 {formatTime(timeStats.dailyAverageMinutes)}
               </div>
             </div>
             <div className="text-center">
-              <div className={`${subtleText} ${fontSizes.base}`}>Today</div>
+              <div className={`${subtleText} ${fontSizes.base}`}>{t('progress.today')}</div>
               <div className={`${fontSizes.xxl} font-bold mt-1 text-purple-600 dark:text-purple-400`}>
                 {formatTime(timeStats.todayMinutes)}
               </div>
@@ -2899,33 +2900,33 @@ async function analyzeSessionForCando(sessionId, userId, conversation) {
 
         {/* Learning Milestones */}
         <div className={`rounded-2xl border p-6 ${cardTheme}`}>
-          <h3 className={`font-bold ${fontSizes.xl} mb-4`}>Your Learning Journey</h3>
+          <h3 className={`font-bold ${fontSizes.xl} mb-4`}>{t('progress.learningJourney')}</h3>
           <div className="grid grid-cols-3 gap-4">
             <div className="text-center">
-              <div className={`${subtleText} ${fontSizes.base}`}>Conversations</div>
+              <div className={`${subtleText} ${fontSizes.base}`}>{t('progress.conversations')}</div>
               <div className={`${fontSizes.xxl} font-bold mt-1 text-green-600 dark:text-green-400`}>
                 {timeStats.conversationCount}
               </div>
               <div className={`${subtleText} text-sm mt-1`}>
-                {timeStats.conversationCount === 1 ? 'session' : 'sessions'}
+                {timeStats.conversationCount === 1 ? t('progress.session') : t('progress.sessions')}
               </div>
             </div>
             <div className="text-center">
-              <div className={`${subtleText} ${fontSizes.base}`}>Practice Streak</div>
+              <div className={`${subtleText} ${fontSizes.base}`}>{t('progress.practiceStreak')}</div>
               <div className={`${fontSizes.xxl} font-bold mt-1 text-orange-600 dark:text-orange-400`}>
                 {timeStats.currentStreak}
               </div>
               <div className={`${subtleText} text-sm mt-1`}>
-                {timeStats.currentStreak === 1 ? 'day' : 'days'}
+                {timeStats.currentStreak === 1 ? t('progress.day') : t('progress.days')}
               </div>
             </div>
             <div className="text-center">
-              <div className={`${subtleText} ${fontSizes.base}`}>Topics Explored</div>
+              <div className={`${subtleText} ${fontSizes.base}`}>{t('progress.topicsExplored')}</div>
               <div className={`${fontSizes.xxl} font-bold mt-1 text-blue-600 dark:text-blue-400`}>
                 {timeStats.topicDiversity}
               </div>
               <div className={`${subtleText} text-sm mt-1`}>
-                {timeStats.topicDiversity === 1 ? 'topic' : 'topics'}
+                {timeStats.topicDiversity === 1 ? t('progress.topic') : t('progress.topics')}
               </div>
             </div>
           </div>
@@ -3002,13 +3003,13 @@ async function analyzeSessionForCando(sessionId, userId, conversation) {
 
         {/* Conversations */}
         <div className={`rounded-2xl border p-6 ${cardTheme}`}>
-          <h3 className={`font-bold ${fontSizes.xl} mb-3`}>My Conversations</h3>
+          <h3 className={`font-bold ${fontSizes.xl} mb-3`}>{t('progress.myConversations')}</h3>
 
           {/* Search Field */}
           <div className="mb-4">
             <input
               type="text"
-              placeholder="Search conversations..."
+              placeholder={t('progress.searchPlaceholder')}
               value={conversationSearch}
               onChange={(e) => setConversationSearch(e.target.value)}
               className={`w-full px-4 py-3 rounded-xl border ${cardTheme} focus:outline-none focus:ring-2 focus:ring-green-500 ${fontSizes.lg}`}
@@ -3096,7 +3097,7 @@ async function analyzeSessionForCando(sessionId, userId, conversation) {
                             </div>
                           ) : (
                             <p className={`text-center py-4 ${subtleText} text-sm`}>
-                              No transcripts saved for this conversation.
+                              {t('progress.noTranscripts')}
                             </p>
                           )}
                         </div>
@@ -3106,14 +3107,14 @@ async function analyzeSessionForCando(sessionId, userId, conversation) {
                 </div>
               ) : (
                 <p className={`text-center py-8 ${subtleText}`}>
-                  {conversationSearch ? 'No conversations match your search.' : 'No conversations yet. Start talking!'}
+                  {conversationSearch ? t('progress.noMatchingConversations') : t('progress.noConversationsYet')}
                 </p>
               )}
               <button
                 onClick={() => setShowConversations(false)}
                 className={`w-full text-center py-3 mt-4 rounded-xl border font-semibold ${cardTheme} hover:bg-gray-100 dark:hover:bg-gray-800 transition ${fontSizes.base}`}
               >
-                Hide Conversations
+                {t('progress.hideConversations')}
               </button>
             </>
           ) : (
@@ -3121,7 +3122,7 @@ async function analyzeSessionForCando(sessionId, userId, conversation) {
               onClick={() => setShowConversations(true)}
               className={`w-full text-center py-4 rounded-xl border font-semibold ${cardTheme} hover:bg-gray-100 dark:hover:bg-gray-800 transition ${fontSizes.lg}`}
             >
-              View My Conversations ({sessions.length})
+              {t('progress.viewConversations')} ({sessions.length})
             </button>
           )}
         </div>
