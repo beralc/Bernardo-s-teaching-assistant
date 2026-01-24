@@ -776,11 +776,13 @@ export function AdminView({ cardTheme, subtleText, fontSizes, contrast }) {
 
   // Export feedback analysis data (FEED-04, Chapter 11)
   const exportFeedbackAnalysis = async () => {
+    console.log('exportFeedbackAnalysis called');
     setExporting(true);
     setMessage('');
 
     try {
       // Get all feedback instances
+      console.log('Querying feedback_instances table...');
       const { data: feedbackData, error: feedbackError } = await supabase
         .from('feedback_instances')
         .select(`
@@ -800,6 +802,8 @@ export function AdminView({ cardTheme, subtleText, fontSizes, contrast }) {
           created_at
         `)
         .order('created_at', { ascending: true });
+
+      console.log('Feedback query result:', { data: feedbackData, error: feedbackError });
 
       if (feedbackError) throw feedbackError;
 
