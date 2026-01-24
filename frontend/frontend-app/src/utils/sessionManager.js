@@ -135,11 +135,10 @@ export async function endSession(conversation = null) {
     console.log(`Monthly usage: ${currentUsage} + ${durationMinutes} = ${newTotal} minutes`);
 
     // Analyze conversation for Can-Do achievements if we have a transcript
-    // DISABLED FOR NOW - Can-Do system not in use
-    // if (conversation && conversation.length > 0) {
-    //   console.log('Analyzing session for Can-Do achievements...');
-    //   analyzeSessionForCando(capturedSessionLogId, user.id, conversation);
-    // }
+    if (conversation && conversation.length > 0) {
+      console.log('Analyzing session for Can-Do achievements...');
+      analyzeSessionForCando(capturedSessionLogId, user.id, conversation);
+    }
   }
 }
 

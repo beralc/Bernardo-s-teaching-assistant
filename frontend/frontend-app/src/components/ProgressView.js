@@ -18,14 +18,13 @@ export function ProgressView({ cardTheme, subtleText, fontSizes, contrast }) {
   const [loading, setLoading] = useState(true);
   const [sessions, setSessions] = useState([]);
   const [showConversations, setShowConversations] = useState(false);
-  // eslint-disable-next-line no-unused-vars
   const [candoData, setCandoData] = useState(null);
-  // eslint-disable-next-line no-unused-vars
   const [loadingCando, setLoadingCando] = useState(true);
 
   useEffect(() => {
     loadTimeStats();
     loadTranscriptions();
+    loadCanDoAchievements();
   }, []);
 
   const loadTimeStats = async () => {
@@ -118,7 +117,6 @@ export function ProgressView({ cardTheme, subtleText, fontSizes, contrast }) {
     return `${mins} min`;
   };
 
-  // eslint-disable-next-line no-unused-vars
   const loadCanDoAchievements = async () => {
     const user = (await supabase.auth.getUser()).data.user;
     if (!user) return;
@@ -285,6 +283,53 @@ export function ProgressView({ cardTheme, subtleText, fontSizes, contrast }) {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Can-Do Achievements Section */}
+      <div className={`rounded-2xl border p-6 ${cardTheme}`}>
+        <h3 className={`font-bold ${fontSizes.xl} mb-4`}>Can-Do Achievements</h3>
+        {loadingCando ? (
+          <p className={`${subtleText} text-center py-4`}>Loading achievements...</p>
+        ) : candoData && candoData.progress_by_level && candoData.progress_by_level.length > 0 ? (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className={`${fontSizes.lg} font-semibold`}>Total Achievements</span>
+              <span className={`${fontSizes.xl} font-bold text-green-600 dark:text-green-400`}>
+                {candoData.total_achievements}
+              </span>
+            </div>
+            {candoData.progress_by_level.map(level => (
+              <div key={level.level} className={`p-4 rounded-xl border ${contrast ? 'border-gray-700 bg-gray-800/50' : 'border-gray-200 bg-gray-50'}`}>
+                <div className="flex items-center justify-between mb-2">
+                  <span className={`font-bold ${fontSizes.lg}`}>{level.level}</span>
+                  <span className={`${subtleText} ${fontSizes.base}`}>
+                    {level.achieved}/{level.total} ({Math.round(level.percentage)}%)
+                  </span>
+                </div>
+                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+                  <div
+                    className="bg-green-600 h-3 rounded-full transition-all duration-500"
+                    style={{ width: `${level.percentage}%` }}
+                  />
+                </div>
+                {level.recent_achievements && level.recent_achievements.length > 0 && (
+                  <div className="mt-3 space-y-2">
+                    {level.recent_achievements.slice(0, 2).map((achievement, idx) => (
+                      <div key={idx} className={`text-sm pl-3 border-l-2 border-green-500 ${subtleText}`}>
+                        {achievement.descriptor}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className={`text-center py-8 ${subtleText}`}>
+            <p className="mb-2">No achievements yet</p>
+            <p className={`text-sm`}>Start a conversation to unlock your first Can-Do statements!</p>
+          </div>
+        )}
       </div>
 
       <div className={`rounded-2xl border p-6 ${cardTheme}`}>

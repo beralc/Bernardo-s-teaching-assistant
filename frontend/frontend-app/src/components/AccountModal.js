@@ -42,6 +42,7 @@ export function AccountModal({ userInfo, onClose, onLogout, onSave, theme, cardT
   const [usageStats, setUsageStats] = useState({ used: 0, limit: 30, tier: 'free' });
 
   // Can-Do achievements
+  // Can-Do data loaded for future profile display
   // eslint-disable-next-line no-unused-vars
   const [candoData, setCandoData] = useState(null);
   // eslint-disable-next-line no-unused-vars
@@ -50,7 +51,7 @@ export function AccountModal({ userInfo, onClose, onLogout, onSave, theme, cardT
   // Load profile data on mount
   useEffect(() => {
     loadProfile();
-    // fetchCanDoAchievements(); // DISABLED - Can-Do system not in use
+    fetchCanDoAchievements();
   }, []);
 
   // Sync avatar URL when parent updates

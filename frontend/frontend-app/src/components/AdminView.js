@@ -610,18 +610,18 @@ export function AdminView({ cardTheme, subtleText, fontSizes, contrast }) {
         <p className={`${subtleText} ${fontSizes.lg} mt-1`}>Manage invitation codes and view conversations</p>
       </div>
 
-      <div className="flex gap-2 border-b border-gray-200 dark:border-gray-700">
-        {['codes', 'conversations', 'users', 'export'].map(tab => (
+      <div className="flex gap-2 border-b border-gray-200 dark:border-gray-700 overflow-x-auto">
+        {['codes', 'conversations', 'users', 'cando', 'export'].map(tab => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`px-6 py-3 font-semibold ${fontSizes.lg} transition ${
+            className={`px-6 py-3 font-semibold ${fontSizes.lg} transition whitespace-nowrap ${
               activeTab === tab
                 ? 'border-b-2 border-green-600 text-green-600'
                 : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
             }`}
           >
-            {tab === 'codes' ? 'Invitation Codes' : tab === 'conversations' ? 'User Conversations' : tab === 'users' ? 'Users' : 'Research Data'}
+            {tab === 'codes' ? 'Invitation Codes' : tab === 'conversations' ? 'User Conversations' : tab === 'users' ? 'Users' : tab === 'cando' ? 'Can-Do' : 'Research Data'}
           </button>
         ))}
       </div>
