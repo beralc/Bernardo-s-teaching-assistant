@@ -678,24 +678,24 @@ def analyze_session_cando():
             else:
                 user_level = 'A2'  # Default
 
-        # Get Can-Do statements for user's level and adjacent levels (ZPD)
-        # Include current level + 2 below + ALL above to detect when learners exceed expectations
-        level_map = {'A1': 0, 'A2': 1, 'A2+': 2, 'B1': 3, 'B1+': 4, 'B2': 5, 'B2+': 6, 'C1': 7, 'C2': 8}
-        current_level_idx = level_map.get(user_level, 1)
-        # Include 2 levels below (for context) and all levels at or above current
-        relevant_levels = [k for k, v in level_map.items() if v >= current_level_idx - 2]
+        # Get Can-Do statements - include ALL levels since DB only has A1-B2+
+        # This ensures we can assess any learner regardless of their assigned level
+        # The GPT prompt will prioritize achievements at/above the learner's level
+        available_levels = ['A1', 'A2', 'A2+', 'B1', 'B1+', 'B2', 'B2+']
 
         headers = {
             'Authorization': f'Bearer {SUPABASE_SERVICE_KEY}',
             'apikey': SUPABASE_SERVICE_KEY
         }
 
-        # Build query for relevant levels
-        level_query = ','.join(relevant_levels)
+        # Query all available levels
+        level_query = ','.join(available_levels)
         statements_resp = requests.get(
             f'{SUPABASE_URL}/rest/v1/cando_statements?level=in.({level_query})&select=id,level,skill_type,descriptor',
             headers=headers
         )
+
+        print(f"Querying Can-Do statements for levels: {level_query}")
 
         if statements_resp.status_code != 200:
             return jsonify({"error": "Failed to fetch Can-Do statements"}), 500
