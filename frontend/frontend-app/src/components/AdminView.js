@@ -1,0 +1,972 @@
+import React, { useState, useEffect } from "react";
+import { supabase } from "../supabaseClient";
+import { API_BASE_URL } from "../config/constants";
+
+export function AdminView({ cardTheme, subtleText, fontSizes, contrast }) {
+  const [codes, setCodes] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [generating, setGenerating] = useState(false);
+  const [message, setMessage] = useState('');
+  const [activeTab, setActiveTab] = useState('codes');
+
+  const [newCodePrefix, setNewCodePrefix] = useState('BETA');
+  const [newCodeMaxUses, setNewCodeMaxUses] = useState(1);
+  const [newCodeGrantsPremium, setNewCodeGrantsPremium] = useState(false);
+  const [newCodePremiumDays, setNewCodePremiumDays] = useState(30);
+  const [newCodeDescription, setNewCodeDescription] = useState('');
+  const [newCodeTag, setNewCodeTag] = useState('BETA');
+
+  const [users, setUsers] = useState([]);
+  const [selectedUserId, setSelectedUserId] = useState(null);
+  const [userSessions, setUserSessions] = useState([]);
+  const [selectedSessionId, setSelectedSessionId] = useState(null);
+  const [sessionMessages, setSessionMessages] = useState([]);
+  const [loadingConversations, setLoadingConversations] = useState(false);
+  const [exportStartDate, setExportStartDate] = useState('');
+  const [exportEndDate, setExportEndDate] = useState('');
+  const [exporting, setExporting] = useState(false);
+
+  const [allUsers, setAllUsers] = useState([]);
+  const [loadingUsers, setLoadingUsers] = useState(false);
+  const [showCreateUser, setShowCreateUser] = useState(false);
+  const [newUserEmail, setNewUserEmail] = useState('');
+  const [newUserPassword, setNewUserPassword] = useState('');
+  const [newUserName, setNewUserName] = useState('');
+  const [newUserSurname, setNewUserSurname] = useState('');
+  const [newUserTier, setNewUserTier] = useState('free');
+  const [newUserIsAdmin, setNewUserIsAdmin] = useState(false);
+
+  const [candoUsers, setCandoUsers] = useState([]);
+  const [selectedCandoUserId, setSelectedCandoUserId] = useState(null);
+  const [selectedUserCandoData, setSelectedUserCandoData] = useState(null);
+  const [loadingCando, setLoadingCando] = useState(false);
+
+  useEffect(() => {
+    if (activeTab === 'codes') {
+      loadCodes();
+    } else if (activeTab === 'conversations') {
+      loadUsers();
+    } else if (activeTab === 'users') {
+      loadAllUsers();
+    }
+  }, [activeTab]);
+
+  const loadCodes = async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from('invitation_codes')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(50);
+
+    if (error) {
+      setMessage('Error loading codes: ' + error.message);
+    } else {
+      setCodes(data || []);
+    }
+    setLoading(false);
+  };
+
+  const generateCode = async () => {
+    setGenerating(true);
+    setMessage('');
+
+    const randomPart = Math.random().toString(36).substring(2, 8).toUpperCase();
+    const code = `${newCodePrefix}${randomPart}`;
+
+    const { error } = await supabase
+      .from('invitation_codes')
+      .insert([{
+        code,
+        max_uses: newCodeMaxUses,
+        grants_premium: newCodeGrantsPremium,
+        premium_duration_days: newCodeGrantsPremium ? newCodePremiumDays : null,
+        description: newCodeDescription,
+        tag: newCodeTag,
+        is_active: true
+      }])
+      .select();
+
+    if (error) {
+      setMessage('Error generating code: ' + error.message);
+    } else {
+      setMessage(`Code generated successfully: ${code}`);
+      loadCodes();
+      setNewCodeDescription('');
+    }
+    setGenerating(false);
+  };
+
+  const toggleCodeStatus = async (codeId, currentStatus) => {
+    const { error } = await supabase
+      .from('invitation_codes')
+      .update({ is_active: !currentStatus })
+      .eq('id', codeId);
+
+    if (error) {
+      setMessage('Error updating code: ' + error.message);
+    } else {
+      setMessage('Code status updated');
+      loadCodes();
+    }
+  };
+
+  const loadUsers = async () => {
+    setLoadingConversations(true);
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id, name, surname, created_at')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      setMessage('Error loading users: ' + error.message);
+    } else {
+      setUsers(data || []);
+    }
+    setLoadingConversations(false);
+  };
+
+  const loadUserSessions = async (userId) => {
+    setSelectedUserId(userId);
+    setLoadingConversations(true);
+    const { data, error } = await supabase
+      .from('conversation_sessions')
+      .select('*')
+      .eq('user_id', userId)
+      .order('started_at', { ascending: false });
+
+    if (error) {
+      setMessage('Error loading sessions: ' + error.message);
+    } else {
+      setUserSessions(data || []);
+    }
+    setLoadingConversations(false);
+  };
+
+  const loadAllUsers = async () => {
+    setLoadingUsers(true);
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        setMessage('Error: Not authenticated');
+        setLoadingUsers(false);
+        return;
+      }
+
+      const response = await fetch(`${API_BASE_URL}/admin/users`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to load users');
+      }
+
+      const data = await response.json();
+      setAllUsers(data.users || []);
+    } catch (error) {
+      setMessage('Error loading users: ' + error.message);
+    }
+
+    setLoadingUsers(false);
+  };
+
+  const createUser = async () => {
+    if (!newUserEmail || !newUserPassword) {
+      setMessage('Error: Email and password are required');
+      return;
+    }
+
+    setGenerating(true);
+    setMessage('');
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        setMessage('Error: Not authenticated');
+        setGenerating(false);
+        return;
+      }
+
+      const response = await fetch(`${API_BASE_URL}/admin/users`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          email: newUserEmail,
+          password: newUserPassword,
+          name: newUserName,
+          surname: newUserSurname,
+          tier: newUserTier,
+          is_admin: newUserIsAdmin
+        })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to create user');
+      }
+
+      setMessage(`User created successfully: ${newUserEmail}`);
+      setNewUserEmail('');
+      setNewUserPassword('');
+      setNewUserName('');
+      setNewUserSurname('');
+      setNewUserTier('free');
+      setNewUserIsAdmin(false);
+      setShowCreateUser(false);
+      loadAllUsers();
+    } catch (error) {
+      setMessage('Error creating user: ' + error.message);
+    }
+
+    setGenerating(false);
+  };
+
+  const deleteUser = async (userId, userEmail) => {
+    if (!window.confirm(`Are you sure you want to delete user ${userEmail}? This cannot be undone.`)) {
+      return;
+    }
+
+    setMessage('');
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        setMessage('Error: Not authenticated');
+        return;
+      }
+
+      const response = await fetch(`${API_BASE_URL}/admin/users/${userId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to delete user');
+      }
+
+      setMessage(`User ${userEmail} deleted successfully`);
+      loadAllUsers();
+    } catch (error) {
+      setMessage('Error deleting user: ' + error.message);
+    }
+  };
+
+  const resetPassword = async (userId, userEmail) => {
+    const newPassword = window.prompt(`Enter new password for ${userEmail}:`);
+
+    if (!newPassword) return;
+    if (newPassword.length < 6) {
+      setMessage('Error: Password must be at least 6 characters');
+      return;
+    }
+
+    setMessage('');
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        setMessage('Error: Not authenticated');
+        return;
+      }
+
+      const response = await fetch(`${API_BASE_URL}/admin/users/${userId}/reset-password`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ password: newPassword })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to reset password');
+      }
+
+      setMessage(`Password reset successfully for ${userEmail}`);
+    } catch (error) {
+      setMessage('Error resetting password: ' + error.message);
+    }
+  };
+
+  const updateUserTier = async (userId, currentTier, userEmail) => {
+    setMessage('');
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        setMessage('Error: Not authenticated');
+        return;
+      }
+
+      const response = await fetch(`${API_BASE_URL}/admin/users/${userId}/tier`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ tier: currentTier })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to update tier');
+      }
+
+      setMessage(`Tier updated successfully for ${userEmail}`);
+      loadAllUsers();
+    } catch (error) {
+      setMessage('Error updating tier: ' + error.message);
+    }
+  };
+
+  const loadSessionMessages = async (sessionId) => {
+    setSelectedSessionId(sessionId);
+    setLoadingConversations(true);
+    const { data, error } = await supabase
+      .from('conversation_messages')
+      .select('*')
+      .eq('session_id', sessionId)
+      .order('created_at', { ascending: true });
+
+    if (error) {
+      setMessage('Error loading messages: ' + error.message);
+    } else {
+      setSessionMessages(data || []);
+    }
+    setLoadingConversations(false);
+  };
+
+  const exportConversations = async () => {
+    if (!exportStartDate || !exportEndDate) {
+      setMessage('Please select both start and end dates');
+      return;
+    }
+
+    setExporting(true);
+    setMessage('');
+
+    try {
+      const { data: sessions, error: sessionsError } = await supabase
+        .from('conversation_sessions')
+        .select('*')
+        .gte('started_at', exportStartDate)
+        .lte('started_at', exportEndDate + 'T23:59:59')
+        .order('started_at', { ascending: true });
+
+      if (sessionsError) throw sessionsError;
+
+      if (!sessions || sessions.length === 0) {
+        setMessage('No conversations found in this date range');
+        setExporting(false);
+        return;
+      }
+
+      const userIds = [...new Set(sessions.map(s => s.user_id))];
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, name, surname, age, native_language, country, english_level, tier, created_at, is_admin')
+        .in('id', userIds);
+
+      if (profilesError) throw profilesError;
+
+      const profileMap = {};
+      profiles?.forEach(p => { profileMap[p.id] = p; });
+
+      const sessionIds = sessions.map(s => s.id);
+      const { data: messages, error: messagesError } = await supabase
+        .from('conversation_messages')
+        .select('*')
+        .in('session_id', sessionIds)
+        .order('created_at', { ascending: true });
+
+      if (messagesError) throw messagesError;
+
+      const exportData = sessions.map(session => {
+        const sessionMsgs = messages?.filter(m => m.session_id === session.id) || [];
+        const userProfile = profileMap[session.user_id];
+        return {
+          session_id: session.id,
+          session_info: {
+            started_at: session.started_at,
+            ended_at: session.ended_at,
+            duration_minutes: session.duration_minutes,
+            topic: session.topic
+          },
+          user_profile: {
+            user_id: session.user_id,
+            name: userProfile?.name || '',
+            surname: userProfile?.surname || '',
+            age: userProfile?.age || null,
+            native_language: userProfile?.native_language || '',
+            country: userProfile?.country || '',
+            english_level: userProfile?.english_level || '',
+            tier: userProfile?.tier || '',
+            is_admin: userProfile?.is_admin || false,
+            account_created: userProfile?.created_at || ''
+          },
+          conversation: sessionMsgs.map(m => ({
+            role: m.role,
+            content: m.content,
+            timestamp: m.created_at
+          }))
+        };
+      });
+
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `conversations_${exportStartDate}_to_${exportEndDate}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      setMessage(`Exported ${sessions.length} conversations successfully`);
+    } catch (error) {
+      setMessage('Error exporting: ' + error.message);
+    }
+
+    setExporting(false);
+  };
+
+  const exportAllUsers = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, name, surname, age, native_language, country, study_method, institution_name, english_level, tier, monthly_voice_minutes_used, created_at, updated_at')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      const headers = ['ID', 'Name', 'Surname', 'Age', 'Native Language', 'Country', 'Study Method', 'Institution', 'CEFR Level', 'Tier', 'Minutes Used', 'Created At', 'Updated At'];
+      const csvRows = [headers.join(',')];
+
+      data.forEach(user => {
+        const row = [
+          user.id, user.name || '', user.surname || '', user.age || '', user.native_language || '',
+          user.country || '', user.study_method || '', user.institution_name || '', user.english_level || '',
+          user.tier || 'free', user.monthly_voice_minutes_used || 0, user.created_at || '', user.updated_at || ''
+        ];
+        csvRows.push(row.map(field => `"${String(field).replace(/"/g, '""')}"`).join(','));
+      });
+
+      const csv = csvRows.join('\n');
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `users_export_${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+
+      setMessage(`Exported ${data.length} users successfully!`);
+    } catch (error) {
+      setMessage('Error exporting users: ' + error.message);
+    }
+  };
+
+  const exportAllSessions = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('conversation_sessions')
+        .select('id, user_id, started_at, ended_at, duration_minutes, topic, created_at')
+        .order('started_at', { ascending: false });
+
+      if (error) throw error;
+
+      const headers = ['Session ID', 'User ID', 'Started At', 'Ended At', 'Duration (min)', 'Topic', 'Created At'];
+      const csvRows = [headers.join(',')];
+
+      data.forEach(session => {
+        const row = [
+          session.id, session.user_id, session.started_at || '', session.ended_at || '',
+          session.duration_minutes || 0, session.topic || '', session.created_at || ''
+        ];
+        csvRows.push(row.map(field => `"${String(field).replace(/"/g, '""')}"`).join(','));
+      });
+
+      const csv = csvRows.join('\n');
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `sessions_export_${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+
+      setMessage(`Exported ${data.length} sessions successfully!`);
+    } catch (error) {
+      setMessage('Error exporting sessions: ' + error.message);
+    }
+  };
+
+  const exportAllTranscriptions = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('transcriptions')
+        .select('id, user_id, session_id, text, created_at')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      const headers = ['Transcription ID', 'User ID', 'Session ID', 'Text', 'Created At'];
+      const csvRows = [headers.join(',')];
+
+      data.forEach(transcript => {
+        const row = [
+          transcript.id, transcript.user_id, transcript.session_id || '',
+          transcript.text || '', transcript.created_at || ''
+        ];
+        csvRows.push(row.map(field => `"${String(field).replace(/"/g, '""')}"`).join(','));
+      });
+
+      const csv = csvRows.join('\n');
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `transcriptions_export_${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+
+      setMessage(`Exported ${data.length} transcriptions successfully!`);
+    } catch (error) {
+      setMessage('Error exporting transcriptions: ' + error.message);
+    }
+  };
+
+  // eslint-disable-next-line no-unused-vars
+  const loadCandoUsers = async () => {
+    setLoadingCando(true);
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id, name, surname, english_level')
+      .order('name');
+
+    if (error) {
+      setMessage('Error loading users: ' + error.message);
+    } else {
+      setCandoUsers(data || []);
+    }
+    setLoadingCando(false);
+  };
+
+  const loadUserCandoData = async (userId) => {
+    setLoadingCando(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        setMessage('No session found');
+        setLoadingCando(false);
+        return;
+      }
+
+      const response = await fetch(`${API_BASE_URL}/users/${userId}/cando`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setSelectedUserCandoData(data);
+        setSelectedCandoUserId(userId);
+      } else {
+        setMessage('Error loading Can-Do data: ' + response.statusText);
+      }
+    } catch (error) {
+      setMessage('Error: ' + error.message);
+    }
+    setLoadingCando(false);
+  };
+
+  return (
+    <section aria-label="Admin dashboard" className="flex flex-col gap-6">
+      <div>
+        <h2 className={`${fontSizes.xxxl} font-bold`}>Admin Dashboard</h2>
+        <p className={`${subtleText} ${fontSizes.lg} mt-1`}>Manage invitation codes and view conversations</p>
+      </div>
+
+      <div className="flex gap-2 border-b border-gray-200 dark:border-gray-700">
+        {['codes', 'conversations', 'users', 'export'].map(tab => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={`px-6 py-3 font-semibold ${fontSizes.lg} transition ${
+              activeTab === tab
+                ? 'border-b-2 border-green-600 text-green-600'
+                : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+            }`}
+          >
+            {tab === 'codes' ? 'Invitation Codes' : tab === 'conversations' ? 'User Conversations' : tab === 'users' ? 'Users' : 'Research Data'}
+          </button>
+        ))}
+      </div>
+
+      {message && (
+        <div className={`p-4 rounded-xl ${message.includes('Error') ? 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-100' : 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-100'}`}>
+          {message}
+        </div>
+      )}
+
+      {activeTab === 'codes' && (
+        <>
+          <div className={`rounded-2xl border p-6 ${cardTheme}`}>
+            <h3 className={`font-bold ${fontSizes.xl} mb-4`}>Generate New Invitation Code</h3>
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className={`text-sm font-semibold ${subtleText} mb-1 block`}>Code Prefix</label>
+                  <input type="text" value={newCodePrefix} onChange={(e) => setNewCodePrefix(e.target.value.toUpperCase())} className={`w-full px-3 py-2 rounded-lg border ${cardTheme} font-mono`} placeholder="BETA" />
+                </div>
+                <div>
+                  <label className={`text-sm font-semibold ${subtleText} mb-1 block`}>Tag</label>
+                  <select value={newCodeTag} onChange={(e) => setNewCodeTag(e.target.value)} className={`w-full px-3 py-2 rounded-lg border ${cardTheme}`}>
+                    <option value="BETA">Beta Tester</option>
+                    <option value="FOUNDER">Founding Member</option>
+                    <option value="SCHOOL">School Access</option>
+                    <option value="PERSONAL">Personal Invite</option>
+                    <option value="PROMO">Promotion</option>
+                  </select>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className={`text-sm font-semibold ${subtleText} mb-1 block`}>Max Uses (-1 = unlimited)</label>
+                  <input type="number" value={newCodeMaxUses} onChange={(e) => setNewCodeMaxUses(parseInt(e.target.value))} className={`w-full px-3 py-2 rounded-lg border ${cardTheme}`} />
+                </div>
+                <div>
+                  <label className={`text-sm font-semibold ${subtleText} mb-1 block`}>
+                    <input type="checkbox" checked={newCodeGrantsPremium} onChange={(e) => setNewCodeGrantsPremium(e.target.checked)} className="mr-2" />
+                    Grants Premium Access
+                  </label>
+                  {newCodeGrantsPremium && (
+                    <input type="number" value={newCodePremiumDays} onChange={(e) => setNewCodePremiumDays(parseInt(e.target.value))} className={`w-full px-3 py-2 rounded-lg border ${cardTheme} mt-2`} placeholder="Days of premium" />
+                  )}
+                </div>
+              </div>
+              <div>
+                <label className={`text-sm font-semibold ${subtleText} mb-1 block`}>Description</label>
+                <input type="text" value={newCodeDescription} onChange={(e) => setNewCodeDescription(e.target.value)} className={`w-full px-3 py-2 rounded-lg border ${cardTheme}`} placeholder="e.g., Beta testers batch 1" />
+              </div>
+              <button onClick={generateCode} disabled={generating} className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-xl transition disabled:opacity-50">
+                {generating ? 'Generating...' : 'Generate Code'}
+              </button>
+            </div>
+          </div>
+
+          <div className={`rounded-2xl border p-6 ${cardTheme}`}>
+            <h3 className={`font-bold ${fontSizes.xl} mb-4`}>Existing Invitation Codes</h3>
+            {loading ? (
+              <p className={`text-center py-8 ${subtleText}`}>Loading codes...</p>
+            ) : codes.length === 0 ? (
+              <p className={`text-center py-8 ${subtleText}`}>No codes generated yet</p>
+            ) : (
+              <div className="space-y-3 max-h-96 overflow-y-auto">
+                {codes.map((code) => (
+                  <div key={code.id} className={`rounded-xl border p-4 ${cardTheme} ${!code.is_active ? 'opacity-50' : ''}`}>
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <code className={`font-mono font-bold ${fontSizes.lg} px-2 py-1 rounded bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-100`}>{code.code}</code>
+                          <span className={`text-xs px-2 py-1 rounded ${code.tag === 'BETA' ? 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-100' : code.tag === 'FOUNDER' ? 'bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-100' : 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-100'}`}>{code.tag}</span>
+                          {code.grants_premium && <span className="text-xs px-2 py-1 rounded bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-100">Premium {code.premium_duration_days}d</span>}
+                        </div>
+                        <p className={`text-sm ${subtleText} mb-1`}>{code.description}</p>
+                        <div className="flex items-center gap-4 text-xs">
+                          <span className={subtleText}>Uses: {code.current_uses} / {code.max_uses === -1 ? '∞' : code.max_uses}</span>
+                          <span className={subtleText}>Created: {new Date(code.created_at).toLocaleDateString()}</span>
+                        </div>
+                      </div>
+                      <button onClick={() => toggleCodeStatus(code.id, code.is_active)} className={`px-3 py-1 rounded text-sm font-semibold ${code.is_active ? 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-100' : 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-100'}`}>
+                        {code.is_active ? 'Deactivate' : 'Activate'}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </>
+      )}
+
+      {activeTab === 'conversations' && (
+        <div className="space-y-6">
+          <div className={`rounded-2xl border p-6 ${cardTheme}`}>
+            <h3 className={`font-bold ${fontSizes.xl} mb-4`}>Export Conversations</h3>
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className={`text-sm font-semibold ${subtleText} mb-1 block`}>Start Date</label>
+                  <input type="date" value={exportStartDate} onChange={(e) => setExportStartDate(e.target.value)} className={`w-full px-3 py-2 rounded-lg border ${cardTheme}`} />
+                </div>
+                <div>
+                  <label className={`text-sm font-semibold ${subtleText} mb-1 block`}>End Date</label>
+                  <input type="date" value={exportEndDate} onChange={(e) => setExportEndDate(e.target.value)} className={`w-full px-3 py-2 rounded-lg border ${cardTheme}`} />
+                </div>
+              </div>
+              <button onClick={exportConversations} disabled={exporting || !exportStartDate || !exportEndDate} className={`px-6 py-3 rounded-xl font-bold text-lg transition ${exporting || !exportStartDate || !exportEndDate ? 'bg-gray-300 dark:bg-gray-700 text-gray-600 dark:text-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700 text-white shadow-lg hover:shadow-xl'}`}>
+                {exporting ? 'Exporting...' : 'Export JSON'}
+              </button>
+            </div>
+          </div>
+
+          <div className={`rounded-2xl border p-6 ${cardTheme}`}>
+            <h3 className={`font-bold ${fontSizes.xl} mb-4`}>All Users ({users.length})</h3>
+            {loadingConversations ? <p className={subtleText}>Loading...</p> : users.length === 0 ? <p className={subtleText}>No users found</p> : (
+              <div className="space-y-2 max-h-96 overflow-y-auto">
+                {users.map(user => (
+                  <button key={user.id} onClick={() => loadUserSessions(user.id)} className={`w-full text-left p-4 rounded-xl border transition ${selectedUserId === user.id ? 'bg-green-50 dark:bg-green-900/20 border-green-600' : 'hover:bg-gray-50 dark:hover:bg-gray-800'}`}>
+                    <p className={`font-semibold ${fontSizes.lg}`}>{user.name} {user.surname}</p>
+                    <p className={`text-xs ${subtleText}`}>Joined: {new Date(user.created_at).toLocaleDateString()}</p>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {selectedUserId && (
+            <div className={`rounded-2xl border p-6 ${cardTheme}`}>
+              <h3 className={`font-bold ${fontSizes.xl} mb-4`}>Sessions ({userSessions.length})</h3>
+              {loadingConversations ? <p className={subtleText}>Loading sessions...</p> : userSessions.length === 0 ? <p className={subtleText}>No sessions found</p> : (
+                <div className="space-y-2 max-h-96 overflow-y-auto">
+                  {userSessions.map(session => (
+                    <button key={session.id} onClick={() => loadSessionMessages(session.id)} className={`w-full text-left p-4 rounded-xl border transition ${selectedSessionId === session.id ? 'bg-green-50 dark:bg-green-900/20 border-green-600' : 'hover:bg-gray-50 dark:hover:bg-gray-800'}`}>
+                      <p className={`font-semibold ${fontSizes.lg}`}>{session.topic || 'No topic'}</p>
+                      <p className={`text-sm ${subtleText}`}>{new Date(session.started_at).toLocaleString()}</p>
+                      <p className={`text-xs ${subtleText}`}>Duration: {session.duration_minutes || 0} minutes</p>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {selectedSessionId && (
+            <div className={`rounded-2xl border p-6 ${cardTheme}`}>
+              <h3 className={`font-bold ${fontSizes.xl} mb-4`}>Conversation ({sessionMessages.length} messages)</h3>
+              {loadingConversations ? <p className={subtleText}>Loading messages...</p> : sessionMessages.length === 0 ? <p className={subtleText}>No messages</p> : (
+                <div className="space-y-4 max-h-96 overflow-y-auto">
+                  {sessionMessages.map(msg => (
+                    <div key={msg.id} className={`p-4 rounded-xl ${msg.role === 'user' ? 'bg-gray-100 dark:bg-gray-800 ml-8' : 'bg-green-50 dark:bg-green-900/20 mr-8'}`}>
+                      <p className={`text-xs ${subtleText} mb-1`}>{msg.role === 'user' ? 'User' : 'AI'} • {new Date(msg.created_at).toLocaleTimeString()}</p>
+                      <p className={fontSizes.lg}>{msg.content}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {activeTab === 'users' && (
+        <div className="space-y-6">
+          <div className={`rounded-2xl border p-6 ${cardTheme}`}>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className={`font-bold ${fontSizes.xl}`}>User Management</h3>
+              <button onClick={() => setShowCreateUser(!showCreateUser)} className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl font-semibold transition">
+                {showCreateUser ? 'Cancel' : '+ Create New User'}
+              </button>
+            </div>
+
+            {showCreateUser && (
+              <div className="mt-6 space-y-4 p-6 bg-gray-50 dark:bg-gray-800 rounded-xl">
+                <h4 className={`font-bold ${fontSizes.lg} mb-4`}>Create New User</h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className={`text-sm font-semibold ${subtleText} mb-1 block`}>Email *</label>
+                    <input type="email" value={newUserEmail} onChange={(e) => setNewUserEmail(e.target.value)} className={`w-full px-3 py-2 rounded-lg border ${cardTheme}`} placeholder="user@example.com" />
+                  </div>
+                  <div>
+                    <label className={`text-sm font-semibold ${subtleText} mb-1 block`}>Password *</label>
+                    <input type="password" value={newUserPassword} onChange={(e) => setNewUserPassword(e.target.value)} className={`w-full px-3 py-2 rounded-lg border ${cardTheme}`} placeholder="Min. 6 characters" />
+                  </div>
+                  <div>
+                    <label className={`text-sm font-semibold ${subtleText} mb-1 block`}>First Name</label>
+                    <input type="text" value={newUserName} onChange={(e) => setNewUserName(e.target.value)} className={`w-full px-3 py-2 rounded-lg border ${cardTheme}`} />
+                  </div>
+                  <div>
+                    <label className={`text-sm font-semibold ${subtleText} mb-1 block`}>Last Name</label>
+                    <input type="text" value={newUserSurname} onChange={(e) => setNewUserSurname(e.target.value)} className={`w-full px-3 py-2 rounded-lg border ${cardTheme}`} />
+                  </div>
+                  <div>
+                    <label className={`text-sm font-semibold ${subtleText} mb-1 block`}>Tier</label>
+                    <select value={newUserTier} onChange={(e) => setNewUserTier(e.target.value)} className={`w-full px-3 py-2 rounded-lg border ${cardTheme}`}>
+                      <option value="free">Free</option>
+                      <option value="premium">Premium</option>
+                      <option value="unlimited">Unlimited</option>
+                    </select>
+                  </div>
+                  <div className="flex items-center">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input type="checkbox" checked={newUserIsAdmin} onChange={(e) => setNewUserIsAdmin(e.target.checked)} className="w-5 h-5" />
+                      <span className={`font-semibold ${fontSizes.base}`}>Is Admin</span>
+                    </label>
+                  </div>
+                </div>
+                <button onClick={createUser} disabled={generating || !newUserEmail || !newUserPassword} className={`px-6 py-3 rounded-xl font-bold transition ${generating || !newUserEmail || !newUserPassword ? 'bg-gray-300 dark:bg-gray-700 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700 text-white'}`}>
+                  {generating ? 'Creating...' : 'Create User'}
+                </button>
+              </div>
+            )}
+          </div>
+
+          <div className={`rounded-2xl border p-6 ${cardTheme}`}>
+            <h3 className={`font-bold ${fontSizes.xl} mb-4`}>All Users ({allUsers.length})</h3>
+            {loadingUsers ? <p className={subtleText}>Loading users...</p> : allUsers.length === 0 ? <p className={subtleText}>No users found</p> : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className={`border-b border-gray-200 dark:border-gray-700 ${subtleText}`}>
+                      <th className="text-left p-3 font-semibold">Email</th>
+                      <th className="text-left p-3 font-semibold">Name</th>
+                      <th className="text-left p-3 font-semibold">Tier</th>
+                      <th className="text-left p-3 font-semibold">Admin</th>
+                      <th className="text-left p-3 font-semibold">Verified</th>
+                      <th className="text-left p-3 font-semibold">Created</th>
+                      <th className="text-left p-3 font-semibold">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {allUsers.map(user => (
+                      <tr key={user.id} className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800">
+                        <td className="p-3"><p className={`${fontSizes.base} font-mono text-sm`}>{user.email}</p></td>
+                        <td className="p-3"><p className={fontSizes.base}>{user.name} {user.surname}</p></td>
+                        <td className="p-3">
+                          <select value={user.tier || 'free'} onChange={(e) => updateUserTier(user.id, e.target.value, user.email)} className={`px-3 py-1 rounded-lg text-xs font-bold border-2 cursor-pointer transition ${user.tier === 'unlimited' ? 'bg-purple-50 dark:bg-purple-900/30 text-purple-800 dark:text-purple-100 border-purple-300' : user.tier === 'premium' ? 'bg-amber-50 dark:bg-amber-900/30 text-amber-800 dark:text-amber-100 border-amber-300' : 'bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-gray-100 border-gray-300'} hover:border-blue-500`}>
+                            <option value="free">Free</option>
+                            <option value="premium">Premium</option>
+                            <option value="unlimited">Unlimited</option>
+                          </select>
+                        </td>
+                        <td className="p-3">{user.is_admin ? <span className="text-green-600 font-bold">✓</span> : <span className="text-gray-400">-</span>}</td>
+                        <td className="p-3">{user.email_confirmed_at ? <span className="text-green-600 font-bold">✓</span> : <span className="text-red-600 font-bold">✗</span>}</td>
+                        <td className="p-3"><p className={`text-xs ${subtleText}`}>{new Date(user.created_at).toLocaleDateString()}</p></td>
+                        <td className="p-3">
+                          <div className="flex gap-2">
+                            <button onClick={() => resetPassword(user.id, user.email)} className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg font-semibold transition">Reset PW</button>
+                            <button onClick={() => deleteUser(user.id, user.email)} className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg font-semibold transition">Delete</button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'export' && (
+        <div className="space-y-6">
+          <div className={`rounded-2xl border p-6 ${cardTheme}`}>
+            <h3 className={`font-bold ${fontSizes.xl} mb-4`}>Export Research Data</h3>
+            <p className={`${subtleText} mb-6`}>Download all data as CSV files for analysis.</p>
+            <div className="space-y-3">
+              <button onClick={exportAllUsers} className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 rounded-xl transition flex flex-col items-center justify-center gap-2">
+                <span className="text-2xl">📥</span>
+                <div className="text-center">
+                  <div className="font-bold">Export All Users & Profiles</div>
+                  <div className="text-sm opacity-90">Demographics, study method, institution, CEFR level, tier, usage data</div>
+                </div>
+              </button>
+              <button onClick={exportAllSessions} className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 rounded-xl transition flex flex-col items-center justify-center gap-2">
+                <span className="text-2xl">📥</span>
+                <div className="text-center">
+                  <div className="font-bold">Export All Conversation Sessions</div>
+                  <div className="text-sm opacity-90">Session IDs, user IDs, duration, topics, timestamps</div>
+                </div>
+              </button>
+              <button onClick={exportAllTranscriptions} className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 rounded-xl transition flex flex-col items-center justify-center gap-2">
+                <span className="text-2xl">📥</span>
+                <div className="text-center">
+                  <div className="font-bold">Export All Transcriptions</div>
+                  <div className="text-sm opacity-90">Full conversation transcripts with user/session IDs and timestamps</div>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'cando' && (
+        <div className={`rounded-2xl border p-6 ${cardTheme}`}>
+          <h3 className={`font-bold ${fontSizes.xl} mb-4`}>Can-Do Achievement Management</h3>
+          <p className={`${subtleText} mb-6`}>View and manage learner Can-Do achievements.</p>
+          {loadingCando ? <p className={subtleText}>Loading...</p> : (
+            <>
+              <div className="mb-6">
+                <label className={`text-sm font-semibold ${subtleText} mb-2 block`}>Select User</label>
+                <select value={selectedCandoUserId || ''} onChange={(e) => loadUserCandoData(e.target.value)} className={`w-full px-4 py-3 rounded-lg border ${cardTheme}`}>
+                  <option value="">-- Select a user --</option>
+                  {candoUsers.map(user => (
+                    <option key={user.id} value={user.id}>{user.name} {user.surname} ({user.english_level || 'No level'})</option>
+                  ))}
+                </select>
+              </div>
+              {selectedUserCandoData && (
+                <div className="space-y-4">
+                  <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg border border-green-200 dark:border-green-800">
+                    <h4 className="font-bold text-lg mb-2">Progress Summary</h4>
+                    <p className="text-sm"><span className="font-semibold">Total Achievements:</span> {selectedUserCandoData.total_achievements}</p>
+                  </div>
+                  {selectedUserCandoData.progress_by_level?.map(levelData => (
+                    <div key={levelData.level} className="border border-gray-200 dark:border-gray-700 p-4 rounded-lg">
+                      <div className="flex justify-between items-center mb-3">
+                        <h4 className="font-bold text-lg">{levelData.level}</h4>
+                        <span className="text-sm font-semibold bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-100 px-3 py-1 rounded-full">{levelData.achieved}/{levelData.total}</span>
+                      </div>
+                      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mb-4">
+                        <div className="bg-green-600 h-2 rounded-full" style={{ width: `${(levelData.achieved / levelData.total) * 100}%` }}></div>
+                      </div>
+                      {levelData.recent_achievements?.length > 0 && (
+                        <div className="space-y-2">
+                          <p className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">Recent Achievements:</p>
+                          {levelData.recent_achievements.slice(0, 5).map((achievement, idx) => (
+                            <div key={idx} className="text-sm bg-gray-50 dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-700">
+                              <p className="mb-1">{achievement.descriptor}</p>
+                              <div className="flex justify-between items-center text-xs">
+                                <span className={subtleText}>{new Date(achievement.achieved_at).toLocaleDateString()}{achievement.detected_by === 'ai_automatic' && ' • AI Detected'}</span>
+                                {achievement.confidence_score && <span className="font-semibold">{(achievement.confidence_score * 100).toFixed(0)}% confidence</span>}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                  <button onClick={() => loadUserCandoData(selectedCandoUserId)} className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-lg transition">Refresh Data</button>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      )}
+    </section>
+  );
+}
