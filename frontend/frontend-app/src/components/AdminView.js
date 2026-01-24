@@ -40,6 +40,8 @@ export function AdminView({ cardTheme, subtleText, fontSizes, contrast }) {
   const [selectedCandoUserId, setSelectedCandoUserId] = useState(null);
   const [selectedUserCandoData, setSelectedUserCandoData] = useState(null);
   const [loadingCando, setLoadingCando] = useState(false);
+  const [reanalyzingCando, setReanalyzingCando] = useState(false);
+  const [reanalyzeProgress, setReanalyzeProgress] = useState('');
 
   useEffect(() => {
     if (activeTab === 'codes') {
@@ -604,6 +606,106 @@ export function AdminView({ cardTheme, subtleText, fontSizes, contrast }) {
     setLoadingCando(false);
   };
 
+  const reanalyzeUserSessions = async (userId) => {
+    if (!userId) return;
+
+    setReanalyzingCando(true);
+    setReanalyzeProgress('Fetching sessions...');
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        setMessage('No session found');
+        setReanalyzingCando(false);
+        return;
+      }
+
+      // Get all conversation sessions for this user
+      const { data: sessions, error: sessionsError } = await supabase
+        .from('conversation_sessions')
+        .select('id, topic')
+        .eq('user_id', userId)
+        .not('ended_at', 'is', null);
+
+      if (sessionsError) {
+        setMessage('Error fetching sessions: ' + sessionsError.message);
+        setReanalyzingCando(false);
+        return;
+      }
+
+      if (!sessions || sessions.length === 0) {
+        setMessage('No completed sessions found for this user.');
+        setReanalyzingCando(false);
+        return;
+      }
+
+      let analyzed = 0;
+      let newAchievements = 0;
+
+      for (const sess of sessions) {
+        setReanalyzeProgress(`Analyzing session ${analyzed + 1}/${sessions.length}...`);
+
+        // Get transcriptions for this session
+        const { data: transcriptions, error: transError } = await supabase
+          .from('transcriptions')
+          .select('text')
+          .eq('session_id', sess.id)
+          .order('created_at', { ascending: true });
+
+        if (transError || !transcriptions || transcriptions.length === 0) {
+          analyzed++;
+          continue;
+        }
+
+        // Build transcript
+        const transcript = transcriptions.map(t => t.text).join('\n');
+
+        if (transcript.trim().length < 20) {
+          analyzed++;
+          continue;
+        }
+
+        // Call analyze_session endpoint
+        try {
+          const response = await fetch(`${API_BASE_URL}/analyze_session`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${session.access_token}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              session_id: sess.id,
+              user_id: userId,
+              transcript: transcript
+            })
+          });
+
+          if (response.ok) {
+            const result = await response.json();
+            if (result.new_achievements) {
+              newAchievements += result.new_achievements.length;
+            }
+          }
+        } catch (err) {
+          console.error('Error analyzing session:', sess.id, err);
+        }
+
+        analyzed++;
+      }
+
+      setReanalyzeProgress('');
+      setMessage(`Re-analysis complete! Analyzed ${analyzed} sessions, found ${newAchievements} new achievements.`);
+
+      // Reload the user's Can-Do data
+      await loadUserCandoData(userId);
+
+    } catch (error) {
+      setMessage('Error during re-analysis: ' + error.message);
+    }
+
+    setReanalyzingCando(false);
+  };
+
   return (
     <section aria-label="Admin dashboard" className="flex flex-col gap-6">
       <div>
@@ -961,7 +1063,21 @@ export function AdminView({ cardTheme, subtleText, fontSizes, contrast }) {
                       )}
                     </div>
                   ))}
-                  <button onClick={() => loadUserCandoData(selectedCandoUserId)} className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-lg transition">Refresh Data</button>
+                  <div className="flex gap-3">
+                    <button onClick={() => loadUserCandoData(selectedCandoUserId)} className="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-lg transition">Refresh Data</button>
+                    <button
+                      onClick={() => reanalyzeUserSessions(selectedCandoUserId)}
+                      disabled={reanalyzingCando}
+                      className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold py-3 px-4 rounded-lg transition"
+                    >
+                      {reanalyzingCando ? 'Analyzing...' : 'Re-analyze Past Sessions'}
+                    </button>
+                  </div>
+                  {reanalyzeProgress && (
+                    <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg text-sm text-blue-800 dark:text-blue-200">
+                      {reanalyzeProgress}
+                    </div>
+                  )}
                 </div>
               )}
             </>
