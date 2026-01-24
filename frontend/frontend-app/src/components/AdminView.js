@@ -607,34 +607,42 @@ export function AdminView({ cardTheme, subtleText, fontSizes, contrast }) {
   };
 
   const reanalyzeUserSessions = async (userId) => {
-    if (!userId) return;
+    console.log('reanalyzeUserSessions called with userId:', userId);
+    if (!userId) {
+      console.log('No userId provided, returning');
+      return;
+    }
 
     setReanalyzingCando(true);
     setReanalyzeProgress('Fetching sessions...');
+    setMessage('');
 
     try {
       const { data: { session } } = await supabase.auth.getSession();
+      console.log('Auth session:', session ? 'Found' : 'Not found');
       if (!session) {
         setMessage('No session found');
         setReanalyzingCando(false);
         return;
       }
 
-      // Get all conversation sessions for this user
+      // Get all conversation sessions for this user (including incomplete ones for re-analysis)
       const { data: sessions, error: sessionsError } = await supabase
         .from('conversation_sessions')
-        .select('id, topic')
-        .eq('user_id', userId)
-        .not('ended_at', 'is', null);
+        .select('id, topic, ended_at')
+        .eq('user_id', userId);
+
+      console.log('Sessions found:', sessions?.length || 0, sessions);
 
       if (sessionsError) {
+        console.error('Sessions error:', sessionsError);
         setMessage('Error fetching sessions: ' + sessionsError.message);
         setReanalyzingCando(false);
         return;
       }
 
       if (!sessions || sessions.length === 0) {
-        setMessage('No completed sessions found for this user.');
+        setMessage('No sessions found for this user.');
         setReanalyzingCando(false);
         return;
       }
@@ -643,6 +651,7 @@ export function AdminView({ cardTheme, subtleText, fontSizes, contrast }) {
       let newAchievements = 0;
 
       for (const sess of sessions) {
+        console.log(`Processing session ${analyzed + 1}/${sessions.length}: ${sess.id}`);
         setReanalyzeProgress(`Analyzing session ${analyzed + 1}/${sessions.length}...`);
 
         // Get transcriptions for this session
@@ -652,15 +661,20 @@ export function AdminView({ cardTheme, subtleText, fontSizes, contrast }) {
           .eq('session_id', sess.id)
           .order('created_at', { ascending: true });
 
+        console.log(`Session ${sess.id} transcriptions:`, transcriptions?.length || 0, transError);
+
         if (transError || !transcriptions || transcriptions.length === 0) {
+          console.log(`Skipping session ${sess.id}: no transcriptions`);
           analyzed++;
           continue;
         }
 
         // Build transcript
         const transcript = transcriptions.map(t => t.text).join('\n');
+        console.log(`Session ${sess.id} transcript length: ${transcript.length}`);
 
         if (transcript.trim().length < 20) {
+          console.log(`Skipping session ${sess.id}: transcript too short`);
           analyzed++;
           continue;
         }
