@@ -42,6 +42,8 @@ export function AdminView({ cardTheme, subtleText, fontSizes, contrast }) {
   const [loadingCando, setLoadingCando] = useState(false);
   const [reanalyzingCando, setReanalyzingCando] = useState(false);
   const [reanalyzeProgress, setReanalyzeProgress] = useState('');
+  const [reanalyzingFeedback, setReanalyzingFeedback] = useState(false);
+  const [feedbackProgress, setFeedbackProgress] = useState('');
 
   // Research export settings
   const [anonymizeExport, setAnonymizeExport] = useState(true);
@@ -1040,6 +1042,104 @@ export function AdminView({ cardTheme, subtleText, fontSizes, contrast }) {
     setReanalyzingCando(false);
   };
 
+  const reanalyzeUserFeedback = async (userId) => {
+    console.log('reanalyzeUserFeedback called with userId:', userId);
+    if (!userId) return;
+
+    setReanalyzingFeedback(true);
+    setFeedbackProgress('Fetching sessions...');
+    setMessage('');
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        setMessage('No session found');
+        setReanalyzingFeedback(false);
+        return;
+      }
+
+      // Get all conversation sessions for this user
+      const { data: sessions, error: sessionsError } = await supabase
+        .from('conversation_sessions')
+        .select('id, topic')
+        .eq('user_id', userId);
+
+      if (sessionsError) {
+        setMessage('Error fetching sessions: ' + sessionsError.message);
+        setReanalyzingFeedback(false);
+        return;
+      }
+
+      if (!sessions || sessions.length === 0) {
+        setMessage('No sessions found for this user.');
+        setReanalyzingFeedback(false);
+        return;
+      }
+
+      let analyzed = 0;
+      let totalFeedback = 0;
+
+      for (const sess of sessions) {
+        setFeedbackProgress(`Analyzing feedback ${analyzed + 1}/${sessions.length}...`);
+
+        // Get conversation messages for this session
+        const { data: messages, error: msgError } = await supabase
+          .from('conversation_messages')
+          .select('role, content')
+          .eq('session_id', sess.id)
+          .order('created_at', { ascending: true });
+
+        if (msgError || !messages || messages.length < 4) {
+          analyzed++;
+          continue;
+        }
+
+        // Format transcript as array for feedback analysis
+        const transcript = messages.map(m => ({
+          role: m.role === 'user' ? 'user' : 'assistant',
+          content: m.content
+        }));
+
+        try {
+          const response = await fetch(`${API_BASE_URL}/analyze_feedback`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${session.access_token}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              session_id: sess.id,
+              user_id: userId,
+              transcript: transcript
+            })
+          });
+
+          if (response.ok) {
+            const result = await response.json();
+            console.log(`Feedback result for session ${sess.id}:`, result);
+            if (result.summary) {
+              totalFeedback += (result.summary.recasts || 0) +
+                              (result.summary.expansions || 0) +
+                              (result.summary.explicit_corrections || 0);
+            }
+          }
+        } catch (err) {
+          console.error('Error analyzing feedback:', sess.id, err);
+        }
+
+        analyzed++;
+      }
+
+      setFeedbackProgress('');
+      setMessage(`Feedback analysis complete! Analyzed ${analyzed} sessions, found ${totalFeedback} feedback instances.`);
+
+    } catch (error) {
+      setMessage('Error during feedback analysis: ' + error.message);
+    }
+
+    setReanalyzingFeedback(false);
+  };
+
   return (
     <section aria-label="Admin dashboard" className="flex flex-col gap-6">
       <div>
@@ -1478,15 +1578,22 @@ export function AdminView({ cardTheme, subtleText, fontSizes, contrast }) {
                     <button onClick={() => loadUserCandoData(selectedCandoUserId)} className="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-lg transition">Refresh Data</button>
                     <button
                       onClick={() => reanalyzeUserSessions(selectedCandoUserId)}
-                      disabled={reanalyzingCando}
+                      disabled={reanalyzingCando || reanalyzingFeedback}
                       className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold py-3 px-4 rounded-lg transition"
                     >
-                      {reanalyzingCando ? 'Analyzing...' : 'Re-analyze Past Sessions'}
+                      {reanalyzingCando ? 'Analyzing...' : 'Re-analyze Can-Do'}
+                    </button>
+                    <button
+                      onClick={() => reanalyzeUserFeedback(selectedCandoUserId)}
+                      disabled={reanalyzingCando || reanalyzingFeedback}
+                      className="flex-1 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 text-white font-semibold py-3 px-4 rounded-lg transition"
+                    >
+                      {reanalyzingFeedback ? 'Analyzing...' : 'Re-analyze Feedback'}
                     </button>
                   </div>
-                  {reanalyzeProgress && (
+                  {(reanalyzeProgress || feedbackProgress) && (
                     <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg text-sm text-blue-800 dark:text-blue-200">
-                      {reanalyzeProgress}
+                      {reanalyzeProgress || feedbackProgress}
                     </div>
                   )}
                 </div>
