@@ -1026,11 +1026,15 @@ def analyze_feedback():
         if not all([session_id, user_id, transcript]):
             return jsonify({"error": "Missing required fields: session_id, user_id, transcript"}), 400
 
+        print(f"analyze_feedback called: session={session_id}, user={user_id}, turns={len(transcript)}")
+
         import time
         start_time = time.time()
 
         # Call GPT for feedback analysis
+        print("Calling GPT for feedback analysis...")
         analysis_result = analyze_feedback_with_gpt(transcript)
+        print(f"GPT analysis complete: {len(analysis_result.get('feedback_sequences', []))} sequences found")
 
         processing_time = int((time.time() - start_time) * 1000)
 
@@ -1061,7 +1065,7 @@ def analyze_feedback():
             'explicit_corrections_count': explicit,
             'uptake_instances': uptake_count,
             'modified_output_instances': modified_count,
-            'feedback_sequences': json.dumps(feedback_sequences)
+            'feedback_sequences': feedback_sequences  # JSONB column - don't stringify
         }
 
         # Add Prefer header to get the inserted row back
