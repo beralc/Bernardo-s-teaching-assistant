@@ -1064,11 +1064,17 @@ def analyze_feedback():
             'feedback_sequences': json.dumps(feedback_sequences)
         }
 
+        # Add Prefer header to get the inserted row back
+        headers['Prefer'] = 'return=representation'
+
+        print(f"Inserting feedback analysis for session {session_id}")
         analysis_resp = requests.post(
             f'{SUPABASE_URL}/rest/v1/session_feedback_analysis',
             headers=headers,
             json=analysis_data
         )
+
+        print(f"Analysis insert response: {analysis_resp.status_code} - {analysis_resp.text[:500] if analysis_resp.text else 'empty'}")
 
         analysis_id = None
         if analysis_resp.status_code in [200, 201]:
