@@ -1107,11 +1107,13 @@ def analyze_feedback():
                     'evidence_notes': seq.get('evidence_notes')
                 }
 
-                requests.post(
+                instance_resp = requests.post(
                     f'{SUPABASE_URL}/rest/v1/feedback_instances',
                     headers=headers,
                     json=instance_data
                 )
+                if instance_resp.status_code not in [200, 201]:
+                    print(f"Error inserting feedback instance: {instance_resp.status_code} - {instance_resp.text[:200]}")
 
         return jsonify({
             "success": True,
