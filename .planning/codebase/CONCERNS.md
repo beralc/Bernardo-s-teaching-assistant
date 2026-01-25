@@ -22,19 +22,20 @@
 - Impact: Race conditions when multiple sessions run concurrently. Difficult to debug and maintain state consistency
 - Fix approach: Use React Context API or state management library to centralize session state. Ensure proper cleanup on component unmount
 
-**Deprecated OpenAI Library:**
-- Issue: Using openai==0.27.0 which is deprecated. Modern OpenAI SDK (1.0+) has different API
-- Files: `app/requirements.txt`, `app/app.py` (lines 6, 73, 841)
-- Impact: Library maintenance ended. No security updates. API calls use outdated ChatCompletion.create() syntax
-- Fix approach: Upgrade to openai>=1.0.0 and refactor API calls to use new client library format
+**~~Deprecated OpenAI Library:~~ RESOLVED (2026-01-25)**
+- ~~Issue: Using openai==0.27.0 which is deprecated~~
+- **Resolution:** Upgraded to openai>=1.0.0, refactored to use new client library format (`openai_client.chat.completions.create()`)
+- **Model optimization:** Switched to cost-effective models:
+  - Text analysis (Can-Do, Feedback): gpt-4o-mini (~94% cheaper than gpt-4o)
+  - Real-time voice: gpt-4o-mini-realtime-preview (~75% cheaper on audio)
 
 ## Known Bugs
 
-**Can-Do Analysis Feature Partially Disabled:**
-- Symptoms: /analyze_session endpoint exists but frontend code has analysis disabled with comment "# DISABLED FOR NOW - Can-Do system not in use"
-- Files: `frontend/frontend-app/src/App.js` (lines 199-200), `app/app.py` (lines 625-773)
-- Trigger: Backend fully functional but frontend doesn't call it after voice sessions complete
-- Workaround: Manually call /analyze_session endpoint with session transcript if needed
+**~~Can-Do Analysis Feature Partially Disabled:~~ RESOLVED (2026-01-24)**
+- ~~Symptoms: Frontend code had analysis disabled~~
+- **Resolution:** Re-enabled Can-Do achievement detection after voice session ends
+- Frontend calls /analyze_session automatically at end of voice sessions
+- Admin can re-analyze past sessions via "Re-analyze" button in Can-Do tab
 
 **Session Timeout Handling Missing:**
 - Symptoms: No mechanism to timeout hanging WebRTC sessions or detect stale session references
@@ -198,17 +199,18 @@
   - Add database indexes on user_id, session_id, created_at
   - Cache user list in Redis if admin panel heavily used
 
-**OpenAI API Token Costs:**
-- Current capacity: Free tier or shared credit account likely hits token limits with regular usage
-- Limit:
-  - Each /analyze_session call: ~500-1000 tokens (depends on transcript length)
-  - GPT-4o costs $15/1M input tokens, $60/1M output tokens
-  - 100 sessions/day × 750 tokens avg = 75,000 tokens/day = ~$1.12/day
-- Scaling path:
-  - Implement token counting before sending to OpenAI: use tiktoken library
-  - Cache Can-Do statement definitions (currently re-sent every request)
-  - Consider gpt-4o-mini for Can-Do analysis (cheaper, sufficient for pattern matching)
-  - Set max_tokens=500 ceiling to prevent runaway costs
+**OpenAI API Token Costs:** (Optimized 2026-01-25)
+- Current capacity: Significantly improved with model optimizations
+- Cost structure (after optimization):
+  - gpt-4o-mini for text analysis: $0.15/1M input, $0.60/1M output (~94% cheaper than gpt-4o)
+  - gpt-4o-mini-realtime-preview for voice: ~75% cheaper on audio tokens
+  - 100 sessions/day × 750 tokens avg = 75,000 tokens/day = ~$0.05/day (down from ~$1.12)
+- Scaling path (partially implemented):
+  - [x] Using gpt-4o-mini for Can-Do and Feedback analysis
+  - [x] Using gpt-4o-mini-realtime-preview for voice
+  - [ ] Implement token counting before sending to OpenAI
+  - [ ] Cache Can-Do statement definitions
+  - [ ] Set max_tokens ceiling to prevent runaway costs
 
 **Frontend Bundle Size:**
 - Current: React 19.2 + Tailwind + Supabase SDK in create-react-app (likely 150-200KB gzipped)
@@ -221,13 +223,10 @@
 
 ## Dependencies at Risk
 
-**Deprecated OpenAI Python SDK (openai==0.27.0):**
-- Risk: Library discontinued. No security patches. API incompatible with OpenAI API v1
-- Impact: Future OpenAI API changes will break implementation. No library support for new features
-- Migration plan:
-  - Upgrade to `openai>=1.3.0`
-  - Refactor ChatCompletion.create() → OpenAI(api_key=...).chat.completions.create()
-  - Update requirements.txt, test all endpoints
+**~~Deprecated OpenAI Python SDK (openai==0.27.0):~~ RESOLVED (2026-01-25)**
+- ~~Risk: Library discontinued. No security patches~~
+- **Resolution:** Upgraded to openai>=1.0.0, migrated to new client library format
+- Models optimized for cost: gpt-4o-mini for text analysis, gpt-4o-mini-realtime-preview for voice
 
 **Flask 2.3.2 (EOL January 2025):**
 - Risk: Flask 2.3 reaches end-of-life soon. Security vulnerability fixes won't be backported

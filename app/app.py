@@ -3,7 +3,7 @@ import json
 import requests
 from flask import Flask, request, jsonify, render_template, session
 from dotenv import load_dotenv
-import openai
+from openai import OpenAI
 from flask_cors import CORS # Import CORS
 
 # Load environment variables
@@ -25,8 +25,9 @@ CORS(app, resources={
     }
 })
 
+# Initialize OpenAI client (new SDK 1.0+ syntax)
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-openai.api_key = OPENAI_API_KEY
+openai_client = OpenAI(api_key=OPENAI_API_KEY)
 
 # Supabase configuration for admin operations
 SUPABASE_URL = os.getenv("SUPABASE_URL")
@@ -70,8 +71,8 @@ def chat_text():
     context.append({"role": "user", "content": user_input})
 
     try:
-        chat_response = openai.ChatCompletion.create(
-            model="gpt-4o-mini",
+        chat_response = openai_client.chat.completions.create(
+            model="gpt-4o-mini",  # Cost-effective for simple chat
             messages=[
                 {"role": "system", "content": system_prompt}
             ] + context
@@ -136,7 +137,8 @@ def webrtc_session():
         instructions_str = json.dumps(prompt_data)
 
         # Define the model name for the WebSocket URL
-        realtime_model_name = "gpt-4o-realtime-preview"
+        # Using mini version for ~75% cost savings on audio ($10/$20 vs $40/$80 per 1M tokens)
+        realtime_model_name = "gpt-4o-mini-realtime-preview"
 
         url = "https://api.openai.com/v1/realtime/sessions"
         headers = {
@@ -717,7 +719,7 @@ def analyze_session_cando():
             'user_id': user_id,
             'transcript_length': len(transcript),
             'detected_achievements': analysis_result.get('detected_achievements', []),
-            'model_used': 'gpt-4o',
+            'model_used': 'gpt-4o-mini',
             'prompt_version': 'v1.0',
             'processing_time_ms': processing_time,
             'error_occurred': analysis_result.get('error', False),
@@ -837,9 +839,9 @@ Respond in JSON format:
 
 Include any statement with confidence >= 0.6. If no statements were demonstrated, return an empty array."""
 
-        # Call GPT-4
-        response = openai.ChatCompletion.create(
-            model="gpt-4o",
+        # Call GPT for Can-Do analysis (gpt-4o-mini is cost-effective for classification)
+        response = openai_client.chat.completions.create(
+            model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": "You are an expert CEFR language assessor. Respond only in valid JSON format."},
                 {"role": "user", "content": prompt}
@@ -851,7 +853,7 @@ Include any statement with confidence >= 0.6. If no statements were demonstrated
         result_text = response.choices[0].message.content.strip()
 
         # Log the raw response for debugging
-        print(f"GPT-4 raw response (first 500 chars): {result_text[:500]}")
+        print(f"GPT response (first 500 chars): {result_text[:500]}")
 
         # Parse JSON response - handle markdown code blocks
         import json
@@ -1057,7 +1059,7 @@ def analyze_feedback():
         analysis_data = {
             'session_id': session_id,
             'user_id': user_id,
-            'model_used': 'gpt-4o',
+            'model_used': 'gpt-4o-mini',
             'processing_time_ms': processing_time,
             'total_ai_turns': len([t for t in transcript if t.get('role') == 'assistant']),
             'recasts_count': recasts,
@@ -1193,8 +1195,8 @@ Respond in JSON format:
 Only include turns where feedback was provided (feedback_type != "none").
 Be conservative - only mark clear instances of corrective feedback."""
 
-        response = openai.ChatCompletion.create(
-            model="gpt-4o",
+        response = openai_client.chat.completions.create(
+            model="gpt-4o-mini",  # Cost-effective for feedback classification
             messages=[
                 {"role": "system", "content": "You are an SLA research expert. Respond only in valid JSON format."},
                 {"role": "user", "content": prompt}
