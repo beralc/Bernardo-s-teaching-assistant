@@ -4,11 +4,17 @@
 
 ## Tech Debt
 
-**Monolithic Backend Architecture:**
-- Issue: Single 1000-line Flask file handles all concerns (voice sessions, admin endpoints, Can-Do analysis, transcription management)
-- Files: `app/app.py`
-- Impact: Difficult to test, scale, and maintain. Adding new features requires modifying large file with high risk of side effects
-- Fix approach: Refactor into blueprints/modules (e.g., routes/admin.py, routes/cando.py, routes/sessions.py) with shared utilities in separate files
+**~~Monolithic Backend Architecture:~~ RESOLVED (2026-01-26)**
+- ~~Issue: Single 1230-line Flask file handles all concerns~~
+- **Resolution:** Refactored into Flask Blueprints:
+  - `app/app.py` (49 lines) - thin entry point with create_app() factory
+  - `app/config.py` (13 lines) - OpenAI client, Supabase config
+  - `app/utils.py` (58 lines) - verify_admin(), load_prompt()
+  - `app/routes/chat.py` (50 lines) - /clear_context, /chat_text
+  - `app/routes/voice.py` (113 lines) - /webrtc_session
+  - `app/routes/admin.py` (242 lines) - /admin/users CRUD
+  - `app/routes/cando.py` (451 lines) - Can-Do endpoints + GPT analysis
+  - `app/routes/feedback.py` (230 lines) - Feedback analysis + GPT
 
 **Hardcoded Configuration Values:**
 - Issue: CORS origins hardcoded in app.py rather than environment-driven
