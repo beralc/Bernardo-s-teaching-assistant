@@ -184,7 +184,13 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
 
       await startSession(selectedTopic);
 
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true
+        }
+      });
       mediaStreamRef.current = stream;
 
       setConnectingToBackend(true);
