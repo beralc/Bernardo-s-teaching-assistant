@@ -284,37 +284,22 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
         processor.connect(silentGain);
         silentGain.connect(context.destination);
 
-        // RMS threshold for punch-through interruption during bot speech.
-        // Bot echo at laptop speaker volume is typically RMS 0.01–0.03 at mic.
-        // Deliberate speech easily exceeds 0.05.
-        const BOT_SPEAKING_RMS_THRESHOLD = 0.05;
-
         processor.onaudioprocess = (event) => {
-          if (ws.readyState !== WebSocket.OPEN || !sessionReadyRef.current) return;
+          if (isBotSpeakingRef.current) return;
 
           const left = event.inputBuffer.getChannelData(0);
-
-          // During bot speech, drop frames that are just echo.
-          // Dropping (not sending silence) is correct here: gaps during bot
-          // playback don't affect transcription because Whisper only runs on
-          // committed buffers, which only happen during the user's own turns.
-          if (isBotSpeakingRef.current) {
-            let sumSquares = 0;
-            for (let i = 0; i < left.length; i++) sumSquares += left[i] * left[i];
-            const rms = Math.sqrt(sumSquares / left.length);
-            if (rms < BOT_SPEAKING_RMS_THRESHOLD) return;
-          }
-
           const int16Array = new Int16Array(left.length);
           for (let i = 0; i < left.length; i++) {
             int16Array[i] = Math.max(-1, Math.min(1, left[i])) * 0x7FFF;
           }
-          const base64Audio = btoa(String.fromCharCode(...new Uint8Array(int16Array.buffer)));
 
-          try {
-            ws.send(JSON.stringify({ type: 'input_audio_buffer.append', audio: base64Audio }));
-          } catch (sendError) {
-            console.error('WebSocket send failed:', sendError);
+          if (ws.readyState === WebSocket.OPEN) {
+            const base64Audio = btoa(String.fromCharCode(...new Uint8Array(int16Array.buffer)));
+            try {
+              ws.send(JSON.stringify({ type: 'input_audio_buffer.append', audio: base64Audio }));
+            } catch (sendError) {
+              console.error('WebSocket send failed:', sendError);
+            }
           }
         };
       };
