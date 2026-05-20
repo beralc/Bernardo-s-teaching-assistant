@@ -69,6 +69,13 @@ def webrtc_session():
             "Authorization": f"Bearer {OPENAI_API_KEY}",
             "Content-Type": "application/json"
         }
+        # IMPORTANT — schema rules for /v1/realtime/client_secrets (confirmed 2026-05-20):
+        # - Transcription MUST be nested under audio.input.transcription, NOT as a
+        #   top-level session.input_audio_transcription key (that returns 400).
+        # - Do NOT put turn_detection here; configure it client-side via session.update.
+        # - Do NOT configure transcription in session.update on the frontend;
+        #   setting it here is sufficient and client-side overrides have caused
+        #   silent failures across every format tried.
         body = {
             "session": {
                 "type": "realtime",
