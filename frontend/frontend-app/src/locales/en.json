@@ -245,6 +245,33 @@
       "exportUsers": "Export Users"
     }
   },
+  "onboarding": {
+    "ariaLabel": "Welcome tour",
+    "skip": "Skip",
+    "skipAriaLabel": "Skip the introduction tour",
+    "stepCounter": "Step {current} of {total}",
+    "welcome": {
+      "title": "Welcome to Bernardo's English Helper!",
+      "body": "This is your safe and friendly space to practice speaking English. You will talk with an AI assistant — it is patient, friendly, and always ready to chat."
+    },
+    "howItWorks": {
+      "title": "How does it work?",
+      "step1": "Choose a topic you like",
+      "step2": "Press the big green microphone button",
+      "step3": "Speak in English — the assistant will reply!"
+    },
+    "micTip": {
+      "title": "One small tip before we start",
+      "body": "For the best experience, make sure your surroundings are quiet and your microphone is working.",
+      "tip1": "Use headphones if you have them",
+      "tip2": "Find a quiet room with little background noise"
+    },
+    "ready": {
+      "title": "You are all set!",
+      "body": "Press the button below to start your first English conversation. Take your time — there is no rush.",
+      "startButton": "Let's Start!"
+    }
+  },
   "common": {
     "save": "Save",
     "cancel": "Cancel",

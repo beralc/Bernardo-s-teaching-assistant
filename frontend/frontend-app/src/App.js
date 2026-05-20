@@ -9,6 +9,7 @@ import { ConversationStartersView } from "./components/ConversationStartersView"
 import { ProgressView } from "./components/ProgressView";
 import { AdminView } from "./components/AdminView";
 import { AccountModal } from "./components/AccountModal";
+import { OnboardingModal, hasCompletedOnboarding } from "./components/OnboardingModal";
 import { NavButton } from "./components/NavButton";
 import { AppIcon, UserIcon, MicIcon, BookIcon, ChartIcon, AdminIcon } from "./components/icons";
 import { PrivacyPolicy } from "./components/PrivacyPolicy";
@@ -65,6 +66,8 @@ function AuthGate() {
 // --- Main App Component (logged in state) ---
 function MainApp() {
   const [tab, setTab] = useState("talk"); // "talk" | "starters" | "progress" | "admin"
+  // Show the onboarding modal on first login — hidden once the user completes or skips it.
+  const [showOnboarding, setShowOnboarding] = useState(() => !hasCompletedOnboarding());
   const [contrast, setContrast] = useState(false);
   const [fontStep, setFontStep] = useState(1); // 0..2 for Small, Medium, Large
   const [showAccountModal, setShowAccountModal] = useState(false);
@@ -235,6 +238,11 @@ function MainApp() {
           </div>
         </div>
       </nav>
+
+      {/* Onboarding Modal — shown once after first login, then permanently dismissed */}
+      {showOnboarding && (
+        <OnboardingModal onComplete={() => setShowOnboarding(false)} />
+      )}
 
       {/* Account Modal */}
       {showAccountModal && (

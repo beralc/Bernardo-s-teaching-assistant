@@ -245,6 +245,33 @@
       "exportUsers": "Exportar usuarios"
     }
   },
+  "onboarding": {
+    "ariaLabel": "Tour de bienvenida",
+    "skip": "Omitir",
+    "skipAriaLabel": "Omitir el tour de introducción",
+    "stepCounter": "Paso {current} de {total}",
+    "welcome": {
+      "title": "¡Bienvenido a Bernardo's English Helper!",
+      "body": "Este es tu espacio seguro y amigable para practicar el inglés hablado. Hablarás con un asistente de inteligencia artificial que es paciente, amable y siempre está listo para conversar."
+    },
+    "howItWorks": {
+      "title": "¿Cómo funciona?",
+      "step1": "Elige un tema que te guste",
+      "step2": "Pulsa el gran botón verde del micrófono",
+      "step3": "¡Habla en inglés y el asistente te responderá!"
+    },
+    "micTip": {
+      "title": "Un pequeño consejo antes de empezar",
+      "body": "Para la mejor experiencia, asegúrate de que tu entorno sea tranquilo y tu micrófono funcione correctamente.",
+      "tip1": "Usa auriculares si tienes",
+      "tip2": "Busca una habitación tranquila con poco ruido de fondo"
+    },
+    "ready": {
+      "title": "¡Todo listo!",
+      "body": "Pulsa el botón de abajo para comenzar tu primera conversación en inglés. Tómate tu tiempo, no hay prisa.",
+      "startButton": "¡Empecemos!"
+    }
+  },
   "common": {
     "save": "Guardar",
     "cancel": "Cancelar",
