@@ -27,8 +27,16 @@ def webrtc_session():
                 "instructions": "Please start the conversation by introducing this topic and engaging the user in a natural, friendly way remember always in english."
             }
 
+        # Valid voices for the gpt-realtime-mini GA API.
+        # Any value not in this set will be rejected by OpenAI with a 400 error.
+        VALID_REALTIME_VOICES = {
+            "alloy", "ash", "ballad", "coral", "echo",
+            "fable", "onyx", "nova", "sage", "shimmer", "verse"
+        }
+        DEFAULT_VOICE = "sage"
+
         # Fetch user's voice preference from Supabase
-        voice = "sage"  # Default voice
+        voice = DEFAULT_VOICE
         if user_id and SUPABASE_URL and SUPABASE_SERVICE_KEY:
             try:
                 supabase_headers = {
@@ -43,7 +51,11 @@ def webrtc_session():
                 if profile_response.status_code == 200:
                     profiles = profile_response.json()
                     if profiles and len(profiles) > 0:
-                        voice = profiles[0].get('voice_preference', 'sage')
+                        raw_voice = profiles[0].get('voice_preference', DEFAULT_VOICE)
+                        if raw_voice in VALID_REALTIME_VOICES:
+                            voice = raw_voice
+                        else:
+                            print(f"Warning: invalid voice preference '{raw_voice}' for user {user_id}. Falling back to '{DEFAULT_VOICE}'.")
             except Exception as e:
                 print(f"Error fetching voice preference: {e}")
 

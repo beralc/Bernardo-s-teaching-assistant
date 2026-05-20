@@ -220,10 +220,10 @@ export function AccountModal({ userInfo, onClose, onLogout, onSave, theme, cardT
       });
 
     if (error) {
-      setSaveMessage('Error saving profile: ' + error.message);
+      setSaveMessage(t('account.profile.profileSaveError') + error.message);
       console.error('Error saving profile:', error);
     } else {
-      setSaveMessage('Profile saved successfully!');
+      setSaveMessage(t('account.profile.profileSaved'));
       setIsEditingProfile(false);
       setTimeout(() => setSaveMessage(''), 3000);
 
@@ -236,19 +236,19 @@ export function AccountModal({ userInfo, onClose, onLogout, onSave, theme, cardT
 
   const handlePasswordChange = async () => {
     if (newPassword !== confirmPassword) {
-      setPasswordMessage('Passwords do not match');
+      setPasswordMessage(t('account.security.passwordMismatch'));
       return;
     }
     if (newPassword.length < 6) {
-      setPasswordMessage('Password must be at least 6 characters');
+      setPasswordMessage(t('account.security.passwordTooShort'));
       return;
     }
 
     const { error } = await supabase.auth.updateUser({ password: newPassword });
     if (error) {
-      setPasswordMessage('Error: ' + error.message);
+      setPasswordMessage(t('common.error') + ': ' + error.message);
     } else {
-      setPasswordMessage('Password updated successfully!');
+      setPasswordMessage(t('account.security.passwordUpdated'));
       setNewPassword('');
       setConfirmPassword('');
       setTimeout(() => {
@@ -264,7 +264,7 @@ export function AccountModal({ userInfo, onClose, onLogout, onSave, theme, cardT
 
     // Check file size (max 2MB)
     if (file.size > 2 * 1024 * 1024) {
-      setSaveMessage('Photo must be less than 2MB');
+      setSaveMessage(t('account.profile.photoSizeError'));
       return;
     }
 
@@ -303,11 +303,11 @@ export function AccountModal({ userInfo, onClose, onLogout, onSave, theme, cardT
         onSave();
       }
 
-      setSaveMessage('Photo uploaded and saved successfully!');
+      setSaveMessage(t('account.profile.photoSaved'));
       setTimeout(() => setSaveMessage(''), 3000);
     } catch (error) {
       console.error('Error uploading photo:', error);
-      setSaveMessage('Error uploading photo: ' + error.message);
+      setSaveMessage(t('account.profile.photoUploadError') + error.message);
     } finally {
       setUploadingPhoto(false);
     }
@@ -320,7 +320,7 @@ export function AccountModal({ userInfo, onClose, onLogout, onSave, theme, cardT
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
-        setDeleteError('Could not verify your session. Please log out and log back in.');
+        setDeleteError(t('account.privacy.sessionError'));
         setDeletingAccount(false);
         return;
       }
@@ -328,7 +328,7 @@ export function AccountModal({ userInfo, onClose, onLogout, onSave, theme, cardT
       // Sign out locally — the account no longer exists on the server
       await supabase.auth.signOut();
     } catch (err) {
-      setDeleteError(err.message || 'An error occurred. Please try again.');
+      setDeleteError(err.message || t('account.privacy.genericError'));
       setDeletingAccount(false);
     }
   };
@@ -340,16 +340,24 @@ export function AccountModal({ userInfo, onClose, onLogout, onSave, theme, cardT
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
-        setExportError('Could not verify your session. Please log out and log back in.');
+        setExportError(t('account.privacy.sessionError'));
         setExportingData(false);
         return;
       }
       await apiDownloadData(session.access_token);
     } catch (err) {
-      setExportError(err.message || 'An error occurred. Please try again.');
+      setExportError(err.message || t('account.privacy.genericError'));
     } finally {
       setExportingData(false);
     }
+  };
+
+  // Derive the dynamic institution label from the current study method
+  const getInstitutionLabel = () => {
+    if (studyMethod === 'Academy') return t('account.profile.academyName');
+    if (studyMethod === 'App') return t('account.profile.appName');
+    if (studyMethod === 'Private tutor') return t('account.profile.tutorName');
+    return t('account.profile.pleaseSpecify');
   };
 
   return (
@@ -385,7 +393,7 @@ export function AccountModal({ userInfo, onClose, onLogout, onSave, theme, cardT
         {userInfo ? (
           <div className="space-y-4">
             {saveMessage && (
-              <div className={`p-3 rounded-xl ${saveMessage.includes('success') ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-100' : 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-100'}`}>
+              <div className={`p-3 rounded-xl ${saveMessage.includes('success') || saveMessage.includes('correctamente') ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-100' : 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-100'}`}>
                 {saveMessage}
               </div>
             )}
@@ -438,92 +446,92 @@ export function AccountModal({ userInfo, onClose, onLogout, onSave, theme, cardT
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                     </svg>
-                    Logout
+                    {t('account.profile.logout')}
                   </button>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className={`text-sm font-semibold ${subtleText} mb-1 block`}>Name</label>
+                    <label className={`text-sm font-semibold ${subtleText} mb-1 block`}>{t('account.profile.name')}</label>
                     {isEditingProfile ? (
                       <input
                         type="text"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
-                        placeholder="First name"
+                        placeholder={t('account.profile.firstName')}
                         className={`w-full px-3 py-2 rounded-lg border ${cardTheme}`}
                       />
                     ) : (
-                      <p className="text-lg py-2">{name || 'Not set'}</p>
+                      <p className="text-lg py-2">{name || t('account.profile.notSet')}</p>
                     )}
                   </div>
                   <div>
-                    <label className={`text-sm font-semibold ${subtleText} mb-1 block`}>Surname</label>
+                    <label className={`text-sm font-semibold ${subtleText} mb-1 block`}>{t('account.profile.surname')}</label>
                     {isEditingProfile ? (
                       <input
                         type="text"
                         value={surname}
                         onChange={(e) => setSurname(e.target.value)}
-                        placeholder="Last name"
+                        placeholder={t('account.profile.lastName')}
                         className={`w-full px-3 py-2 rounded-lg border ${cardTheme}`}
                       />
                     ) : (
-                      <p className="text-lg py-2">{surname || 'Not set'}</p>
+                      <p className="text-lg py-2">{surname || t('account.profile.notSet')}</p>
                     )}
                   </div>
                 </div>
 
                 <div>
-                  <label className={`text-sm font-semibold ${subtleText} mb-1 block`}>Age</label>
+                  <label className={`text-sm font-semibold ${subtleText} mb-1 block`}>{t('account.profile.age')}</label>
                   {isEditingProfile ? (
                     <input
                       type="number"
                       value={age}
                       onChange={(e) => setAge(e.target.value)}
-                      placeholder="Your age"
+                      placeholder={t('account.profile.agePlaceholder')}
                       className={`w-full px-3 py-2 rounded-lg border ${cardTheme}`}
                     />
                   ) : (
-                    <p className="text-lg py-2">{age || 'Not set'}</p>
+                    <p className="text-lg py-2">{age || t('account.profile.notSet')}</p>
                   )}
                 </div>
 
                 <div>
-                  <label className={`text-sm font-semibold ${subtleText} mb-1 block`}>Native Language</label>
+                  <label className={`text-sm font-semibold ${subtleText} mb-1 block`}>{t('account.profile.nativeLanguage')}</label>
                   {isEditingProfile ? (
                     <select
                       value={nativeLanguage}
                       onChange={(e) => setNativeLanguage(e.target.value)}
                       className={`w-full px-3 py-2 rounded-lg border ${cardTheme}`}
                     >
-                      <option value="">Select language...</option>
-                      <option value="Spanish">Spanish</option>
-                      <option value="Portuguese">Portuguese</option>
-                      <option value="French">French</option>
-                      <option value="German">German</option>
-                      <option value="Italian">Italian</option>
-                      <option value="Mandarin">Mandarin</option>
-                      <option value="Japanese">Japanese</option>
-                      <option value="Korean">Korean</option>
-                      <option value="Arabic">Arabic</option>
-                      <option value="Russian">Russian</option>
-                      <option value="Hindi">Hindi</option>
-                      <option value="Other">Other</option>
+                      <option value="">{t('account.profile.selectLanguage')}</option>
+                      <option value="Spanish">{t('languages.Spanish')}</option>
+                      <option value="Portuguese">{t('languages.Portuguese')}</option>
+                      <option value="French">{t('languages.French')}</option>
+                      <option value="German">{t('languages.German')}</option>
+                      <option value="Italian">{t('languages.Italian')}</option>
+                      <option value="Mandarin">{t('languages.Mandarin')}</option>
+                      <option value="Japanese">{t('languages.Japanese')}</option>
+                      <option value="Korean">{t('languages.Korean')}</option>
+                      <option value="Arabic">{t('languages.Arabic')}</option>
+                      <option value="Russian">{t('languages.Russian')}</option>
+                      <option value="Hindi">{t('languages.Hindi')}</option>
+                      <option value="Other">{t('languages.Other')}</option>
                     </select>
                   ) : (
-                    <p className="text-lg py-2">{nativeLanguage || 'Not set'}</p>
+                    <p className="text-lg py-2">{nativeLanguage ? t(`languages.${nativeLanguage}`) : t('account.profile.notSet')}</p>
                   )}
                 </div>
 
                 <div>
-                  <label className={`text-sm font-semibold ${subtleText} mb-1 block`}>Country</label>
+                  <label className={`text-sm font-semibold ${subtleText} mb-1 block`}>{t('account.profile.country')}</label>
                   {isEditingProfile ? (
                     <select
                       value={country}
                       onChange={(e) => setCountry(e.target.value)}
                       className={`w-full px-3 py-2 rounded-lg border ${cardTheme}`}
                     >
-                      <option value="">Select country...</option>
+                      <option value="">{t('account.profile.selectCountry')}</option>
                       <option value="Spain">Spain</option>
                       <option value="United States">United States</option>
                       <option value="Canada">Canada</option>
@@ -544,63 +552,63 @@ export function AccountModal({ userInfo, onClose, onLogout, onSave, theme, cardT
                       <option value="Other">Other</option>
                     </select>
                   ) : (
-                    <p className="text-lg py-2">{country || 'Not set'}</p>
+                    <p className="text-lg py-2">{country || t('account.profile.notSet')}</p>
                   )}
                 </div>
 
                 <div>
-                  <label className={`text-sm font-semibold ${subtleText} mb-1 block`}>Studying at</label>
+                  <label className={`text-sm font-semibold ${subtleText} mb-1 block`}>{t('account.profile.studyingAt')}</label>
                   {isEditingProfile ? (
                     <select
                       value={studyMethod}
                       onChange={(e) => setStudyMethod(e.target.value)}
                       className={`w-full px-3 py-2 rounded-lg border ${cardTheme}`}
                     >
-                      <option value="">Select...</option>
-                      <option value="Academy">Academy</option>
-                      <option value="App">App</option>
-                      <option value="Self-study">Self-study</option>
-                      <option value="Private tutor">Private tutor</option>
-                      <option value="Other">Other</option>
+                      <option value="">{t('account.profile.select')}</option>
+                      <option value="Academy">{t('studyMethods.Academy')}</option>
+                      <option value="App">{t('studyMethods.App')}</option>
+                      <option value="Self-study">{t('studyMethods.Self-study')}</option>
+                      <option value="Private tutor">{t('studyMethods.Private tutor')}</option>
+                      <option value="Other">{t('studyMethods.Other')}</option>
                     </select>
                   ) : (
-                    <p className="text-lg py-2">{studyMethod || 'Not set'}</p>
+                    <p className="text-lg py-2">{studyMethod ? t(`studyMethods.${studyMethod}`) : t('account.profile.notSet')}</p>
                   )}
                 </div>
 
                 {(isEditingProfile && (studyMethod === 'Academy' || studyMethod === 'App' || studyMethod === 'Private tutor' || studyMethod === 'Other')) && (
                   <div>
                     <label className={`text-sm font-semibold ${subtleText} mb-1 block`}>
-                      {studyMethod === 'Academy' ? 'Academy name' : studyMethod === 'App' ? 'App name' : studyMethod === 'Private tutor' ? 'Tutor name' : 'Please specify'}
+                      {getInstitutionLabel()}
                     </label>
                     <input
                       type="text"
                       value={institutionName}
                       onChange={(e) => setInstitutionName(e.target.value)}
                       className={`w-full px-3 py-2 rounded-lg border ${cardTheme}`}
-                      placeholder={studyMethod === 'Private tutor' ? 'Optional' : ''}
+                      placeholder={studyMethod === 'Private tutor' ? t('account.profile.optionalPlaceholder') : ''}
                     />
                   </div>
                 )}
 
                 {!isEditingProfile && institutionName && (
                   <div>
-                    <label className={`text-sm font-semibold ${subtleText} mb-1 block`}>Institution/App name</label>
+                    <label className={`text-sm font-semibold ${subtleText} mb-1 block`}>{t('account.profile.institutionName')}</label>
                     <p className="text-lg py-2">{institutionName}</p>
                   </div>
                 )}
 
                 <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-                  <p className={`text-sm font-semibold ${subtleText} mb-1`}>Email</p>
+                  <p className={`text-sm font-semibold ${subtleText} mb-1`}>{t('account.profile.email')}</p>
                   <p className="text-lg mb-3">{userInfo.email}</p>
 
-                  <p className={`text-sm font-semibold ${subtleText} mb-1`}>Account Created</p>
+                  <p className={`text-sm font-semibold ${subtleText} mb-1`}>{t('account.profile.accountCreated')}</p>
                   <p className="text-lg">{userInfo.createdAt}</p>
                 </div>
 
                 {/* Usage Stats Section */}
                 <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-                  <p className={`text-sm font-semibold ${subtleText} mb-2`}>Current Plan</p>
+                  <p className={`text-sm font-semibold ${subtleText} mb-2`}>{t('account.usage.currentPlan')}</p>
                   <div className="flex items-center gap-2 mb-3">
                     <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
                       usageStats.tier === 'premium' || usageStats.tier === 'enterprise'
@@ -609,16 +617,16 @@ export function AccountModal({ userInfo, onClose, onLogout, onSave, theme, cardT
                         ? 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-100'
                         : 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-100'
                     }`}>
-                      {TIER_LIMITS[usageStats.tier].name} Tier
+                      {TIER_LIMITS[usageStats.tier].name} {t('account.usage.tierLabel')}
                     </span>
                   </div>
 
-                  <p className={`text-sm font-semibold ${subtleText} mb-2`}>Voice Minutes This Month</p>
+                  <p className={`text-sm font-semibold ${subtleText} mb-2`}>{t('account.usage.title')}</p>
                   <div className="space-y-2">
                     <div className="flex items-center justify-between text-sm">
-                      <span>Used</span>
+                      <span>{t('account.usage.used')}</span>
                       <span className="font-semibold">
-                        {usageStats.used} / {usageStats.limit === -1 ? '∞' : usageStats.limit} minutes
+                        {usageStats.used} / {usageStats.limit === -1 ? '∞' : usageStats.limit} {t('account.usage.minutes')}
                       </span>
                     </div>
                     {usageStats.limit !== -1 && (
@@ -636,16 +644,16 @@ export function AccountModal({ userInfo, onClose, onLogout, onSave, theme, cardT
                       </div>
                     )}
                     {usageStats.limit === -1 && (
-                      <p className="text-xs text-green-600 dark:text-green-400">Unlimited voice conversations</p>
+                      <p className="text-xs text-green-600 dark:text-green-400">{t('account.usage.unlimited')}</p>
                     )}
                     {usageStats.limit !== -1 && usageStats.used >= usageStats.limit && (
                       <p className="text-xs text-red-600 dark:text-red-400">
-                        Limit reached. Resets on {new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1).toLocaleDateString()}
+                        {t('account.usage.limitReached')}{new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1).toLocaleDateString()}
                       </p>
                     )}
                     {usageStats.limit !== -1 && usageStats.used < usageStats.limit && (
                       <p className="text-xs text-gray-700 dark:text-gray-400">
-                        {usageStats.limit - usageStats.used} minutes remaining
+                        {usageStats.limit - usageStats.used} {t('account.usage.remaining')}
                       </p>
                     )}
                   </div>
@@ -660,13 +668,13 @@ export function AccountModal({ userInfo, onClose, onLogout, onSave, theme, cardT
                       }}
                       className={`flex-1 ${cardTheme} border font-bold py-3 px-4 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition`}
                     >
-                      Cancel
+                      {t('account.profile.cancel')}
                     </button>
                     <button
                       onClick={handleSaveProfile}
                       className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-xl transition"
                     >
-                      Save Changes
+                      {t('account.profile.saveChanges')}
                     </button>
                   </div>
                 ) : (
@@ -674,7 +682,7 @@ export function AccountModal({ userInfo, onClose, onLogout, onSave, theme, cardT
                     onClick={() => setIsEditingProfile(true)}
                     className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-xl transition mt-4"
                   >
-                    Edit Profile
+                    {t('account.profile.editProfile')}
                   </button>
                 )}
               </div>
@@ -684,51 +692,54 @@ export function AccountModal({ userInfo, onClose, onLogout, onSave, theme, cardT
             {activeTab === 'learning' && (
               <div className="space-y-4">
                 <div>
-                  <label className={`text-sm font-semibold ${subtleText} mb-1 block`}>Current English Level</label>
+                  <label className={`text-sm font-semibold ${subtleText} mb-1 block`}>{t('account.learning.englishLevel')}</label>
                   <select
                     value={englishLevel}
                     onChange={(e) => setEnglishLevel(e.target.value)}
                     className={`w-full px-3 py-2 rounded-lg border ${cardTheme}`}
                   >
-                    <option value="A1">A1 - Beginner</option>
-                    <option value="A2">A2 - Elementary</option>
-                    <option value="B1">B1 - Intermediate</option>
-                    <option value="B2">B2 - Upper Intermediate</option>
-                    <option value="C1">C1 - Advanced</option>
-                    <option value="C2">C2 - Proficient</option>
+                    <option value="A1">{t('levels.A1')}</option>
+                    <option value="A2">{t('levels.A2')}</option>
+                    <option value="B1">{t('levels.B1')}</option>
+                    <option value="B2">{t('levels.B2')}</option>
+                    <option value="C1">{t('levels.C1')}</option>
+                    <option value="C2">{t('levels.C2')}</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className={`text-sm font-semibold ${subtleText} mb-1 block`}>AI Voice Assistant</label>
+                  <label className={`text-sm font-semibold ${subtleText} mb-1 block`}>{t('account.voice.title')}</label>
                   <select
                     value={voicePreference}
                     onChange={(e) => setVoicePreference(e.target.value)}
                     className={`w-full px-3 py-2 rounded-lg border ${cardTheme}`}
                   >
-                    <option value="sage">Jennifer (USA) - Clear, professional</option>
-                    <option value="shimmer">Sarah (USA) - Gentle, warm</option>
-                    <option value="coral">Emma (USA) - Bright, energetic</option>
-                    <option value="ballad">Peter (UK) - Calm, British</option>
-                    <option value="echo">Michael (USA) - Warm, friendly</option>
-                    <option value="onyx">David (USA) - Deep, authoritative</option>
-                    <option value="ash">James (USA) - Smooth, articulate</option>
-                    <option value="verse">Sofia (USA) - Expressive, dynamic</option>
+                    <option value="alloy">{t('voices.alloy')}</option>
+                    <option value="ash">{t('voices.ash')}</option>
+                    <option value="ballad">{t('voices.ballad')}</option>
+                    <option value="coral">{t('voices.coral')}</option>
+                    <option value="echo">{t('voices.echo')}</option>
+                    <option value="fable">{t('voices.fable')}</option>
+                    <option value="nova">{t('voices.nova')}</option>
+                    <option value="onyx">{t('voices.onyx')}</option>
+                    <option value="sage">{t('voices.sage')}</option>
+                    <option value="shimmer">{t('voices.shimmer')}</option>
+                    <option value="verse">{t('voices.verse')}</option>
                   </select>
-                  <p className={`text-xs ${subtleText} mt-1`}>Choose the voice that sounds best to you. Changes apply to your next conversation.</p>
+                  <p className={`text-xs ${subtleText} mt-1`}>{t('account.voice.hint')}</p>
                 </div>
 
                 <div>
-                  <label className={`text-sm font-semibold ${subtleText} mb-1 block`}>Study Frequency</label>
+                  <label className={`text-sm font-semibold ${subtleText} mb-1 block`}>{t('account.learning.studyFrequency')}</label>
                   <select
                     value={studyFrequency}
                     onChange={(e) => setStudyFrequency(e.target.value)}
                     className={`w-full px-3 py-2 rounded-lg border ${cardTheme}`}
                   >
-                    <option value="Daily">Daily</option>
-                    <option value="3x per week">3x per week</option>
-                    <option value="Weekly">Weekly</option>
-                    <option value="Occasionally">Occasionally</option>
+                    <option value="Daily">{t('account.learning.daily')}</option>
+                    <option value="3x per week">{t('account.learning.threePerWeek')}</option>
+                    <option value="Weekly">{t('account.learning.weekly')}</option>
+                    <option value="Occasionally">{t('account.learning.occasionally')}</option>
                   </select>
                 </div>
 
@@ -736,7 +747,7 @@ export function AccountModal({ userInfo, onClose, onLogout, onSave, theme, cardT
                   onClick={handleSaveProfile}
                   className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-xl transition mt-4"
                 >
-                  Save Learning Preferences
+                  {t('account.learning.savePreferences')}
                 </button>
               </div>
             )}
@@ -744,24 +755,24 @@ export function AccountModal({ userInfo, onClose, onLogout, onSave, theme, cardT
             {/* Security Tab */}
             {activeTab === 'security' && (
               <div className="space-y-4">
-                <h3 className="font-bold text-lg">Change Password</h3>
+                <h3 className="font-bold text-lg">{t('account.security.title')}</h3>
                 <div className="space-y-3">
                   <input
                     type="password"
-                    placeholder="New password"
+                    placeholder={t('account.security.newPassword')}
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     className={`w-full px-4 py-3 rounded-xl border ${cardTheme}`}
                   />
                   <input
                     type="password"
-                    placeholder="Confirm password"
+                    placeholder={t('account.security.confirmPassword')}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     className={`w-full px-4 py-3 rounded-xl border ${cardTheme}`}
                   />
                   {passwordMessage && (
-                    <p className={`text-sm ${passwordMessage.includes('successfully') ? 'text-green-600' : 'text-red-600'}`}>
+                    <p className={`text-sm ${passwordMessage.includes('successfully') || passwordMessage.includes('correctamente') ? 'text-green-600' : 'text-red-600'}`}>
                       {passwordMessage}
                     </p>
                   )}
@@ -769,7 +780,7 @@ export function AccountModal({ userInfo, onClose, onLogout, onSave, theme, cardT
                     onClick={handlePasswordChange}
                     className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-xl transition"
                   >
-                    Update Password
+                    {t('account.security.updatePassword')}
                   </button>
                 </div>
 
@@ -784,18 +795,16 @@ export function AccountModal({ userInfo, onClose, onLogout, onSave, theme, cardT
 
                 {/* ---- Data & Privacy Section ---- */}
                 <div className="pt-6 border-t border-gray-200 dark:border-gray-700 space-y-4">
-                  <h3 className="font-bold text-lg">My Data &amp; Privacy</h3>
+                  <h3 className="font-bold text-lg">{t('account.privacy.title')}</h3>
                   <p className={`text-sm leading-relaxed ${subtleText}`}>
-                    You have the right to download or permanently delete all data
-                    we hold about you, under the EU GDPR. These actions take effect
-                    immediately.{' '}
+                    {t('account.privacy.description')}{' '}
                     <a
                       href="/privacy"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-green-600 underline hover:text-green-800"
                     >
-                      Read our Privacy Policy
+                      {t('account.privacy.privacyLink')}
                     </a>
                   </p>
 
@@ -812,7 +821,7 @@ export function AccountModal({ userInfo, onClose, onLogout, onSave, theme, cardT
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                     </svg>
-                    {exportingData ? 'Preparing download...' : 'Download My Data'}
+                    {exportingData ? t('account.privacy.downloadPreparing') : t('account.privacy.downloadButton')}
                   </button>
                   {exportError && (
                     <p className="text-sm text-red-600 dark:text-red-400">{exportError}</p>
@@ -821,12 +830,10 @@ export function AccountModal({ userInfo, onClose, onLogout, onSave, theme, cardT
                   {/* Delete My Account — Danger Zone */}
                   <div className="rounded-2xl border-2 border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 p-4 space-y-3">
                     <h4 className="font-bold text-red-700 dark:text-red-400 text-base">
-                      Danger Zone
+                      {t('account.privacy.dangerZone')}
                     </h4>
                     <p className="text-sm text-red-700 dark:text-red-300 leading-relaxed">
-                      Deleting your account is <strong>permanent and cannot be
-                      undone</strong>. All your data — profile, conversations, and
-                      transcriptions — will be erased immediately.
+                      {t('account.privacy.dangerDescription')}
                     </p>
 
                     {!showDeleteConfirm ? (
@@ -834,12 +841,12 @@ export function AccountModal({ userInfo, onClose, onLogout, onSave, theme, cardT
                         onClick={() => { setShowDeleteConfirm(true); setDeleteError(''); }}
                         className="w-full bg-white dark:bg-gray-900 border-2 border-red-500 text-red-600 dark:text-red-400 font-bold py-3 px-6 rounded-2xl hover:bg-red-50 dark:hover:bg-red-900/40 transition text-base"
                       >
-                        Delete My Account &amp; Data
+                        {t('account.privacy.deleteButton')}
                       </button>
                     ) : (
                       <div className="space-y-3">
                         <p className="font-semibold text-red-800 dark:text-red-200 text-sm text-center">
-                          Are you sure? This cannot be undone.
+                          {t('account.privacy.deleteConfirm')}
                         </p>
                         <div className="flex gap-3">
                           <button
@@ -847,7 +854,7 @@ export function AccountModal({ userInfo, onClose, onLogout, onSave, theme, cardT
                             disabled={deletingAccount}
                             className={`flex-1 font-bold py-3 px-4 rounded-2xl border transition text-base ${cardTheme} border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800`}
                           >
-                            Cancel
+                            {t('account.privacy.deleteCancel')}
                           </button>
                           <button
                             onClick={handleDeleteAccount}
@@ -858,7 +865,7 @@ export function AccountModal({ userInfo, onClose, onLogout, onSave, theme, cardT
                                 : 'bg-red-600 hover:bg-red-700'
                               }`}
                           >
-                            {deletingAccount ? 'Deleting...' : 'Yes, Delete Everything'}
+                            {deletingAccount ? t('account.privacy.deleting') : t('account.privacy.deleteConfirmButton')}
                           </button>
                         </div>
                         {deleteError && (

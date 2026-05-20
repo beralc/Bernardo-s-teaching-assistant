@@ -66,34 +66,59 @@
       "uploadHint": "Haz clic en el icono de la cámara para subir una foto",
       "name": "Nombre",
       "surname": "Apellido",
+      "firstName": "Nombre",
+      "lastName": "Apellido",
       "age": "Edad",
+      "agePlaceholder": "Tu edad",
       "nativeLanguage": "Idioma nativo",
       "country": "País",
       "selectLanguage": "Seleccionar idioma...",
       "selectCountry": "Seleccionar país...",
+      "studyingAt": "Estudiando con",
+      "select": "Seleccionar...",
+      "institutionName": "Institución / App",
+      "academyName": "Nombre de la academia",
+      "appName": "Nombre de la app",
+      "tutorName": "Nombre del tutor",
+      "pleaseSpecify": "Por favor especifica",
+      "optionalPlaceholder": "Opcional",
+      "notSet": "No indicado",
       "email": "Correo electrónico",
       "accountCreated": "Cuenta creada",
       "saveChanges": "Guardar cambios",
       "cancel": "Cancelar",
-      "editProfile": "Editar perfil"
+      "editProfile": "Editar perfil",
+      "logout": "Cerrar sesión",
+      "profileSaved": "¡Perfil guardado correctamente!",
+      "profileSaveError": "Error al guardar el perfil: ",
+      "photoSaved": "¡Foto subida y guardada correctamente!",
+      "photoSizeError": "La foto debe pesar menos de 2 MB",
+      "photoUploadError": "Error al subir la foto: "
     },
     "usage": {
       "title": "Minutos de voz este mes",
-      "used": "usados",
-      "remaining": "restantes",
-      "unlimited": "Ilimitado",
+      "currentPlan": "Plan actual",
       "tier": "Tu plan",
+      "tierLabel": "Plan",
+      "used": "Usados",
+      "minutes": "minutos",
+      "remaining": "minutos restantes",
+      "unlimited": "Conversaciones de voz ilimitadas",
+      "limitReached": "Límite alcanzado. Se renueva el ",
       "upgradeHint": "Contacta con soporte para mejorar tu plan"
     },
     "voice": {
-      "title": "Voz preferida",
+      "title": "Asistente de voz",
       "hint": "Elige la voz que más te guste. Los cambios se aplican a tu próxima conversación."
     },
-    "achievements": {
-      "title": "Tus logros",
-      "loading": "Cargando tus logros...",
-      "empty": "Aún no tienes logros. ¡Inicia una conversación de voz para desbloquear tus primeros Can-Do!",
-      "unlocked": "Desbloqueado"
+    "learning": {
+      "englishLevel": "Nivel actual de inglés",
+      "studyFrequency": "Frecuencia de estudio",
+      "savePreferences": "Guardar preferencias de aprendizaje",
+      "daily": "Todos los días",
+      "threePerWeek": "3 veces por semana",
+      "weekly": "Una vez por semana",
+      "occasionally": "De vez en cuando"
     },
     "security": {
       "title": "Cambiar contraseña",
@@ -103,6 +128,28 @@
       "passwordMismatch": "Las contraseñas no coinciden",
       "passwordTooShort": "La contraseña debe tener al menos 6 caracteres",
       "passwordUpdated": "¡Contraseña actualizada correctamente!"
+    },
+    "privacy": {
+      "title": "Mis datos y privacidad",
+      "description": "Tienes derecho a descargar o eliminar de forma permanente todos los datos que guardamos sobre ti, según el RGPD de la UE. Estas acciones surten efecto de inmediato.",
+      "privacyLink": "Leer nuestra Política de Privacidad",
+      "downloadButton": "Descargar mis datos",
+      "downloadPreparing": "Preparando la descarga...",
+      "dangerZone": "Zona de peligro",
+      "dangerDescription": "Eliminar tu cuenta es permanente y no se puede deshacer. Todos tus datos — perfil, conversaciones y transcripciones — se borrarán de inmediato.",
+      "deleteButton": "Eliminar mi cuenta y datos",
+      "deleteConfirm": "¿Estás seguro? Esta acción no se puede deshacer.",
+      "deleteCancel": "Cancelar",
+      "deleteConfirmButton": "Sí, eliminar todo",
+      "deleting": "Eliminando...",
+      "sessionError": "No se pudo verificar tu sesión. Por favor, cierra sesión y vuelve a entrar.",
+      "genericError": "Ha ocurrido un error. Por favor, inténtalo de nuevo."
+    },
+    "achievements": {
+      "title": "Tus logros",
+      "loading": "Cargando tus logros...",
+      "empty": "Aún no tienes logros. ¡Inicia una conversación de voz para desbloquear tus primeros Can-Do!",
+      "unlocked": "Desbloqueado"
     },
     "loading": "Cargando información de la cuenta..."
   },
@@ -404,13 +451,16 @@
     "enterprise": "Empresa"
   },
   "voices": {
-    "alloy": "Alloy (Neutral)",
-    "ash": "Ash (Hombre cálido)",
-    "ballad": "Ballad (Mujer cálida)",
-    "coral": "Coral (Mujer clara)",
-    "echo": "Echo (Hombre suave)",
-    "sage": "Sage (Calmada)",
-    "shimmer": "Shimmer (Mujer brillante)",
-    "verse": "Verse (Expresiva)"
+    "alloy": "Alloy — Equilibrada, neutra",
+    "ash": "Ash — Suave, articulada",
+    "ballad": "Ballad — Tranquila, acento británico",
+    "coral": "Coral — Animada, enérgica",
+    "echo": "Echo — Cálida, amigable",
+    "fable": "Fable — Expresiva, narrativa",
+    "nova": "Nova — Simpática, positiva",
+    "onyx": "Onyx — Grave, con autoridad",
+    "sage": "Sage — Clara, profesional",
+    "shimmer": "Shimmer — Suave, cálida",
+    "verse": "Verse — Expresiva, dinámica"
   }
 }
