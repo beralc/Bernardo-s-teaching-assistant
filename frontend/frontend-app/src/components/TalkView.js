@@ -359,7 +359,7 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
 
         } else if (data.type === 'error') {
           console.error("OpenAI Realtime API error:", data.error);
-          setLiveTranscript("Error occurred. Please try again.");
+          setLiveTranscript("I am listening...");
 
         } else if (data.type === 'input_audio_buffer.speech_started') {
           // User spoke — open the mic gate and clear pending bot audio.
