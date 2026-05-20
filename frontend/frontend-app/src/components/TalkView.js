@@ -251,18 +251,15 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
       webSocketRef.current = ws;
 
       ws.onopen = () => {
-        // Configure turn detection via session.update (required for GA API)
         ws.send(JSON.stringify({
           type: 'session.update',
           session: {
-            type: 'realtime',
+            input_audio_transcription: { model: 'gpt-realtime-whisper' },
             turn_detection: {
               type: 'server_vad',
-              threshold: 0.6,
+              threshold: 0.5,
               prefix_padding_ms: 300,
-              silence_duration_ms: 1200,
-              create_response: true,
-              interrupt_response: true
+              silence_duration_ms: 800
             }
           }
         }));
