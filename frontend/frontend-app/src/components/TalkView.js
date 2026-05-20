@@ -283,7 +283,11 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
               audio: base64Audio
             });
 
-            ws.send(audioMessage);
+            try {
+              ws.send(audioMessage);
+            } catch (sendError) {
+              console.error('WebSocket send failed:', sendError);
+            }
           }
         };
       };

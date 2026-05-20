@@ -20,7 +20,7 @@ def webrtc_session():
         topic = data.get('topic')
         user_id = data.get('user_id')
 
-        if topic:
+        if topic and isinstance(topic, dict):
             prompt_data['behavior']['current_topic'] = {
                 "title": topic.get('title', ''),
                 "description": topic.get('description', ''),
@@ -74,7 +74,7 @@ def webrtc_session():
         resp.raise_for_status()
         session_json = resp.json()
 
-        print(f"OpenAI Realtime API client_secret response: {session_json}")
+        print(f"OpenAI Realtime API client_secret response received (token redacted)")
 
         ephemeral_token = session_json.get('value')
 

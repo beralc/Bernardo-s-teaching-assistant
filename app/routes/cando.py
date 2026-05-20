@@ -349,8 +349,8 @@ Include any statement with confidence >= 0.6. If no statements were demonstrated
         try:
             if 'result_text' in locals():
                 print(f"Raw GPT response that caused error: {result_text}")
-        except:
-            pass
+        except Exception as inner_e:
+            print(f"Error accessing result_text in exception handler: {inner_e}")
         return {
             "detected_achievements": [],
             "error": True,
