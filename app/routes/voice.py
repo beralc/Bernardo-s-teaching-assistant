@@ -76,11 +76,11 @@ def webrtc_session():
 
         print(f"OpenAI Realtime API client_secret response: {session_json}")
 
-        ephemeral_token = session_json.get('client_secret', {}).get('value')
+        ephemeral_token = session_json.get('value')
 
         if not ephemeral_token:
             print(f"Error: Ephemeral token not found in OpenAI response. Full response: {session_json}")
-            return jsonify({"error": f"Ephemeral token not found. Full OpenAI response: {session_json}"}), 500
+            return jsonify({"error": "Ephemeral token not found in OpenAI response"}), 500
 
         websocket_url = f"wss://api.openai.com/v1/realtime?model={realtime_model_name}"
         print(f"Constructed WebSocket URL: {websocket_url}")
