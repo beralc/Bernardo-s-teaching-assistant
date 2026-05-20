@@ -2,7 +2,7 @@ import React from "react";
 import { TIER_LIMITS } from "../config/constants";
 import { StopIcon } from "./icons";
 
-export function ListeningView({ onStop, cardTheme, subtleText, fontSizes, liveTranscript, usageRemaining, userTier, isAdmin, elapsedSeconds }) {
+export function ListeningView({ onStop, onInterrupt, isBotSpeaking, cardTheme, subtleText, fontSizes, liveTranscript, usageRemaining, userTier, isAdmin, elapsedSeconds }) {
   const formatElapsedTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -32,15 +32,31 @@ export function ListeningView({ onStop, cardTheme, subtleText, fontSizes, liveTr
       ) : null}
 
       <div className={`flex-1 flex flex-col justify-center items-center text-center rounded-3xl border p-8 ${cardTheme}`}>
-        <h2 className={`${fontSizes.xxxl} font-bold mb-2`}>I'm listening...</h2>
-        <p className={`${subtleText} ${fontSizes.lg} mb-8`}>Your words will appear below.</p>
-        <button
-          onClick={onStop}
-          className="w-48 h-48 bg-red-600 text-white rounded-full flex items-center justify-center shadow-2xl"
-          aria-label="Stop speaking"
-        >
-          <StopIcon />
-        </button>
+        {isBotSpeaking ? (
+          <>
+            <h2 className={`${fontSizes.xxxl} font-bold mb-2`}>Speaking...</h2>
+            <p className={`${subtleText} ${fontSizes.lg} mb-8`}>Tap to interrupt and speak.</p>
+            <button
+              onClick={onInterrupt}
+              className="w-48 h-48 bg-yellow-500 text-white rounded-full flex items-center justify-center shadow-2xl text-5xl"
+              aria-label="Interrupt bot"
+            >
+              ✋
+            </button>
+          </>
+        ) : (
+          <>
+            <h2 className={`${fontSizes.xxxl} font-bold mb-2`}>I'm listening...</h2>
+            <p className={`${subtleText} ${fontSizes.lg} mb-8`}>Your words will appear below.</p>
+            <button
+              onClick={onStop}
+              className="w-48 h-48 bg-red-600 text-white rounded-full flex items-center justify-center shadow-2xl"
+              aria-label="Stop speaking"
+            >
+              <StopIcon />
+            </button>
+          </>
+        )}
       </div>
       <div className={`rounded-3xl border p-5 ${cardTheme}`} aria-live="polite">
         <div className={`${subtleText} mb-2 ${fontSizes.base} font-semibold`}>Live Transcript</div>
