@@ -36,6 +36,7 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
   const scriptProcessorRef = useRef(null);
   const audioQueueRef = useRef([]);
   const isPlayingRef = useRef(false);
+  const isBotSpeakingRef = useRef(false);
   const currentResponseTextRef = useRef('');
   const [liveTranscript, setLiveTranscript] = useState("");
   const hasAutoStartedRef = useRef(false);
@@ -43,19 +44,6 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
   const autoStartRequestedRef = useRef(false);
   const audioChunkCountRef = useRef(0);
   const conversationRef = useRef([]);
-
-  // AEC-loopback refs. Bot audio is routed:
-  //   AudioBufferSourceNode -> MediaStreamAudioDestinationNode
-  //   -> RTCPeerConnection (local loopback) -> hidden <audio srcObject=...>
-  // This makes the browser treat bot audio as a remote stream and applies
-  // its OS-level echo canceller to the mic input (echoCancellation: true).
-  // Without this, Web Audio API output bypasses AEC and feeds back into the
-  // mic, causing the bot to self-interrupt or forcing a hard mic gate that
-  // blocks the user from interrupting.
-  const botDestinationNodeRef = useRef(null);
-  const aecLocalPcRef = useRef(null);
-  const aecRemotePcRef = useRef(null);
-  const aecAudioElRef = useRef(null);
 
   const updateConversation = (updater) => {
     setConversation(prev => {
@@ -154,35 +142,27 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
   const playNextChunk = useCallback(() => {
     if (audioQueueRef.current.length === 0) {
       isPlayingRef.current = false;
+      // Keep mic gated for 500ms after last chunk so room reflections decay.
+      setTimeout(() => {
+        isBotSpeakingRef.current = false;
+      }, 500);
       return;
     }
 
     if (!audioContextRef.current) return;
 
     isPlayingRef.current = true;
+    isBotSpeakingRef.current = true;
     const audioBuffer = audioQueueRef.current.shift();
 
     const source = audioContextRef.current.createBufferSource();
     source.buffer = audioBuffer;
-    // Route bot audio to the AEC-loopback MediaStreamDestination instead of
-    // the raw AudioContext destination. The hidden <audio> element fed by
-    // the loopback is what actually emits sound, which lets the browser's
-    // AEC reference it and cancel echo at the mic.
-    if (botDestinationNodeRef.current) {
-      source.connect(botDestinationNodeRef.current);
-    } else {
-      // Fallback if loopback failed to initialize — at least bot audio is
-      // still audible. Echo will leak but the app remains functional.
-      source.connect(audioContextRef.current.destination);
-    }
+    source.connect(audioContextRef.current.destination);
 
     const currentTime = audioContextRef.current.currentTime;
-    let startTime;
-    if (nextPlayTimeRef.current <= currentTime) {
-      startTime = currentTime;
-    } else {
-      startTime = nextPlayTimeRef.current;
-    }
+    const startTime = nextPlayTimeRef.current <= currentTime
+      ? currentTime
+      : nextPlayTimeRef.current;
 
     nextPlayTimeRef.current = startTime + audioBuffer.duration;
 
@@ -193,105 +173,6 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
     source.start(startTime);
   }, []);
 
-  // WebRTC loopback hack to engage Chrome's hardware echo canceller for
-  // Web Audio API output.
-  //
-  // Chrome (and other Chromium-based browsers) only applies acoustic echo
-  // cancellation (AEC) to mic input when the reference audio is a remote
-  // WebRTC stream attached to an HTMLMediaElement. Audio that exits via
-  // AudioContext.destination bypasses AEC entirely.
-  //
-  // The fix: route bot audio through a MediaStreamAudioDestinationNode into
-  // a same-page RTCPeerConnection loopback. The looped-back MediaStream is
-  // then played by a hidden <audio> element. Chrome now sees a "remote"
-  // playback that the AEC can reference, and the bot's voice is canceled
-  // from the mic — letting the user interrupt without the bot interrupting
-  // itself.
-  const setupAecLoopback = useCallback(async (audioContext) => {
-    // Web Audio output endpoint that we'll feed into the loopback.
-    const dest = audioContext.createMediaStreamDestination();
-    botDestinationNodeRef.current = dest;
-
-    // Local <-> Remote PeerConnection pair, both in this page.
-    const localPc = new RTCPeerConnection();
-    const remotePc = new RTCPeerConnection();
-    aecLocalPcRef.current = localPc;
-    aecRemotePcRef.current = remotePc;
-
-    // Shuttle ICE candidates between the two ends.
-    localPc.onicecandidate = (e) => {
-      if (e.candidate) {
-        remotePc.addIceCandidate(e.candidate).catch(() => {});
-      }
-    };
-    remotePc.onicecandidate = (e) => {
-      if (e.candidate) {
-        localPc.addIceCandidate(e.candidate).catch(() => {});
-      }
-    };
-
-    // The remote PC receives our bot audio as an inbound track.
-    // Wire it into a hidden <audio> element — that element is the one the
-    // browser AEC references.
-    const loopbackStream = new MediaStream();
-    remotePc.ontrack = (e) => {
-      e.streams[0].getTracks().forEach((track) => loopbackStream.addTrack(track));
-    };
-
-    // Add the bot audio track to the local PC.
-    dest.stream.getAudioTracks().forEach((track) => {
-      localPc.addTrack(track, dest.stream);
-    });
-
-    // Hidden audio element that actually emits sound. Must be playing
-    // (not muted) — Chrome ignores muted/zero-volume elements for AEC.
-    let audioEl = aecAudioElRef.current;
-    if (!audioEl) {
-      audioEl = document.createElement('audio');
-      audioEl.autoplay = true;
-      audioEl.setAttribute('playsinline', '');
-      audioEl.style.display = 'none';
-      document.body.appendChild(audioEl);
-      aecAudioElRef.current = audioEl;
-    }
-    audioEl.srcObject = loopbackStream;
-
-    // Offer/answer dance.
-    const offer = await localPc.createOffer();
-    await localPc.setLocalDescription(offer);
-    await remotePc.setRemoteDescription(offer);
-    const answer = await remotePc.createAnswer();
-    await remotePc.setLocalDescription(answer);
-    await localPc.setRemoteDescription(answer);
-
-    // Kick playback explicitly — autoplay can be blocked until a user
-    // gesture, but startListening is always called from a click.
-    try {
-      await audioEl.play();
-    } catch (playErr) {
-      console.warn('Loopback audio element failed to play:', playErr);
-    }
-  }, []);
-
-  const teardownAecLoopback = useCallback(() => {
-    if (aecLocalPcRef.current) {
-      try { aecLocalPcRef.current.close(); } catch (_) {}
-      aecLocalPcRef.current = null;
-    }
-    if (aecRemotePcRef.current) {
-      try { aecRemotePcRef.current.close(); } catch (_) {}
-      aecRemotePcRef.current = null;
-    }
-    if (aecAudioElRef.current) {
-      try {
-        aecAudioElRef.current.pause();
-        aecAudioElRef.current.srcObject = null;
-        aecAudioElRef.current.remove();
-      } catch (_) {}
-      aecAudioElRef.current = null;
-    }
-    botDestinationNodeRef.current = null;
-  }, []);
 
   const startListening = async () => {
     if (limitReached) {
@@ -364,32 +245,16 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
       );
       webSocketRef.current = ws;
 
-      ws.onopen = async () => {
-        // GA Realtime API session.update shape.
-        //
-        // The legacy beta API accepted top-level `input_audio_transcription`
-        // and top-level `turn_detection` directly under `session`. That beta
-        // interface was removed by OpenAI on 2026-05-12. In the GA API both
-        // fields are NESTED under `session.audio.input.*`. Sending the beta
-        // keys against the GA model (`gpt-realtime-mini`) does NOT raise an
-        // error — the keys are silently ignored, which is why the symptom is
-        // "bot replies normally but `conversation.item.input_audio_transcription.completed`
-        // never fires and user messages disappear from the UI."
-        //
-        // Reference: GA "Beta to GA migration" guide states audio configuration
-        // must move under `session.audio.input` / `session.audio.output`.
-        //
-        // Valid input transcription models in a voice (type: "realtime")
-        // session: `gpt-4o-mini-transcribe` (chosen here for cost/latency),
-        // `gpt-4o-transcribe`, `whisper-1`. The `gpt-realtime-whisper` model
-        // is for transcription-only sessions and produces no transcripts when
-        // used inside a voice session.
+      ws.onopen = () => {
+        // GA Realtime API: transcription and turn_detection go under
+        // session.audio.input (confirmed from Azure OpenAI / OpenAI docs).
+        // whisper-1 is the documented transcription model for voice sessions.
         ws.send(JSON.stringify({
           type: 'session.update',
           session: {
             audio: {
               input: {
-                transcription: { model: 'gpt-4o-mini-transcribe' },
+                transcription: { model: 'whisper-1' },
                 turn_detection: {
                   type: 'server_vad',
                   threshold: 0.5,
@@ -404,35 +269,23 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
         const context = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 24000 });
         audioContextRef.current = context;
 
-        // Build the AEC loopback path for bot audio output.
-        // We do this BEFORE wiring the mic processor so the browser's
-        // echoCancellation can begin referencing the output stream from the
-        // first played chunk.
-        try {
-          await setupAecLoopback(context);
-        } catch (loopbackErr) {
-          console.warn('AEC loopback setup failed, falling back to direct output:', loopbackErr);
-          botDestinationNodeRef.current = null;
-        }
-
         const source = context.createMediaStreamSource(stream);
         const processor = context.createScriptProcessor(2048, 1, 1);
         scriptProcessorRef.current = processor;
 
         source.connect(processor);
-        // ScriptProcessorNode must be connected to destination to stay alive
-        // and keep firing onaudioprocess. A silent GainNode (gain=0) satisfies
-        // the browser's graph requirement without routing mic audio to speakers.
+        // Must be connected to destination to keep onaudioprocess firing.
+        // Silent gain node prevents mic audio from playing through speakers.
         const silentGain = context.createGain();
         silentGain.gain.value = 0;
         processor.connect(silentGain);
         silentGain.connect(context.destination);
 
         processor.onaudioprocess = (event) => {
-          // No mic-drop gate. Bot audio now plays through a hidden <audio>
-          // element via WebRTC loopback, so the browser's AEC cancels it from
-          // the mic input automatically. This lets the user interrupt the bot
-          // (server VAD fires speech_started on real speech, not on echo).
+          // Drop frames while bot is speaking to prevent its audio
+          // (picked up by the mic) from triggering VAD self-interruption.
+          if (isBotSpeakingRef.current) return;
+
           const left = event.inputBuffer.getChannelData(0);
           const int16Array = new Int16Array(left.length);
           for (let i = 0; i < left.length; i++) {
@@ -442,14 +295,11 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
           if (ws.readyState === WebSocket.OPEN) {
             const audioBytes = new Uint8Array(int16Array.buffer);
             const base64Audio = btoa(String.fromCharCode(...audioBytes));
-
-            const audioMessage = JSON.stringify({
-              type: 'input_audio_buffer.append',
-              audio: base64Audio
-            });
-
             try {
-              ws.send(audioMessage);
+              ws.send(JSON.stringify({
+                type: 'input_audio_buffer.append',
+                audio: base64Audio
+              }));
             } catch (sendError) {
               console.error('WebSocket send failed:', sendError);
             }
@@ -520,10 +370,8 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
           setLiveTranscript("Error occurred. Please try again.");
 
         } else if (data.type === 'input_audio_buffer.speech_started') {
-          // Server VAD detected real user speech. Because the browser's AEC
-          // is now canceling bot echo from the mic input, this event fires
-          // on actual user voice — that's the interruption signal.
-          // Drop any pending bot audio so the bot stops mid-sentence.
+          // User spoke — open the mic gate and clear pending bot audio.
+          isBotSpeakingRef.current = false;
           if (audioQueueRef.current.length > 0 || isPlayingRef.current) {
             audioQueueRef.current = [];
             isPlayingRef.current = false;
@@ -573,6 +421,7 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
 
     audioQueueRef.current = [];
     isPlayingRef.current = false;
+    isBotSpeakingRef.current = false;
     currentResponseTextRef.current = '';
 
     if (webSocketRef.current) {
@@ -583,14 +432,11 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
       mediaStreamRef.current.getTracks().forEach(track => track.stop());
       mediaStreamRef.current = null;
     }
-    // Tear down loopback BEFORE closing the AudioContext so the
-    // MediaStreamDestination still has a live context to detach from.
-    teardownAecLoopback();
     if (audioContextRef.current) {
       audioContextRef.current.close();
       audioContextRef.current = null;
     }
-  }, [teardownAecLoopback]);
+  }, []);
 
   useEffect(() => {
     return () => {
