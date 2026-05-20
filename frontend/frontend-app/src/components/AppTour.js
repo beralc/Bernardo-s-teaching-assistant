@@ -122,12 +122,8 @@ export function AppTour({ userId, onComplete }) {
 
   return (
     <div className="fixed inset-0 z-50">
-      {/* Dimmed overlay — tap to skip */}
-      <div
-        className="absolute inset-0 bg-black/50"
-        onClick={finish}
-        aria-label={t('onboarding.skipAriaLabel')}
-      />
+      {/* Dimmed overlay — no click-to-dismiss, prevents accidental dismissal */}
+      <div className="absolute inset-0 bg-black/50" />
 
       {/* Tour card — sits above the bottom nav bar */}
       <div className="absolute bottom-20 left-0 right-0 px-4 pointer-events-none">
