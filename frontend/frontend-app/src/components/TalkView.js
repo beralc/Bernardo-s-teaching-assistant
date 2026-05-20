@@ -257,12 +257,13 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
           type: 'session.update',
           session: {
             type: 'realtime',
-            input_audio_transcription: { model: 'whisper-1' },
             turn_detection: {
               type: 'server_vad',
               threshold: 0.6,
               prefix_padding_ms: 300,
-              silence_duration_ms: 1200
+              silence_duration_ms: 1200,
+              create_response: true,
+              interrupt_response: true
             }
           }
         }));
