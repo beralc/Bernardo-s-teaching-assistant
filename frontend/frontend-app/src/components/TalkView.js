@@ -365,15 +365,38 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
       webSocketRef.current = ws;
 
       ws.onopen = async () => {
+        // GA Realtime API session.update shape.
+        //
+        // The legacy beta API accepted top-level `input_audio_transcription`
+        // and top-level `turn_detection` directly under `session`. That beta
+        // interface was removed by OpenAI on 2026-05-12. In the GA API both
+        // fields are NESTED under `session.audio.input.*`. Sending the beta
+        // keys against the GA model (`gpt-realtime-mini`) does NOT raise an
+        // error — the keys are silently ignored, which is why the symptom is
+        // "bot replies normally but `conversation.item.input_audio_transcription.completed`
+        // never fires and user messages disappear from the UI."
+        //
+        // Reference: GA "Beta to GA migration" guide states audio configuration
+        // must move under `session.audio.input` / `session.audio.output`.
+        //
+        // Valid input transcription models in a voice (type: "realtime")
+        // session: `gpt-4o-mini-transcribe` (chosen here for cost/latency),
+        // `gpt-4o-transcribe`, `whisper-1`. The `gpt-realtime-whisper` model
+        // is for transcription-only sessions and produces no transcripts when
+        // used inside a voice session.
         ws.send(JSON.stringify({
           type: 'session.update',
           session: {
-            input_audio_transcription: { model: 'whisper-1' },
-            turn_detection: {
-              type: 'server_vad',
-              threshold: 0.5,
-              prefix_padding_ms: 300,
-              silence_duration_ms: 800
+            audio: {
+              input: {
+                transcription: { model: 'gpt-4o-mini-transcribe' },
+                turn_detection: {
+                  type: 'server_vad',
+                  threshold: 0.5,
+                  prefix_padding_ms: 300,
+                  silence_duration_ms: 800
+                }
+              }
             }
           }
         }));
