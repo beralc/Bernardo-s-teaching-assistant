@@ -21,12 +21,11 @@ function TourPill({ label, left }) {
   return (
     <div
       className="absolute flex flex-col items-center"
-      style={{ bottom: '68px', left, transform: 'translateX(-50%)', pointerEvents: 'none' }}
+      style={{ bottom: '64px', left, transform: 'translateX(-50%)', pointerEvents: 'none' }}
     >
       <div className="bg-white rounded-full px-3 py-1.5 shadow-lg text-sm font-semibold text-gray-800 whitespace-nowrap">
         {label}
       </div>
-      {/* Arrow pointing down to the nav tab */}
       <div
         className="animate-bounce mt-1"
         style={{
@@ -41,7 +40,7 @@ function TourPill({ label, left }) {
   );
 }
 
-export function AppTour({ userId, onComplete }) {
+export function AppTour({ userId, isAdmin, onComplete }) {
   const { t } = useLanguage();
 
   const finish = () => {
@@ -49,22 +48,23 @@ export function AppTour({ userId, onComplete }) {
     onComplete();
   };
 
+  // Tab centers as % of screen width
+  // 3 cols: 16.67 / 50 / 83.33
+  // 4 cols: 12.5 / 37.5 / 62.5 / 87.5
+  const cols = isAdmin ? 4 : 3;
+  const colWidth = 100 / cols;
+  const center = (i) => `${colWidth * i - colWidth / 2}%`; // 1-indexed
+
   return (
     <div className="fixed inset-0 z-50">
-      {/* Dim overlay — blocks accidental taps, no click-to-dismiss */}
       <div className="absolute inset-0 bg-black/40" />
 
-      {/* Pill above Starters tab (1st of 3 cols → 16.67% from left) */}
-      <TourPill label={`📚 ${t('onboarding.tour.startersLabel')}`} left="16.67%" />
+      <TourPill label={`📚 ${t('onboarding.tour.startersLabel')}`} left={center(1)} />
+      <TourPill label={`🎙️ ${t('onboarding.tour.talkLabel')}`}     left={center(2)} />
+      <TourPill label={`📈 ${t('onboarding.tour.progressLabel')}`}  left={center(3)} />
 
-      {/* Pill above Talk tab (2nd of 3 cols → 50% from left) */}
-      <TourPill label={`🎙️ ${t('onboarding.tour.talkLabel')}`} left="50%" />
-
-      {/* Pill above Progress tab (3rd of 3 cols → 83.33% from left) */}
-      <TourPill label={`📈 ${t('onboarding.tour.progressLabel')}`} left="83.33%" />
-
-      {/* Got it button — centered above the pills */}
-      <div className="absolute" style={{ bottom: '160px', left: '50%', transform: 'translateX(-50%)' }}>
+      {/* Got it button — vertically centered in the content area */}
+      <div className="absolute inset-0 flex items-center justify-center" style={{ paddingBottom: '80px' }}>
         <button
           onClick={finish}
           className="bg-green-600 hover:bg-green-700 text-white font-bold text-base px-7 py-3 rounded-full shadow-xl transition-colors"

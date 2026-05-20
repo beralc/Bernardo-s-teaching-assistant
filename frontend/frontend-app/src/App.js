@@ -240,7 +240,7 @@ function MainApp({ initialUserId }) {
 
       {/* App Tour — shown once per user after first login, keyed by Supabase user ID */}
       {showOnboarding && (
-        <AppTour userId={initialUserId} onComplete={() => setShowOnboarding(false)} />
+        <AppTour userId={initialUserId} isAdmin={isAdmin} onComplete={() => setShowOnboarding(false)} />
       )}
 
       {/* Account Modal */}
