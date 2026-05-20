@@ -36,6 +36,7 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
   const scriptProcessorRef = useRef(null);
   const audioQueueRef = useRef([]);
   const isPlayingRef = useRef(false);
+  const isBotSpeakingRef = useRef(false);
   const currentResponseTextRef = useRef('');
   const [liveTranscript, setLiveTranscript] = useState("");
   const hasAutoStartedRef = useRef(false);
@@ -141,12 +142,20 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
   const playNextChunk = useCallback(() => {
     if (audioQueueRef.current.length === 0) {
       isPlayingRef.current = false;
+      // Queue is fully drained — bot has finished speaking.
+      // Add a short tail silence so the mic gate releases after the last
+      // acoustic reflection has decayed rather than immediately.
+      setTimeout(() => {
+        isBotSpeakingRef.current = false;
+      }, 300);
       return;
     }
 
     if (!audioContextRef.current) return;
 
     isPlayingRef.current = true;
+    // Gate the microphone while bot audio is actively playing.
+    isBotSpeakingRef.current = true;
     const audioBuffer = audioQueueRef.current.shift();
 
     const source = audioContextRef.current.createBufferSource();
@@ -266,9 +275,18 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
         scriptProcessorRef.current = processor;
 
         source.connect(processor);
-        processor.connect(context.destination);
+        // Do NOT connect processor to context.destination.
+        // Routing mic audio to the speakers would create an acoustic loop and
+        // give the browser AEC no stable reference signal to work against.
+        // The processor is wired only to capture; bot audio plays through its
+        // own separate BufferSource nodes that DO connect to destination.
 
         processor.onaudioprocess = (event) => {
+          // Gate: send silence while the bot is playing to prevent its audio
+          // (picked up by the mic) from being sent as user speech.  The 300 ms
+          // tail in playNextChunk lets room reflections decay before we reopen.
+          if (isBotSpeakingRef.current) return;
+
           const left = event.inputBuffer.getChannelData(0);
           const int16Array = new Int16Array(left.length);
           for (let i = 0; i < left.length; i++) {
@@ -361,6 +379,8 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
             isPlayingRef.current = false;
             nextPlayTimeRef.current = 0;
           }
+          // Bot audio interrupted by real user speech — open the mic gate.
+          isBotSpeakingRef.current = false;
           setLiveTranscript("Listening...");
 
         } else if (data.type === 'input_audio_buffer.speech_stopped') {
