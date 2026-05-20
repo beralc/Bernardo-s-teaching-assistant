@@ -61,7 +61,6 @@ def webrtc_session():
             "session": {
                 "type": "realtime",
                 "model": realtime_model_name,
-                "modalities": ["audio", "text"],
                 "instructions": instructions_str,
                 "audio": {
                     "input": {
