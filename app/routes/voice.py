@@ -63,15 +63,8 @@ def webrtc_session():
                 "model": realtime_model_name,
                 "instructions": instructions_str,
                 "audio": {
-                    "input": {
-                        "format": "pcm16",
-                        "transcription": {
-                            "model": "whisper-1"
-                        }
-                    },
                     "output": {
-                        "voice": voice,
-                        "format": "pcm16"
+                        "voice": voice
                     }
                 },
             }
