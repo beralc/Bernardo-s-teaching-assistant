@@ -37,7 +37,6 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
   const audioQueueRef = useRef([]);
   const isPlayingRef = useRef(false);
   const isBotSpeakingRef = useRef(false);
-  const [isBotSpeakingState, setIsBotSpeakingState] = useState(false);
   const currentResponseTextRef = useRef('');
   const [liveTranscript, setLiveTranscript] = useState("");
   const hasAutoStartedRef = useRef(false);
@@ -45,7 +44,6 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
   const autoStartRequestedRef = useRef(false);
   const audioChunkCountRef = useRef(0);
   const conversationRef = useRef([]);
-  const sessionReadyRef = useRef(false);
 
   const updateConversation = (updater) => {
     setConversation(prev => {
@@ -144,9 +142,11 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
   const playNextChunk = useCallback(() => {
     if (audioQueueRef.current.length === 0) {
       isPlayingRef.current = false;
+      // Queue is fully drained — bot has finished speaking.
+      // Add a short tail silence so the mic gate releases after the last
+      // acoustic reflection has decayed rather than immediately.
       setTimeout(() => {
         isBotSpeakingRef.current = false;
-        setIsBotSpeakingState(false);
       }, 300);
       return;
     }
@@ -154,8 +154,8 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
     if (!audioContextRef.current) return;
 
     isPlayingRef.current = true;
+    // Gate the microphone while bot audio is actively playing.
     isBotSpeakingRef.current = true;
-    setIsBotSpeakingState(true);
     const audioBuffer = audioQueueRef.current.shift();
 
     const source = audioContextRef.current.createBufferSource();
@@ -190,7 +190,6 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
       setElapsedSeconds(0);
       nextPlayTimeRef.current = 0;
       audioChunkCountRef.current = 0;
-      sessionReadyRef.current = false;
 
       await startSession(selectedTopic);
 
@@ -252,14 +251,18 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
       webSocketRef.current = ws;
 
       ws.onopen = () => {
+        // Configure turn detection via session.update (required for GA API)
         ws.send(JSON.stringify({
           type: 'session.update',
           session: {
+            type: 'realtime',
             turn_detection: {
               type: 'server_vad',
-              threshold: 0.5,
+              threshold: 0.6,
               prefix_padding_ms: 300,
-              silence_duration_ms: 800
+              silence_duration_ms: 1200,
+              create_response: true,
+              interrupt_response: true
             }
           }
         }));
@@ -281,6 +284,9 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
         silentGain.connect(context.destination);
 
         processor.onaudioprocess = (event) => {
+          // Gate: send silence while the bot is playing to prevent its audio
+          // (picked up by the mic) from being sent as user speech.  The 300 ms
+          // tail in playNextChunk lets room reflections decay before we reopen.
           if (isBotSpeakingRef.current) return;
 
           const left = event.inputBuffer.getChannelData(0);
@@ -290,9 +296,16 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
           }
 
           if (ws.readyState === WebSocket.OPEN) {
-            const base64Audio = btoa(String.fromCharCode(...new Uint8Array(int16Array.buffer)));
+            const audioBytes = new Uint8Array(int16Array.buffer);
+            const base64Audio = btoa(String.fromCharCode(...audioBytes));
+
+            const audioMessage = JSON.stringify({
+              type: 'input_audio_buffer.append',
+              audio: base64Audio
+            });
+
             try {
-              ws.send(JSON.stringify({ type: 'input_audio_buffer.append', audio: base64Audio }));
+              ws.send(audioMessage);
             } catch (sendError) {
               console.error('WebSocket send failed:', sendError);
             }
@@ -360,7 +373,7 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
 
         } else if (data.type === 'error') {
           console.error("OpenAI Realtime API error:", data.error);
-          setLiveTranscript(t('talk.errors.tryAgain'));
+          setLiveTranscript("Error occurred. Please try again.");
 
         } else if (data.type === 'input_audio_buffer.speech_started') {
           if (audioQueueRef.current.length > 0 || isPlayingRef.current) {
@@ -368,8 +381,8 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
             isPlayingRef.current = false;
             nextPlayTimeRef.current = 0;
           }
+          // Bot audio interrupted by real user speech — open the mic gate.
           isBotSpeakingRef.current = false;
-          setIsBotSpeakingState(false);
           setLiveTranscript("Listening...");
 
         } else if (data.type === 'input_audio_buffer.speech_stopped') {
@@ -379,9 +392,6 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
           currentResponseTextRef.current = '';
 
         } else if (data.type === 'session.created' || data.type === 'session.updated') {
-          if (data.type === 'session.created') {
-            sessionReadyRef.current = true;
-          }
           if (data.type === 'session.created' && selectedTopic) {
             const responseRequest = {
               type: 'response.create',
@@ -463,14 +473,6 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
     return () => clearInterval(timerInterval);
   }, [speaking, isAdmin, usageRemaining, stopListening]);
 
-  const handleInterrupt = useCallback(() => {
-    audioQueueRef.current = [];
-    isPlayingRef.current = false;
-    nextPlayTimeRef.current = 0;
-    isBotSpeakingRef.current = false;
-    setIsBotSpeakingState(false);
-  }, []);
-
   const handleToggleSpeaking = () => {
     const newState = !speaking;
     setSpeaking(newState);
@@ -500,7 +502,7 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
     const minutesElapsed = Math.ceil(elapsedSeconds / 60);
     const currentRemaining = isAdmin ? -1 : Math.max(0, usageRemaining - minutesElapsed);
 
-    return <ListeningView onStop={handleToggleSpeaking} onInterrupt={handleInterrupt} isBotSpeaking={isBotSpeakingState} cardTheme={cardTheme} subtleText={subtleText} fontSizes={fontSizes} liveTranscript={liveTranscript} usageRemaining={currentRemaining} userTier={userTier} isAdmin={isAdmin} elapsedSeconds={elapsedSeconds} />;
+    return <ListeningView onStop={handleToggleSpeaking} cardTheme={cardTheme} subtleText={subtleText} fontSizes={fontSizes} liveTranscript={liveTranscript} usageRemaining={currentRemaining} userTier={userTier} isAdmin={isAdmin} elapsedSeconds={elapsedSeconds} />;
   }
 
   return (
