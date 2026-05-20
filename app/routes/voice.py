@@ -69,36 +69,12 @@ def webrtc_session():
             "Authorization": f"Bearer {OPENAI_API_KEY}",
             "Content-Type": "application/json"
         }
-        # GA Realtime API session shape.
-        # Transcription is configured at session creation as defense-in-depth:
-        # the frontend also sends a session.update with the same nested shape,
-        # but configuring it here means the event
-        # `conversation.item.input_audio_transcription.completed` will fire
-        # even if the client-side update is delayed or races with first audio.
-        #
-        # Schema notes:
-        #   - GA requires NESTED keys under session.audio.input.* — the
-        #     legacy top-level `input_audio_transcription` is silently ignored.
-        #   - `gpt-4o-mini-transcribe` is the correct model for VOICE sessions.
-        #     `gpt-realtime-whisper` is for `type: "transcription"` (STT-only)
-        #     sessions and does NOT emit transcripts in a voice session.
         body = {
             "session": {
                 "type": "realtime",
                 "model": realtime_model_name,
                 "instructions": instructions_str,
                 "audio": {
-                    "input": {
-                        "transcription": {
-                            "model": "gpt-4o-mini-transcribe"
-                        },
-                        "turn_detection": {
-                            "type": "server_vad",
-                            "threshold": 0.5,
-                            "prefix_padding_ms": 300,
-                            "silence_duration_ms": 800
-                        }
-                    },
                     "output": {
                         "voice": voice
                     }

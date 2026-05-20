@@ -365,30 +365,15 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
       webSocketRef.current = ws;
 
       ws.onopen = async () => {
-        // GA Realtime API session.update — nested schema.
-        // The legacy top-level `input_audio_transcription` / `turn_detection`
-        // are silently ignored by GA. They MUST be nested under
-        // session.audio.input.*. If they aren't, the API never emits
-        // `conversation.item.input_audio_transcription.completed` and the
-        // user's words never appear in the conversation panel.
-        //
-        // `gpt-4o-mini-transcribe` is the correct transcription model for a
-        // VOICE (type: "realtime") session. `gpt-realtime-whisper` is only
-        // for transcription-only sessions (type: "transcription") and does
-        // not emit transcripts here.
         ws.send(JSON.stringify({
           type: 'session.update',
           session: {
-            audio: {
-              input: {
-                transcription: { model: 'gpt-4o-mini-transcribe' },
-                turn_detection: {
-                  type: 'server_vad',
-                  threshold: 0.5,
-                  prefix_padding_ms: 300,
-                  silence_duration_ms: 800
-                }
-              }
+            input_audio_transcription: { model: 'whisper-1' },
+            turn_detection: {
+              type: 'server_vad',
+              threshold: 0.5,
+              prefix_padding_ms: 300,
+              silence_duration_ms: 800
             }
           }
         }));
