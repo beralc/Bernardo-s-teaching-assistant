@@ -307,30 +307,32 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
 
           const left = event.inputBuffer.getChannelData(0);
 
-          // Compute RMS energy of this frame (cheap: ~2048 mults+adds).
-          let sumSquares = 0;
-          for (let i = 0; i < left.length; i++) {
-            sumSquares += left[i] * left[i];
-          }
-          const rms = Math.sqrt(sumSquares / left.length);
-
-          const botSpeaking = isBotSpeakingRef.current;
-          const threshold = botSpeaking ? BOT_SPEAKING_RMS_THRESHOLD : IDLE_RMS_THRESHOLD;
-          const passesGate = rms >= threshold;
-
           let payload;
-          if (passesGate) {
-            // Real user audio (or loud user interruption) — encode and send.
+          if (isBotSpeakingRef.current) {
+            // Bot is playing — gate the mic to suppress echo.
+            // Only pass frames where user is clearly speaking louder than echo.
+            let sumSquares = 0;
+            for (let i = 0; i < left.length; i++) {
+              sumSquares += left[i] * left[i];
+            }
+            const rms = Math.sqrt(sumSquares / left.length);
+
+            if (rms >= BOT_SPEAKING_RMS_THRESHOLD) {
+              const int16Array = new Int16Array(left.length);
+              for (let i = 0; i < left.length; i++) {
+                int16Array[i] = Math.max(-1, Math.min(1, left[i])) * 0x7FFF;
+              }
+              payload = btoa(String.fromCharCode(...new Uint8Array(int16Array.buffer)));
+            } else {
+              payload = SILENT_FRAME_BASE64;
+            }
+          } else {
+            // Bot is silent — send all audio unmodified so Whisper gets clean input.
             const int16Array = new Int16Array(left.length);
             for (let i = 0; i < left.length; i++) {
               int16Array[i] = Math.max(-1, Math.min(1, left[i])) * 0x7FFF;
             }
-            const audioBytes = new Uint8Array(int16Array.buffer);
-            payload = btoa(String.fromCharCode(...audioBytes));
-          } else {
-            // Below gate (likely echo or ambient noise) — send silence to
-            // preserve the input buffer's timeline without feeding VAD.
-            payload = SILENT_FRAME_BASE64;
+            payload = btoa(String.fromCharCode(...new Uint8Array(int16Array.buffer)));
           }
 
           try {
