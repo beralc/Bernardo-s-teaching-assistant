@@ -246,22 +246,17 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
       webSocketRef.current = ws;
 
       ws.onopen = () => {
-        // GA Realtime API: transcription and turn_detection go under
-        // session.audio.input (confirmed from Azure OpenAI / OpenAI docs).
-        // whisper-1 is the documented transcription model for voice sessions.
+        // Transcription is configured server-side at session creation (voice.py).
+        // Only update turn_detection here to avoid overriding transcription config.
         ws.send(JSON.stringify({
           type: 'session.update',
           session: {
-            audio: {
-              input: {
-                transcription: { model: 'whisper-1' },
-                turn_detection: {
-                  type: 'server_vad',
-                  threshold: 0.5,
-                  prefix_padding_ms: 300,
-                  silence_duration_ms: 800
-                }
-              }
+            turn_detection: {
+              type: 'server_vad',
+              threshold: 0.7,
+              prefix_padding_ms: 300,
+              silence_duration_ms: 800,
+              create_response: true
             }
           }
         }));
@@ -282,10 +277,6 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
         silentGain.connect(context.destination);
 
         processor.onaudioprocess = (event) => {
-          // Drop frames while bot is speaking to prevent its audio
-          // (picked up by the mic) from triggering VAD self-interruption.
-          if (isBotSpeakingRef.current) return;
-
           const left = event.inputBuffer.getChannelData(0);
           const int16Array = new Int16Array(left.length);
           for (let i = 0; i < left.length; i++) {
@@ -312,7 +303,8 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
         const sessionLogId = getSessionLogId();
 
         if (data.type === 'conversation.item.input_audio_transcription.completed') {
-          const transcript = data.transcript;
+          const transcript = data.transcript || '';
+          if (!transcript.trim()) return;
           updateConversation(prev => [...prev, { role: "user", text: transcript }]);
           onSaveTranscription(transcript);
 

@@ -74,6 +74,9 @@ def webrtc_session():
                 "type": "realtime",
                 "model": realtime_model_name,
                 "instructions": instructions_str,
+                "input_audio_transcription": {
+                    "model": "whisper-1"
+                },
                 "audio": {
                     "output": {
                         "voice": voice
