@@ -263,9 +263,12 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
         // incomplete transcript. See OpenAI GA Realtime docs (May 2026) — the
         // nested `audio.input.transcription` shape is required; the legacy
         // top-level `input_audio_transcription` is ignored by GA.
+        // session.update is sent on open; audio is gated on session.created to avoid
+        // sending chunks before OpenAI has finished setting up the session.
         ws.send(JSON.stringify({
           type: 'session.update',
           session: {
+            type: 'realtime',
             input_audio_transcription: { model: 'whisper-1' },
             turn_detection: {
               type: 'server_vad',
@@ -403,7 +406,7 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
           currentResponseTextRef.current = '';
 
         } else if (data.type === 'session.created' || data.type === 'session.updated') {
-          if (data.type === 'session.updated') {
+          if (data.type === 'session.created') {
             sessionReadyRef.current = true;
           }
           if (data.type === 'session.created' && selectedTopic) {
