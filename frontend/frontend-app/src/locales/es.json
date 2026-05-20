@@ -308,10 +308,10 @@
       "body": "Este es tu espacio seguro y amigable para practicar el inglés hablado. Hablarás con un asistente de inteligencia artificial que es paciente, amable y siempre está listo para conversar."
     },
     "tour": {
-      "topicsTitle": "Temas de conversación",
-      "topicsBody": "Pulsa la pestaña 'Starters' para elegir un tema — vida diaria, viajes, comida y más. Así tendrás algo de lo que hablar desde el primer momento.",
-      "micTitle": "El botón verde",
-      "micBody": "Pulsa el gran botón verde y empieza a hablar. El asistente te escucha y te responde en inglés. Tómate tu tiempo, sin prisa."
+      "startersLabel": "Elige un tema",
+      "talkLabel": "Pulsa para hablar",
+      "progressLabel": "Tu progreso",
+      "gotIt": "Entendido"
     },
     "howItWorks": {
       "title": "¿Cómo funciona?",

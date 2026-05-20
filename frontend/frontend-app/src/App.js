@@ -65,11 +65,7 @@ function AuthGate() {
 // --- Main App Component (logged in state) ---
 function MainApp({ initialUserId }) {
   const [tab, setTab] = useState("talk"); // "talk" | "starters" | "progress" | "admin"
-  const [showOnboarding, setShowOnboarding] = useState(() => {
-    const completed = hasCompletedTour(initialUserId);
-    console.log('[Tour] userId:', initialUserId, '| completed:', completed, '| showing:', !completed);
-    return !completed;
-  });
+  const [showOnboarding, setShowOnboarding] = useState(() => !hasCompletedTour(initialUserId));
   const [contrast, setContrast] = useState(false);
   const [fontStep, setFontStep] = useState(1); // 0..2 for Small, Medium, Large
   const [showAccountModal, setShowAccountModal] = useState(false);
