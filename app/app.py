@@ -34,6 +34,7 @@ def create_app():
     from routes.cando import cando_bp
     from routes.feedback import feedback_bp
     from routes.user import user_bp
+    from routes.formspree import formspree_bp
 
     app.register_blueprint(chat_bp)
     app.register_blueprint(voice_bp)
@@ -41,6 +42,7 @@ def create_app():
     app.register_blueprint(cando_bp)
     app.register_blueprint(feedback_bp)
     app.register_blueprint(user_bp)
+    app.register_blueprint(formspree_bp)
 
     return app
 
