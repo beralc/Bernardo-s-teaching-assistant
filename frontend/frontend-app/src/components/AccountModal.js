@@ -3,6 +3,54 @@ import { supabase } from "../supabaseClient";
 import { useLanguage } from "../LanguageContext";
 import { TIER_LIMITS, API_BASE_URL } from "../config/constants";
 
+// ---- GDPR helpers (used only within AccountModal) ----------------------
+
+/**
+ * Calls POST /user/delete-account with the current user's Bearer token.
+ * Returns { success: true } or throws an Error.
+ */
+async function apiDeleteAccount(accessToken) {
+  const resp = await fetch(`${API_BASE_URL}/user/delete-account`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+    },
+  });
+  const data = await resp.json();
+  if (!resp.ok) {
+    throw new Error(data.error || 'Failed to delete account');
+  }
+  return data;
+}
+
+/**
+ * Calls GET /user/export-data and triggers a browser file download
+ * of the returned JSON as "my-data.json".
+ */
+async function apiDownloadData(accessToken) {
+  const resp = await fetch(`${API_BASE_URL}/user/export-data`, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${accessToken}`,
+    },
+  });
+  if (!resp.ok) {
+    const data = await resp.json().catch(() => ({}));
+    throw new Error(data.error || 'Failed to export data');
+  }
+  const json = await resp.json();
+  const blob = new Blob([JSON.stringify(json, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'my-data.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
 export function AccountModal({ userInfo, onClose, onLogout, onSave, theme, cardTheme, subtleText, currentAvatarUrl }) {
   const [activeTab, setActiveTab] = useState('personal'); // 'personal' | 'learning' | 'security'
   const { t } = useLanguage();
@@ -40,6 +88,15 @@ export function AccountModal({ userInfo, onClose, onLogout, onSave, theme, cardT
 
   // Usage stats
   const [usageStats, setUsageStats] = useState({ used: 0, limit: 30, tier: 'free' });
+
+  // GDPR: delete account flow
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deletingAccount, setDeletingAccount] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
+
+  // GDPR: export data flow
+  const [exportingData, setExportingData] = useState(false);
+  const [exportError, setExportError] = useState('');
 
   // Can-Do achievements
   // Can-Do data loaded for future profile display
@@ -253,6 +310,45 @@ export function AccountModal({ userInfo, onClose, onLogout, onSave, theme, cardT
       setSaveMessage('Error uploading photo: ' + error.message);
     } finally {
       setUploadingPhoto(false);
+    }
+  };
+
+  // ---- GDPR: delete account ----
+  const handleDeleteAccount = async () => {
+    setDeletingAccount(true);
+    setDeleteError('');
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        setDeleteError('Could not verify your session. Please log out and log back in.');
+        setDeletingAccount(false);
+        return;
+      }
+      await apiDeleteAccount(session.access_token);
+      // Sign out locally — the account no longer exists on the server
+      await supabase.auth.signOut();
+    } catch (err) {
+      setDeleteError(err.message || 'An error occurred. Please try again.');
+      setDeletingAccount(false);
+    }
+  };
+
+  // ---- GDPR: download data ----
+  const handleDownloadData = async () => {
+    setExportingData(true);
+    setExportError('');
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        setExportError('Could not verify your session. Please log out and log back in.');
+        setExportingData(false);
+        return;
+      }
+      await apiDownloadData(session.access_token);
+    } catch (err) {
+      setExportError(err.message || 'An error occurred. Please try again.');
+    } finally {
+      setExportingData(false);
     }
   };
 
@@ -684,6 +780,93 @@ export function AccountModal({ userInfo, onClose, onLogout, onSave, theme, cardT
                   >
                     {t('auth.logOut')}
                   </button>
+                </div>
+
+                {/* ---- Data & Privacy Section ---- */}
+                <div className="pt-6 border-t border-gray-200 dark:border-gray-700 space-y-4">
+                  <h3 className="font-bold text-lg">My Data &amp; Privacy</h3>
+                  <p className={`text-sm leading-relaxed ${subtleText}`}>
+                    You have the right to download or permanently delete all data
+                    we hold about you, under the EU GDPR. These actions take effect
+                    immediately.{' '}
+                    <a
+                      href="/privacy"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-green-600 underline hover:text-green-800"
+                    >
+                      Read our Privacy Policy
+                    </a>
+                  </p>
+
+                  {/* Download My Data */}
+                  <button
+                    onClick={handleDownloadData}
+                    disabled={exportingData}
+                    className={`w-full flex items-center justify-center gap-2 font-bold py-3 px-6 rounded-2xl border transition text-base
+                      ${exportingData
+                        ? 'opacity-60 cursor-not-allowed bg-gray-100 dark:bg-gray-800 border-gray-300'
+                        : 'bg-blue-50 dark:bg-blue-900/30 border-blue-400 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/50'
+                      }`}
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    {exportingData ? 'Preparing download...' : 'Download My Data'}
+                  </button>
+                  {exportError && (
+                    <p className="text-sm text-red-600 dark:text-red-400">{exportError}</p>
+                  )}
+
+                  {/* Delete My Account — Danger Zone */}
+                  <div className="rounded-2xl border-2 border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 p-4 space-y-3">
+                    <h4 className="font-bold text-red-700 dark:text-red-400 text-base">
+                      Danger Zone
+                    </h4>
+                    <p className="text-sm text-red-700 dark:text-red-300 leading-relaxed">
+                      Deleting your account is <strong>permanent and cannot be
+                      undone</strong>. All your data — profile, conversations, and
+                      transcriptions — will be erased immediately.
+                    </p>
+
+                    {!showDeleteConfirm ? (
+                      <button
+                        onClick={() => { setShowDeleteConfirm(true); setDeleteError(''); }}
+                        className="w-full bg-white dark:bg-gray-900 border-2 border-red-500 text-red-600 dark:text-red-400 font-bold py-3 px-6 rounded-2xl hover:bg-red-50 dark:hover:bg-red-900/40 transition text-base"
+                      >
+                        Delete My Account &amp; Data
+                      </button>
+                    ) : (
+                      <div className="space-y-3">
+                        <p className="font-semibold text-red-800 dark:text-red-200 text-sm text-center">
+                          Are you sure? This cannot be undone.
+                        </p>
+                        <div className="flex gap-3">
+                          <button
+                            onClick={() => { setShowDeleteConfirm(false); setDeleteError(''); }}
+                            disabled={deletingAccount}
+                            className={`flex-1 font-bold py-3 px-4 rounded-2xl border transition text-base ${cardTheme} border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800`}
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            onClick={handleDeleteAccount}
+                            disabled={deletingAccount}
+                            className={`flex-1 font-bold py-3 px-4 rounded-2xl transition text-base text-white
+                              ${deletingAccount
+                                ? 'bg-red-400 cursor-not-allowed'
+                                : 'bg-red-600 hover:bg-red-700'
+                              }`}
+                          >
+                            {deletingAccount ? 'Deleting...' : 'Yes, Delete Everything'}
+                          </button>
+                        </div>
+                        {deleteError && (
+                          <p className="text-sm text-red-600 dark:text-red-400 text-center">{deleteError}</p>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             )}

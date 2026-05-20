@@ -24,6 +24,7 @@ export function OnboardingScreen({ onStart }) {
   const [englishLevel, setEnglishLevel] = useState('A2');
   const [studyMethod, setStudyMethod] = useState('');
   const [institutionName, setInstitutionName] = useState('');
+  const [consentChecked, setConsentChecked] = useState(false);
 
   const handleAuth = async (event) => {
     event.preventDefault();
@@ -261,7 +262,47 @@ export function OnboardingScreen({ onStart }) {
             </>
           )}
 
-          <button type="submit" className="w-full text-xl font-semibold bg-green-600 text-white py-5 px-8 rounded-2xl shadow-lg hover:bg-green-700 transition" disabled={loading}>
+          {isSignUp && (
+            <div className="mt-2 p-4 rounded-2xl border-2 border-blue-200 bg-blue-50">
+              <label className="flex items-start gap-3 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={consentChecked}
+                  onChange={(e) => setConsentChecked(e.target.checked)}
+                  className="mt-1 w-6 h-6 rounded border-gray-400 text-green-600 flex-shrink-0 cursor-pointer"
+                  aria-required="true"
+                />
+                <span className="text-base text-gray-800 leading-relaxed">
+                  <strong className="block mb-2 text-gray-900">I understand that:</strong>
+                  <ul className="list-disc ml-4 space-y-1 mb-2">
+                    <li>My conversation data will be used for English learning research</li>
+                    <li>My voice sessions are processed by OpenAI</li>
+                    <li>I can delete my data at any time from my account settings</li>
+                    <li>This study is approved by the UCM Ethics Committee (ref. 663_CE_20260312_35_HUM)</li>
+                  </ul>
+                  <a
+                    href="/privacy"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-green-700 underline font-semibold hover:text-green-900"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    Read the full Privacy Policy
+                  </a>
+                </span>
+              </label>
+            </div>
+          )}
+
+          <button
+            type="submit"
+            className={`w-full text-xl font-semibold py-5 px-8 rounded-2xl shadow-lg transition ${
+              isSignUp && !consentChecked
+                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                : 'bg-green-600 text-white hover:bg-green-700'
+            }`}
+            disabled={loading || (isSignUp && !consentChecked)}
+          >
             {loading ? t('auth.loading') : (isSignUp ? t('auth.signUp') : t('auth.logIn'))}
           </button>
           <button type="button" onClick={() => setIsSignUp(prev => !prev)} className="w-full text-lg font-semibold text-green-600 py-3">

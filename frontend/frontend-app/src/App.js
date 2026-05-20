@@ -11,12 +11,23 @@ import { AdminView } from "./components/AdminView";
 import { AccountModal } from "./components/AccountModal";
 import { NavButton } from "./components/NavButton";
 import { AppIcon, UserIcon, MicIcon, BookIcon, ChartIcon, AdminIcon } from "./components/icons";
+import { PrivacyPolicy } from "./components/PrivacyPolicy";
 
 // Utils
 import { saveTranscription, endSession } from "./utils/sessionManager";
 
-// --- Main App Component ---
+// --- Root Router ---
+// Handles the /privacy route before any auth logic runs.
+// No React Router dependency required — just checks window.location.pathname.
 export default function SeniorFirstEnglishAssistant() {
+  if (window.location.pathname === '/privacy') {
+    return <PrivacyPolicy />;
+  }
+  return <AuthGate />;
+}
+
+// --- Auth Gate (extracted so hooks always run consistently) ---
+function AuthGate() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loading, setLoading] = useState(true);
   const { t } = useLanguage();
