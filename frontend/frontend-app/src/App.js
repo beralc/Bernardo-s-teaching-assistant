@@ -29,21 +29,20 @@ export default function SeniorFirstEnglishAssistant() {
 
 // --- Auth Gate (extracted so hooks always run consistently) ---
 function AuthGate() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userId, setUserId] = useState(null);
   const [loading, setLoading] = useState(true);
   const { t } = useLanguage();
 
   useEffect(() => {
     const { data: authListener } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        setIsLoggedIn(!!session);
+        setUserId(session?.user?.id ?? null);
         setLoading(false);
       }
     );
 
-    // Check initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setIsLoggedIn(!!session);
+      setUserId(session?.user?.id ?? null);
       setLoading(false);
     });
 
@@ -56,18 +55,17 @@ function AuthGate() {
     return <div className="min-h-screen grid place-items-center bg-gray-50 text-gray-900">{t('app.loading')}</div>;
   }
 
-  if (!isLoggedIn) {
-    return <OnboardingScreen onStart={() => setIsLoggedIn(true)} />;
+  if (!userId) {
+    return <OnboardingScreen onStart={(id) => setUserId(id)} />;
   }
 
-  return <MainApp />;
+  return <MainApp initialUserId={userId} />;
 }
 
 // --- Main App Component (logged in state) ---
-function MainApp() {
+function MainApp({ initialUserId }) {
   const [tab, setTab] = useState("talk"); // "talk" | "starters" | "progress" | "admin"
-  // Show the tour after loadUserInfo resolves — keyed per user so new accounts always see it.
-  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(() => !hasCompletedTour(initialUserId));
   const [contrast, setContrast] = useState(false);
   const [fontStep, setFontStep] = useState(1); // 0..2 for Small, Medium, Large
   const [showAccountModal, setShowAccountModal] = useState(false);
@@ -101,7 +99,6 @@ function MainApp() {
 
   // Load user information and avatar
   const loadUserInfo = async () => {
-    // Use getSession (local, instant) for the tour check, then getUser for verified profile data.
     const { data: { session } } = await supabase.auth.getSession();
     const user = session?.user;
     if (user) {
@@ -110,7 +107,6 @@ function MainApp() {
         id: user.id,
         createdAt: new Date(user.created_at).toLocaleDateString()
       });
-      if (!hasCompletedTour(user.id)) setShowOnboarding(true);
 
       // Load profile data including avatar and admin status
       const { data: profile, error: profileError } = await supabase
@@ -244,7 +240,7 @@ function MainApp() {
 
       {/* App Tour — shown once per user after first login, keyed by Supabase user ID */}
       {showOnboarding && (
-        <AppTour userId={userInfo?.id} onComplete={() => setShowOnboarding(false)} />
+        <AppTour userId={initialUserId} onComplete={() => setShowOnboarding(false)} />
       )}
 
       {/* Account Modal */}
