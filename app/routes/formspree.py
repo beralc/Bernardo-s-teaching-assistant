@@ -1,6 +1,7 @@
 import os
 import requests
 from flask import Blueprint, request, jsonify
+from flask_cors import cross_origin
 
 formspree_bp = Blueprint("formspree", __name__)
 
@@ -88,7 +89,8 @@ def build_email(name: str, language: str) -> tuple[str, str, str]:
     return first, subject, html
 
 
-@formspree_bp.route("/formspree_webhook", methods=["POST"])
+@formspree_bp.route("/formspree_webhook", methods=["POST", "OPTIONS"])
+@cross_origin(origins="*")
 def formspree_webhook():
     """
     Receives Formspree webhook payloads and sends a confirmation email
