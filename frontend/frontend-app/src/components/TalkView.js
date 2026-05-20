@@ -242,6 +242,21 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
       webSocketRef.current = ws;
 
       ws.onopen = () => {
+        // Configure turn detection via session.update (required for GA API)
+        ws.send(JSON.stringify({
+          type: 'session.update',
+          session: {
+            turn_detection: {
+              type: 'server_vad',
+              threshold: 0.6,
+              prefix_padding_ms: 300,
+              silence_duration_ms: 1200,
+              create_response: true,
+              interrupt_response: true
+            }
+          }
+        }));
+
         const context = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 24000 });
         audioContextRef.current = context;
 
@@ -294,12 +309,12 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
             }
           }
 
-        } else if (data.type === 'response.audio.delta') {
+        } else if (data.type === 'response.audio.delta' || data.type === 'response.output_audio.delta') {
           if (data.delta) {
             playAudioChunk(data.delta);
           }
 
-        } else if (data.type === 'response.audio_transcript.delta') {
+        } else if (data.type === 'response.audio_transcript.delta' || data.type === 'response.output_audio_transcript.delta') {
           currentResponseTextRef.current += data.delta;
           setLiveTranscript(currentResponseTextRef.current);
 
@@ -307,7 +322,7 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
           currentResponseTextRef.current = '';
           audioChunkCountRef.current = 0;
 
-        } else if (data.type === 'response.audio_transcript.done') {
+        } else if (data.type === 'response.audio_transcript.done' || data.type === 'response.output_audio_transcript.done') {
           updateConversation(prev => [...prev, { role: "bot", text: data.transcript }]);
 
           if (data.transcript) {
