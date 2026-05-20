@@ -34,7 +34,13 @@
     "alreadyHaveAccount": "Already have an account? Log In",
     "needAccount": "Need an account? Sign Up",
     "loggedIn": "Logged in successfully!",
-    "logOut": "Log Out"
+    "logOut": "Log Out",
+    "consentTitle": "I understand that:",
+    "consentItem1": "My conversation data will be used for English learning research",
+    "consentItem2": "My voice sessions are processed by OpenAI",
+    "consentItem3": "I can delete my data at any time from my account settings",
+    "consentItem4": "This study is approved by the UCM Ethics Committee (ref. 663_CE_20260312_35_HUM)",
+    "consentPrivacyLink": "Read the full Privacy Policy"
   },
   "confirmation": {
     "title": "Check Your Email!",

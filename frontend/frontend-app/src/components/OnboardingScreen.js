@@ -273,12 +273,12 @@ export function OnboardingScreen({ onStart }) {
                   aria-required="true"
                 />
                 <span className="text-base text-gray-800 leading-relaxed">
-                  <strong className="block mb-2 text-gray-900">I understand that:</strong>
+                  <strong className="block mb-2 text-gray-900">{t('auth.consentTitle')}</strong>
                   <ul className="list-disc ml-4 space-y-1 mb-2">
-                    <li>My conversation data will be used for English learning research</li>
-                    <li>My voice sessions are processed by OpenAI</li>
-                    <li>I can delete my data at any time from my account settings</li>
-                    <li>This study is approved by the UCM Ethics Committee (ref. 663_CE_20260312_35_HUM)</li>
+                    <li>{t('auth.consentItem1')}</li>
+                    <li>{t('auth.consentItem2')}</li>
+                    <li>{t('auth.consentItem3')}</li>
+                    <li>{t('auth.consentItem4')}</li>
                   </ul>
                   <a
                     href="/privacy"
@@ -287,7 +287,7 @@ export function OnboardingScreen({ onStart }) {
                     className="text-green-700 underline font-semibold hover:text-green-900"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    Read the full Privacy Policy
+                    {t('auth.consentPrivacyLink')}
                   </a>
                 </span>
               </label>
