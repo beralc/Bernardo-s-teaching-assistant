@@ -77,11 +77,6 @@ def webrtc_session():
                 "audio": {
                     "output": {
                         "voice": voice
-                    },
-                    "input": {
-                        "transcription": {
-                            "model": "gpt-4o-mini-transcribe"
-                        }
                     }
                 },
             }
