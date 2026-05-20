@@ -260,7 +260,7 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
             input_audio_transcription: { model: 'whisper-1' },
             turn_detection: {
               type: 'server_vad',
-              threshold: 0.9,
+              threshold: 0.6,
               prefix_padding_ms: 300,
               silence_duration_ms: 1200
             }
@@ -283,27 +283,63 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
         processor.connect(silentGain);
         silentGain.connect(context.destination);
 
+        // Pre-allocate a silent PCM16 frame (2048 samples of zeros) so we can
+        // cheaply send "no speech" during bot playback without dropping frames.
+        // Dropping frames creates timeline gaps on OpenAI's input buffer; sending
+        // zeros keeps the stream continuous so server VAD reads true silence.
+        const SILENT_FRAME_BYTES = new Uint8Array(new Int16Array(2048).buffer);
+        const SILENT_FRAME_BASE64 = btoa(String.fromCharCode(...SILENT_FRAME_BYTES));
+
+        // Echo-rejection thresholds (RMS on normalized [-1, 1] samples).
+        // - BOT_SPEAKING_RMS_THRESHOLD: user must speak louder than this to
+        //   "punch through" while the bot is playing. Set above expected
+        //   acoustic-echo level from speakers (typical laptop speakers at
+        //   conversational volume produce RMS ~0.01-0.03 at the mic).
+        // - IDLE_RMS_THRESHOLD: light noise gate when bot is silent, prevents
+        //   ambient fan/keyboard noise from triggering VAD.
+        const BOT_SPEAKING_RMS_THRESHOLD = 0.05;
+        const IDLE_RMS_THRESHOLD = 0.005;
+
         processor.onaudioprocess = (event) => {
-          const left = event.inputBuffer.getChannelData(0);
-          const int16Array = new Int16Array(left.length);
-          for (let i = 0; i < left.length; i++) {
-            int16Array[i] = Math.max(-1, Math.min(1, left[i])) * 0x7FFF;
+          if (ws.readyState !== WebSocket.OPEN || !sessionReadyRef.current) {
+            return;
           }
 
-          if (ws.readyState === WebSocket.OPEN && sessionReadyRef.current) {
-            const audioBytes = new Uint8Array(int16Array.buffer);
-            const base64Audio = btoa(String.fromCharCode(...audioBytes));
+          const left = event.inputBuffer.getChannelData(0);
 
-            const audioMessage = JSON.stringify({
-              type: 'input_audio_buffer.append',
-              audio: base64Audio
-            });
+          // Compute RMS energy of this frame (cheap: ~2048 mults+adds).
+          let sumSquares = 0;
+          for (let i = 0; i < left.length; i++) {
+            sumSquares += left[i] * left[i];
+          }
+          const rms = Math.sqrt(sumSquares / left.length);
 
-            try {
-              ws.send(audioMessage);
-            } catch (sendError) {
-              console.error('WebSocket send failed:', sendError);
+          const botSpeaking = isBotSpeakingRef.current;
+          const threshold = botSpeaking ? BOT_SPEAKING_RMS_THRESHOLD : IDLE_RMS_THRESHOLD;
+          const passesGate = rms >= threshold;
+
+          let payload;
+          if (passesGate) {
+            // Real user audio (or loud user interruption) — encode and send.
+            const int16Array = new Int16Array(left.length);
+            for (let i = 0; i < left.length; i++) {
+              int16Array[i] = Math.max(-1, Math.min(1, left[i])) * 0x7FFF;
             }
+            const audioBytes = new Uint8Array(int16Array.buffer);
+            payload = btoa(String.fromCharCode(...audioBytes));
+          } else {
+            // Below gate (likely echo or ambient noise) — send silence to
+            // preserve the input buffer's timeline without feeding VAD.
+            payload = SILENT_FRAME_BASE64;
+          }
+
+          try {
+            ws.send(JSON.stringify({
+              type: 'input_audio_buffer.append',
+              audio: payload
+            }));
+          } catch (sendError) {
+            console.error('WebSocket send failed:', sendError);
           }
         };
       };
