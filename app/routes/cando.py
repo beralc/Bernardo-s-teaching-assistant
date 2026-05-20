@@ -174,7 +174,24 @@ def analyze_session_cando():
             else:
                 user_level = 'A2'
 
-        available_levels = ['A1', 'A2', 'A2+', 'B1', 'B1+', 'B2', 'B2+']
+        # Restrict candidate statements to the learner's level and ONE adjacent
+        # higher level (Krashen's i+1 / ZPD ceiling). Previously this list was
+        # 'A1' .. 'B2+' regardless of learner level, which let GPT award B2
+        # descriptors to A2 users from a 1-minute coffee chat — a research
+        # validity bug. Senior A2 learners should not be receiving B2 Can-Do
+        # statements without an explicit level promotion.
+        LEVEL_LADDER = ['A1', 'A2', 'A2+', 'B1', 'B1+', 'B2', 'B2+']
+        try:
+            user_idx = LEVEL_LADDER.index(user_level)
+        except ValueError:
+            print(f"Unknown user_level '{user_level}', defaulting to A2 window")
+            user_idx = LEVEL_LADDER.index('A2')
+
+        # Window: current level + up to two adjacent rungs above (covers, e.g.,
+        # A2 -> A2+, B1). Includes A1 for A1/A2 users to catch consolidation.
+        low_idx = max(0, user_idx - 1)
+        high_idx = min(len(LEVEL_LADDER) - 1, user_idx + 2)
+        available_levels = LEVEL_LADDER[low_idx:high_idx + 1]
 
         headers = {
             'Authorization': f'Bearer {SUPABASE_SERVICE_KEY}',
@@ -182,12 +199,22 @@ def analyze_session_cando():
         }
 
         level_query = ','.join(available_levels)
+        # Voice sessions only capture the learner's PRODUCTION (speaking +
+        # interaction). Receptive 'listening' descriptors cannot be validly
+        # assessed from a speaking-only transcript and were the source of
+        # spurious B2 awards (e.g. "Can follow complex lines of argument in a
+        # lecture..." awarded after a 1-minute coffee chat). Exclude them.
+        skill_types = ['speaking', 'interaction']
+        skill_query = ','.join(skill_types)
         statements_resp = requests.get(
-            f'{SUPABASE_URL}/rest/v1/cando_statements?level=in.({level_query})&select=id,level,skill_type,descriptor',
+            f'{SUPABASE_URL}/rest/v1/cando_statements'
+            f'?level=in.({level_query})'
+            f'&skill_type=in.({skill_query})'
+            f'&select=id,level,skill_type,descriptor',
             headers=headers
         )
 
-        print(f"Querying Can-Do statements for levels: {level_query}")
+        print(f"Querying Can-Do statements for levels: {level_query} | skills: {skill_query} | user_level: {user_level}")
 
         if statements_resp.status_code != 200:
             return jsonify({"error": "Failed to fetch Can-Do statements"}), 500
@@ -274,27 +301,43 @@ def analyze_transcript_with_gpt(transcript, statements, user_level):
         prompt = f"""You are an expert CEFR language assessor analyzing a learner's English conversation transcript for a PhD research project on senior language learners.
 
 The learner's assigned level is: {user_level}
-IMPORTANT: The learner may demonstrate capabilities ABOVE this assigned level. Recognize ALL achievements.
+The candidate Can-Do statements below have already been pre-filtered to the
+learner's level (and at most two adjacent rungs above). Do NOT award statements
+outside this candidate list.
 
-Analyze the conversation transcript and identify which Can-Do statements the learner has DEMONSTRATED through their language production.
+Analyze the conversation transcript and identify which Can-Do statements the
+learner has UNAMBIGUOUSLY DEMONSTRATED through their own language production
+(USER turns only). The assistant/teacher turns are context — they are NEVER
+evidence of learner ability.
 
-ASSESSMENT CRITERIA:
-- The learner must have PRODUCED the language (speaking/interaction), not just comprehended it
-- Look for evidence of the capability described in the Can-Do statement
-- The learner may perform ABOVE their assigned level - recognize this
-- Use confidence scores to indicate strength of evidence (0.6+ = demonstrated, 0.8+ = clearly demonstrated, 0.95+ = exceptionally demonstrated)
-- Focus on what the learner ACTUALLY DID in the conversation
+ASSESSMENT CRITERIA (be conservative — false positives invalidate research):
+- Award a statement ONLY if the USER turns contain concrete, productive
+  evidence that meets the full descriptor. Comprehending the teacher does not
+  count as evidence.
+- Each award MUST quote at least one verbatim USER utterance from the
+  transcript as evidence. If you cannot quote a user utterance that
+  demonstrates the descriptor, do not award it.
+- A short, simple conversation (e.g. < 6 user turns or < ~60 seconds of
+  speech) can demonstrate at most 1-2 statements. Do not pad.
+- Do NOT award descriptors that describe LISTENING comprehension,
+  documentaries, lectures, reading, or writing — this is a speaking session.
+- Confidence scale (strict): 0.80 = clearly demonstrated, 0.90 = strongly
+  demonstrated, 0.95+ = exceptionally demonstrated. Anything below 0.80 is
+  insufficient evidence — do not include it.
+- If there is NO clear evidence, return an empty array. An empty array is the
+  correct, expected outcome for short or off-topic conversations.
 
 TRANSCRIPT:
 {transcript}
 
-CAN-DO STATEMENTS TO EVALUATE:
+CAN-DO STATEMENTS TO EVALUATE (pre-filtered to learner's level window):
 {statements_text}
 
-For each Can-Do statement demonstrated in the transcript, respond with:
+For each Can-Do statement clearly demonstrated by USER turns, respond with:
 1. The statement ID (in brackets from above)
-2. Confidence score (0.6-1.0, where 0.6 = minimal evidence, 1.0 = perfect demonstration)
-3. A brief excerpt from the transcript showing the evidence (max 100 words)
+2. Confidence score (0.80-1.0)
+3. A verbatim quote of the USER utterance(s) that demonstrate the capability
+   (max 100 words; must come from a USER turn, not the assistant)
 
 Respond in JSON format:
 {{
@@ -302,12 +345,13 @@ Respond in JSON format:
     {{
       "cando_id": "uuid-here",
       "confidence": 0.85,
-      "evidence": "Brief excerpt from transcript that demonstrates this capability..."
+      "evidence": "Verbatim USER quote(s) demonstrating this capability..."
     }}
   ]
 }}
 
-Include any statement with confidence >= 0.6. If no statements were demonstrated, return an empty array."""
+Include only statements with confidence >= 0.80. If no statements were
+clearly demonstrated, return an empty array."""
 
         response = openai_client.chat.completions.create(
             model="gpt-4o-mini",

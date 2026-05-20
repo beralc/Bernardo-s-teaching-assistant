@@ -251,11 +251,27 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
       webSocketRef.current = ws;
 
       ws.onopen = () => {
-        // Configure turn detection via session.update (required for GA API)
+        // Configure turn detection AND user-audio transcription via session.update.
+        // CRITICAL (research validity): without `audio.input.transcription`, the
+        // OpenAI Realtime GA API will NOT emit
+        // `conversation.item.input_audio_transcription.completed`, which means
+        // user utterances are never persisted to the `transcriptions` /
+        // `conversation_messages` tables. Only assistant turns get saved, and
+        // the SLA / feedback analyses in cando.py + feedback.py operate on an
+        // incomplete transcript. See OpenAI GA Realtime docs (May 2026) — the
+        // nested `audio.input.transcription` shape is required; the legacy
+        // top-level `input_audio_transcription` is ignored by GA.
         ws.send(JSON.stringify({
           type: 'session.update',
           session: {
             type: 'realtime',
+            audio: {
+              input: {
+                transcription: {
+                  model: 'whisper-1'
+                }
+              }
+            },
             turn_detection: {
               type: 'server_vad',
               threshold: 0.6,
