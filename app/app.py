@@ -6,11 +6,12 @@ sys.path.insert(0, os.path.dirname(__file__))
 
 from flask import Flask
 from flask_cors import CORS
+from config import SECRET_KEY
 
 
 def create_app():
     app = Flask(__name__)
-    app.secret_key = "your_secure_secret_key"
+    app.secret_key = SECRET_KEY
 
     CORS(app, resources={
         r"/*": {
