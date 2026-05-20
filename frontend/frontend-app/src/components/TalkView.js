@@ -246,6 +246,7 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
         ws.send(JSON.stringify({
           type: 'session.update',
           session: {
+            type: 'realtime',
             turn_detection: {
               type: 'server_vad',
               threshold: 0.6,
@@ -373,7 +374,6 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
             const responseRequest = {
               type: 'response.create',
               response: {
-                modalities: ['audio', 'text'],
                 instructions: `Following ALL your existing system instructions (especially: respond ONLY in English, never in Spanish, French or any other language), start the conversation about "${selectedTopic.title}" by greeting the user and introducing the topic in a friendly, engaging way. Ask an opening question to get them talking.`
               }
             };
