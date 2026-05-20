@@ -236,8 +236,7 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
         websocket_url,
         [
           "realtime",
-          `openai-insecure-api-key.${ephemeral_token}`,
-          "openai-beta.realtime-v1"
+          `openai-insecure-api-key.${ephemeral_token}`
         ]
       );
       webSocketRef.current = ws;

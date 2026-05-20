@@ -49,31 +49,40 @@ def webrtc_session():
 
         instructions_str = json.dumps(prompt_data)
 
-        # Using mini version for ~75% cost savings on audio
-        realtime_model_name = "gpt-4o-mini-realtime-preview"
+        # GA Realtime API - gpt-realtime-mini for cost efficiency
+        realtime_model_name = "gpt-realtime-mini"
 
-        url = "https://api.openai.com/v1/realtime/sessions"
+        url = "https://api.openai.com/v1/realtime/client_secrets"
         headers = {
             "Authorization": f"Bearer {OPENAI_API_KEY}",
             "Content-Type": "application/json"
         }
         body = {
-            "model": realtime_model_name,
-            "voice": voice,
-            "modalities": ["audio", "text"],
-            "instructions": instructions_str,
-            "input_audio_format": "pcm16",
-            "output_audio_format": "pcm16",
-            "input_audio_transcription": {
-                "model": "whisper-1"
-            },
-            "turn_detection": {
-                "type": "server_vad",
-                "threshold": 0.6,
-                "prefix_padding_ms": 300,
-                "silence_duration_ms": 1200,
-                "create_response": True,
-                "interrupt_response": True
+            "session": {
+                "type": "realtime",
+                "model": realtime_model_name,
+                "modalities": ["audio", "text"],
+                "instructions": instructions_str,
+                "audio": {
+                    "input": {
+                        "format": "pcm16",
+                        "transcription": {
+                            "model": "whisper-1"
+                        }
+                    },
+                    "output": {
+                        "voice": voice,
+                        "format": "pcm16"
+                    }
+                },
+                "turn_detection": {
+                    "type": "server_vad",
+                    "threshold": 0.6,
+                    "prefix_padding_ms": 300,
+                    "silence_duration_ms": 1200,
+                    "create_response": True,
+                    "interrupt_response": True
+                }
             }
         }
 
@@ -81,14 +90,9 @@ def webrtc_session():
         resp.raise_for_status()
         session_json = resp.json()
 
-        print(f"OpenAI Realtime API session_json response: {session_json}")
+        print(f"OpenAI Realtime API client_secret response: {session_json}")
 
-        session_id = session_json.get('id')
         ephemeral_token = session_json.get('client_secret', {}).get('value')
-
-        if not session_id:
-            print(f"Error: Session ID not found in OpenAI response. Full response: {session_json}")
-            return jsonify({"error": "Session ID not found in OpenAI response"}), 500
 
         if not ephemeral_token:
             print(f"Error: Ephemeral token not found in OpenAI response. Full response: {session_json}")
@@ -98,7 +102,6 @@ def webrtc_session():
         print(f"Constructed WebSocket URL: {websocket_url}")
 
         return jsonify({
-            "session_id": session_id,
             "websocket_url": websocket_url,
             "ephemeral_token": ephemeral_token
         })
