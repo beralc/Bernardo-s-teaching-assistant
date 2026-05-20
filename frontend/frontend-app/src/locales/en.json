@@ -307,6 +307,12 @@
       "title": "Welcome to Bernardo's English Helper!",
       "body": "This is your safe and friendly space to practice speaking English. You will talk with an AI assistant — it is patient, friendly, and always ready to chat."
     },
+    "tour": {
+      "topicsTitle": "Conversation Starters",
+      "topicsBody": "Tap the Starters tab to pick a topic — daily life, travel, food, and more. It gives you something to talk about right away.",
+      "micTitle": "The Green Button",
+      "micBody": "Tap the big green button and start speaking. The assistant listens and replies in English. Take your time — no rush."
+    },
     "howItWorks": {
       "title": "How does it work?",
       "step1": "Choose a topic you like",

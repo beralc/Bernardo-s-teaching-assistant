@@ -9,7 +9,7 @@ import { ConversationStartersView } from "./components/ConversationStartersView"
 import { ProgressView } from "./components/ProgressView";
 import { AdminView } from "./components/AdminView";
 import { AccountModal } from "./components/AccountModal";
-import { OnboardingModal, hasCompletedOnboarding } from "./components/OnboardingModal";
+import { AppTour, hasCompletedTour } from "./components/AppTour";
 import { NavButton } from "./components/NavButton";
 import { AppIcon, UserIcon, MicIcon, BookIcon, ChartIcon, AdminIcon } from "./components/icons";
 import { PrivacyPolicy } from "./components/PrivacyPolicy";
@@ -66,8 +66,8 @@ function AuthGate() {
 // --- Main App Component (logged in state) ---
 function MainApp() {
   const [tab, setTab] = useState("talk"); // "talk" | "starters" | "progress" | "admin"
-  // Show the onboarding modal on first login — hidden once the user completes or skips it.
-  const [showOnboarding, setShowOnboarding] = useState(() => !hasCompletedOnboarding());
+  // Show the tour after loadUserInfo resolves — keyed per user so new accounts always see it.
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const [contrast, setContrast] = useState(false);
   const [fontStep, setFontStep] = useState(1); // 0..2 for Small, Medium, Large
   const [showAccountModal, setShowAccountModal] = useState(false);
@@ -108,6 +108,7 @@ function MainApp() {
         id: user.id,
         createdAt: new Date(user.created_at).toLocaleDateString()
       });
+      if (!hasCompletedTour(user.id)) setShowOnboarding(true);
 
       // Load profile data including avatar and admin status
       const { data: profile, error: profileError } = await supabase
@@ -239,9 +240,9 @@ function MainApp() {
         </div>
       </nav>
 
-      {/* Onboarding Modal — shown once after first login, then permanently dismissed */}
+      {/* App Tour — shown once per user after first login, keyed by Supabase user ID */}
       {showOnboarding && (
-        <OnboardingModal onComplete={() => setShowOnboarding(false)} />
+        <AppTour userId={userInfo?.id} onComplete={() => setShowOnboarding(false)} />
       )}
 
       {/* Account Modal */}
