@@ -44,6 +44,7 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
   const autoStartRequestedRef = useRef(false);
   const audioChunkCountRef = useRef(0);
   const conversationRef = useRef([]);
+  const sessionReadyRef = useRef(false);
 
   const updateConversation = (updater) => {
     setConversation(prev => {
@@ -190,6 +191,7 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
       setElapsedSeconds(0);
       nextPlayTimeRef.current = 0;
       audioChunkCountRef.current = 0;
+      sessionReadyRef.current = false;
 
       await startSession(selectedTopic);
 
@@ -311,7 +313,7 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
             int16Array[i] = Math.max(-1, Math.min(1, left[i])) * 0x7FFF;
           }
 
-          if (ws.readyState === WebSocket.OPEN) {
+          if (ws.readyState === WebSocket.OPEN && sessionReadyRef.current) {
             const audioBytes = new Uint8Array(int16Array.buffer);
             const base64Audio = btoa(String.fromCharCode(...audioBytes));
 
@@ -408,6 +410,9 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
           currentResponseTextRef.current = '';
 
         } else if (data.type === 'session.created' || data.type === 'session.updated') {
+          if (data.type === 'session.updated') {
+            sessionReadyRef.current = true;
+          }
           if (data.type === 'session.created' && selectedTopic) {
             const responseRequest = {
               type: 'response.create',
