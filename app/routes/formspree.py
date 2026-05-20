@@ -97,8 +97,7 @@ def formspree_webhook():
     to the submitter via Resend.
     """
     if not RESEND_API_KEY:
-        print("RESEND_API_KEY not set — skipping email")
-        return jsonify({"ok": True}), 200
+        return jsonify({"ok": False, "error": "RESEND_API_KEY not configured"}), 200
 
     try:
         data = request.json or {}
@@ -108,8 +107,7 @@ def formspree_webhook():
         language = detect_language(data)
 
         if not email:
-            print("Formspree webhook: no email in payload, skipping")
-            return jsonify({"ok": True}), 200
+            return jsonify({"ok": False, "error": "no email in payload"}), 200
 
         first, subject, html = build_email(name, language)
 
@@ -130,11 +128,11 @@ def formspree_webhook():
 
         if resp.status_code in (200, 201, 202):
             print(f"Invitation email sent to {email} ({language})")
+            return jsonify({"ok": True, "email": email, "language": language}), 200
         else:
             print(f"Resend error {resp.status_code}: {resp.text}")
+            return jsonify({"ok": False, "resend_status": resp.status_code, "resend_error": resp.text}), 200
 
     except Exception as e:
         print(f"formspree_webhook error: {e}")
-
-    # Always return 200 so Formspree doesn't retry indefinitely
-    return jsonify({"ok": True}), 200
+        return jsonify({"ok": False, "error": str(e)}), 200
