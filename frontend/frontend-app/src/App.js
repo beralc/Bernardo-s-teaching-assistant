@@ -101,7 +101,9 @@ function MainApp() {
 
   // Load user information and avatar
   const loadUserInfo = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
+    // Use getSession (local, instant) for the tour check, then getUser for verified profile data.
+    const { data: { session } } = await supabase.auth.getSession();
+    const user = session?.user;
     if (user) {
       setUserInfo({
         email: user.email,
