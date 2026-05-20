@@ -172,7 +172,8 @@
     "errors": {
       "listening": "Error during listening. Please try again.",
       "general": "Error occurred. Please try again.",
-      "connection": "Connection error. Please check your internet and try again."
+      "connection": "Connection error. Please check your internet and try again.",
+      "tryAgain": "Go ahead, I'm listening..."
     },
     "timer": {
       "remaining": "{minutes} min remaining",

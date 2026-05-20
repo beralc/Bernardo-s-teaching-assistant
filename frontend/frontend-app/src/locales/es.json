@@ -172,7 +172,8 @@
     "errors": {
       "listening": "Error al escuchar. Por favor, inténtalo de nuevo.",
       "general": "Ha ocurrido un error. Por favor, inténtalo de nuevo.",
-      "connection": "Error de conexión. Por favor, comprueba tu internet e inténtalo de nuevo."
+      "connection": "Error de conexión. Por favor, comprueba tu internet e inténtalo de nuevo.",
+      "tryAgain": "Adelante, te escucho..."
     },
     "timer": {
       "remaining": "{minutes} min restantes",
