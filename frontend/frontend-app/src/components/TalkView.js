@@ -266,14 +266,7 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
         ws.send(JSON.stringify({
           type: 'session.update',
           session: {
-            type: 'realtime',
-            audio: {
-              input: {
-                transcription: {
-                  model: 'whisper-1'
-                }
-              }
-            },
+            input_audio_transcription: { model: 'whisper-1' },
             turn_detection: {
               type: 'server_vad',
               threshold: 0.6,
