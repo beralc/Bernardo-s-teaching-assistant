@@ -253,18 +253,6 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
       webSocketRef.current = ws;
 
       ws.onopen = () => {
-        // Configure turn detection AND user-audio transcription via session.update.
-        // CRITICAL (research validity): without `audio.input.transcription`, the
-        // OpenAI Realtime GA API will NOT emit
-        // `conversation.item.input_audio_transcription.completed`, which means
-        // user utterances are never persisted to the `transcriptions` /
-        // `conversation_messages` tables. Only assistant turns get saved, and
-        // the SLA / feedback analyses in cando.py + feedback.py operate on an
-        // incomplete transcript. See OpenAI GA Realtime docs (May 2026) — the
-        // nested `audio.input.transcription` shape is required; the legacy
-        // top-level `input_audio_transcription` is ignored by GA.
-        // session.update is sent on open; audio is gated on session.created to avoid
-        // sending chunks before OpenAI has finished setting up the session.
         ws.send(JSON.stringify({
           type: 'session.update',
           session: {
@@ -274,9 +262,7 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
               type: 'server_vad',
               threshold: 0.6,
               prefix_padding_ms: 300,
-              silence_duration_ms: 1200,
-              create_response: true,
-              interrupt_response: true
+              silence_duration_ms: 1200
             }
           }
         }));
@@ -298,11 +284,6 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
         silentGain.connect(context.destination);
 
         processor.onaudioprocess = (event) => {
-          // Gate: send silence while the bot is playing to prevent its audio
-          // (picked up by the mic) from being sent as user speech.  The 300 ms
-          // tail in playNextChunk lets room reflections decay before we reopen.
-          if (isBotSpeakingRef.current) return;
-
           const left = event.inputBuffer.getChannelData(0);
           const int16Array = new Int16Array(left.length);
           for (let i = 0; i < left.length; i++) {
