@@ -275,11 +275,13 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
         scriptProcessorRef.current = processor;
 
         source.connect(processor);
-        // Do NOT connect processor to context.destination.
-        // Routing mic audio to the speakers would create an acoustic loop and
-        // give the browser AEC no stable reference signal to work against.
-        // The processor is wired only to capture; bot audio plays through its
-        // own separate BufferSource nodes that DO connect to destination.
+        // ScriptProcessorNode must be connected to destination to stay alive
+        // and keep firing onaudioprocess. A silent GainNode (gain=0) satisfies
+        // the browser's graph requirement without routing mic audio to speakers.
+        const silentGain = context.createGain();
+        silentGain.gain.value = 0;
+        processor.connect(silentGain);
+        silentGain.connect(context.destination);
 
         processor.onaudioprocess = (event) => {
           // Gate: send silence while the bot is playing to prevent its audio
