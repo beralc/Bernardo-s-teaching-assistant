@@ -18,6 +18,7 @@ def create_app():
             "origins": [
                 "https://bernardo-s-teaching-assistant.vercel.app",
                 "https://englishhelper.bernardomorales.com",
+                "https://invitation-englishhelper.bernardomorales.com",
                 "http://localhost:3000",
                 "http://127.0.0.1:3000"
             ],
