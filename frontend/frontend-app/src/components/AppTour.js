@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useLanguage } from '../LanguageContext';
 
-const TOUR_KEY_PREFIX = 'app-tour-complete-v2';
+const TOUR_KEY_PREFIX = 'app-tour-complete-v3';
 
 export function getTourKey(userId) {
   return `${TOUR_KEY_PREFIX}-${userId}`;
