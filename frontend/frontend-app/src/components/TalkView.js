@@ -283,63 +283,35 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
         processor.connect(silentGain);
         silentGain.connect(context.destination);
 
-        // Pre-allocate a silent PCM16 frame (2048 samples of zeros) so we can
-        // cheaply send "no speech" during bot playback without dropping frames.
-        // Dropping frames creates timeline gaps on OpenAI's input buffer; sending
-        // zeros keeps the stream continuous so server VAD reads true silence.
-        const SILENT_FRAME_BYTES = new Uint8Array(new Int16Array(2048).buffer);
-        const SILENT_FRAME_BASE64 = btoa(String.fromCharCode(...SILENT_FRAME_BYTES));
-
-        // Echo-rejection thresholds (RMS on normalized [-1, 1] samples).
-        // - BOT_SPEAKING_RMS_THRESHOLD: user must speak louder than this to
-        //   "punch through" while the bot is playing. Set above expected
-        //   acoustic-echo level from speakers (typical laptop speakers at
-        //   conversational volume produce RMS ~0.01-0.03 at the mic).
-        // - IDLE_RMS_THRESHOLD: light noise gate when bot is silent, prevents
-        //   ambient fan/keyboard noise from triggering VAD.
+        // RMS threshold for punch-through interruption during bot speech.
+        // Bot echo at laptop speaker volume is typically RMS 0.01–0.03 at mic.
+        // Deliberate speech easily exceeds 0.05.
         const BOT_SPEAKING_RMS_THRESHOLD = 0.05;
-        const IDLE_RMS_THRESHOLD = 0.005;
 
         processor.onaudioprocess = (event) => {
-          if (ws.readyState !== WebSocket.OPEN || !sessionReadyRef.current) {
-            return;
-          }
+          if (ws.readyState !== WebSocket.OPEN || !sessionReadyRef.current) return;
 
           const left = event.inputBuffer.getChannelData(0);
 
-          let payload;
+          // During bot speech, drop frames that are just echo.
+          // Dropping (not sending silence) is correct here: gaps during bot
+          // playback don't affect transcription because Whisper only runs on
+          // committed buffers, which only happen during the user's own turns.
           if (isBotSpeakingRef.current) {
-            // Bot is playing — gate the mic to suppress echo.
-            // Only pass frames where user is clearly speaking louder than echo.
             let sumSquares = 0;
-            for (let i = 0; i < left.length; i++) {
-              sumSquares += left[i] * left[i];
-            }
+            for (let i = 0; i < left.length; i++) sumSquares += left[i] * left[i];
             const rms = Math.sqrt(sumSquares / left.length);
-
-            if (rms >= BOT_SPEAKING_RMS_THRESHOLD) {
-              const int16Array = new Int16Array(left.length);
-              for (let i = 0; i < left.length; i++) {
-                int16Array[i] = Math.max(-1, Math.min(1, left[i])) * 0x7FFF;
-              }
-              payload = btoa(String.fromCharCode(...new Uint8Array(int16Array.buffer)));
-            } else {
-              payload = SILENT_FRAME_BASE64;
-            }
-          } else {
-            // Bot is silent — send all audio unmodified so Whisper gets clean input.
-            const int16Array = new Int16Array(left.length);
-            for (let i = 0; i < left.length; i++) {
-              int16Array[i] = Math.max(-1, Math.min(1, left[i])) * 0x7FFF;
-            }
-            payload = btoa(String.fromCharCode(...new Uint8Array(int16Array.buffer)));
+            if (rms < BOT_SPEAKING_RMS_THRESHOLD) return;
           }
 
+          const int16Array = new Int16Array(left.length);
+          for (let i = 0; i < left.length; i++) {
+            int16Array[i] = Math.max(-1, Math.min(1, left[i])) * 0x7FFF;
+          }
+          const base64Audio = btoa(String.fromCharCode(...new Uint8Array(int16Array.buffer)));
+
           try {
-            ws.send(JSON.stringify({
-              type: 'input_audio_buffer.append',
-              audio: payload
-            }));
+            ws.send(JSON.stringify({ type: 'input_audio_buffer.append', audio: base64Audio }));
           } catch (sendError) {
             console.error('WebSocket send failed:', sendError);
           }
