@@ -51,6 +51,7 @@ export function AdminView({ cardTheme, subtleText, fontSizes, contrast }) {
   const [researchEndDate, setResearchEndDate] = useState('');
 
   const [vadThreshold, setVadThreshold] = useState(0.85);
+  const [silenceDurationMs, setSilenceDurationMs] = useState(800);
   const [savingConfig, setSavingConfig] = useState(false);
 
   useEffect(() => {
@@ -75,6 +76,7 @@ export function AdminView({ cardTheme, subtleText, fontSizes, contrast }) {
     if (resp.ok) {
       const cfg = await resp.json();
       if (cfg.vad_threshold !== undefined) setVadThreshold(parseFloat(cfg.vad_threshold));
+      if (cfg.silence_duration_ms !== undefined) setSilenceDurationMs(parseInt(cfg.silence_duration_ms));
     }
   };
 
@@ -84,7 +86,7 @@ export function AdminView({ cardTheme, subtleText, fontSizes, contrast }) {
     const resp = await fetch(`${API_BASE_URL}/admin/config`, {
       method: 'PATCH',
       headers: { 'Authorization': `Bearer ${session.access_token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ vad_threshold: vadThreshold })
+      body: JSON.stringify({ vad_threshold: vadThreshold, silence_duration_ms: silenceDurationMs })
     });
     setSavingConfig(false);
     if (resp.ok) {
@@ -1665,6 +1667,29 @@ export function AdminView({ cardTheme, subtleText, fontSizes, contrast }) {
               </div>
               <p className={`${subtleText} text-sm mt-3`}>
                 Higher = less likely to trigger on background noise or echo. Lower = picks up quieter speech more easily. Current default: 0.85.
+              </p>
+            </div>
+
+            <div>
+              <div className="flex justify-between items-center mb-2">
+                <label className={`font-semibold ${fontSizes.base}`}>Silence Duration</label>
+                <span className={`font-mono font-bold text-green-600 ${fontSizes.lg}`}>{silenceDurationMs} ms</span>
+              </div>
+              <input
+                type="range"
+                min="500"
+                max="2000"
+                step="100"
+                value={silenceDurationMs}
+                onChange={(e) => setSilenceDurationMs(parseInt(e.target.value))}
+                className="w-full accent-green-600"
+              />
+              <div className={`flex justify-between ${subtleText} text-xs mt-1`}>
+                <span>500ms — responds quickly</span>
+                <span>2000ms — waits longer</span>
+              </div>
+              <p className={`${subtleText} text-sm mt-3`}>
+                How long after you stop speaking before the AI responds. Increase if it cuts you off mid-thought. Current default: 800ms.
               </p>
             </div>
 
