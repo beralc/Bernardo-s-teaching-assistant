@@ -202,7 +202,7 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 120000);
 
-      let sessionResponse, websocket_url, ephemeral_token;
+      let sessionResponse, websocket_url, ephemeral_token, vadThreshold = 0.85;
       try {
         const { data: { user } } = await supabase.auth.getUser();
 
@@ -227,6 +227,7 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
         const responseData = await sessionResponse.json();
         websocket_url = responseData.websocket_url;
         ephemeral_token = responseData.ephemeral_token;
+        vadThreshold = responseData.vad_threshold ?? 0.85;
       } catch (fetchError) {
         clearTimeout(timeoutId);
         setConnectingToBackend(false);
@@ -253,7 +254,7 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
           session: {
             turn_detection: {
               type: 'server_vad',
-              threshold: 0.85,
+              threshold: vadThreshold,
               prefix_padding_ms: 300,
               silence_duration_ms: 800,
               create_response: true

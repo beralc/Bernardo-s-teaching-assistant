@@ -199,6 +199,53 @@ def admin_reset_password(user_id):
         return jsonify({"error": str(e)}), 500
 
 
+@admin_bp.route("/admin/config", methods=["GET"])
+def admin_get_config():
+    try:
+        auth_header = request.headers.get('Authorization')
+        if not auth_header or not auth_header.startswith('Bearer '):
+            return jsonify({"error": "Unauthorized"}), 401
+        user_token = auth_header.split(' ')[1]
+        _, error = verify_admin(user_token)
+        if error:
+            return jsonify({"error": error}), 403 if "Forbidden" in error else 401
+
+        headers = {'Authorization': f'Bearer {SUPABASE_SERVICE_KEY}', 'apikey': SUPABASE_SERVICE_KEY}
+        resp = requests.get(f'{SUPABASE_URL}/rest/v1/app_config?select=key,value', headers=headers)
+        rows = resp.json() if resp.status_code == 200 else []
+        config = {r['key']: r['value'] for r in rows}
+        return jsonify(config)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@admin_bp.route("/admin/config", methods=["PATCH"])
+def admin_update_config():
+    try:
+        auth_header = request.headers.get('Authorization')
+        if not auth_header or not auth_header.startswith('Bearer '):
+            return jsonify({"error": "Unauthorized"}), 401
+        user_token = auth_header.split(' ')[1]
+        _, error = verify_admin(user_token)
+        if error:
+            return jsonify({"error": error}), 403 if "Forbidden" in error else 401
+
+        data = request.json or {}
+        headers = {
+            'Authorization': f'Bearer {SUPABASE_SERVICE_KEY}',
+            'apikey': SUPABASE_SERVICE_KEY,
+            'Content-Type': 'application/json',
+            'Prefer': 'resolution=merge-duplicates'
+        }
+        rows = [{"key": k, "value": str(v)} for k, v in data.items()]
+        resp = requests.post(f'{SUPABASE_URL}/rest/v1/app_config', headers=headers, json=rows)
+        if resp.status_code not in (200, 201, 204):
+            return jsonify({"error": resp.text}), 500
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 @admin_bp.route("/admin/users/<user_id>/tier", methods=["PATCH"])
 def admin_update_tier(user_id):
     """

@@ -37,13 +37,13 @@ def webrtc_session():
 
         # Fetch user's voice preference from Supabase
         voice = DEFAULT_VOICE
+        supabase_headers = {
+            "apikey": SUPABASE_SERVICE_KEY,
+            "Authorization": f"Bearer {SUPABASE_SERVICE_KEY}",
+            "Content-Type": "application/json"
+        }
         if user_id and SUPABASE_URL and SUPABASE_SERVICE_KEY:
             try:
-                supabase_headers = {
-                    "apikey": SUPABASE_SERVICE_KEY,
-                    "Authorization": f"Bearer {SUPABASE_SERVICE_KEY}",
-                    "Content-Type": "application/json"
-                }
                 profile_response = requests.get(
                     f"{SUPABASE_URL}/rest/v1/profiles?id=eq.{user_id}&select=voice_preference",
                     headers=supabase_headers
@@ -109,9 +109,25 @@ def webrtc_session():
         websocket_url = f"wss://api.openai.com/v1/realtime?model={realtime_model_name}"
         print(f"Constructed WebSocket URL: {websocket_url}")
 
+        # Fetch global VAD threshold from app_config
+        vad_threshold = 0.85
+        if SUPABASE_URL and SUPABASE_SERVICE_KEY:
+            try:
+                config_resp = requests.get(
+                    f"{SUPABASE_URL}/rest/v1/app_config?key=eq.vad_threshold&select=value",
+                    headers=supabase_headers
+                )
+                if config_resp.status_code == 200:
+                    rows = config_resp.json()
+                    if rows:
+                        vad_threshold = float(rows[0]['value'])
+            except Exception as e:
+                print(f"Error fetching vad_threshold: {e}")
+
         return jsonify({
             "websocket_url": websocket_url,
-            "ephemeral_token": ephemeral_token
+            "ephemeral_token": ephemeral_token,
+            "vad_threshold": vad_threshold
         })
 
     except requests.exceptions.HTTPError as http_err:

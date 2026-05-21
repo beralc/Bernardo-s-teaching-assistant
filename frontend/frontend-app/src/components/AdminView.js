@@ -50,6 +50,9 @@ export function AdminView({ cardTheme, subtleText, fontSizes, contrast }) {
   const [researchStartDate, setResearchStartDate] = useState('');
   const [researchEndDate, setResearchEndDate] = useState('');
 
+  const [vadThreshold, setVadThreshold] = useState(0.85);
+  const [savingConfig, setSavingConfig] = useState(false);
+
   useEffect(() => {
     if (activeTab === 'codes') {
       loadCodes();
@@ -59,8 +62,38 @@ export function AdminView({ cardTheme, subtleText, fontSizes, contrast }) {
       loadAllUsers();
     } else if (activeTab === 'cando') {
       loadCandoUsers();
+    } else if (activeTab === 'settings') {
+      loadConfig();
     }
   }, [activeTab]);
+
+  const loadConfig = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    const resp = await fetch(`${API_BASE_URL}/admin/config`, {
+      headers: { 'Authorization': `Bearer ${session.access_token}` }
+    });
+    if (resp.ok) {
+      const cfg = await resp.json();
+      if (cfg.vad_threshold !== undefined) setVadThreshold(parseFloat(cfg.vad_threshold));
+    }
+  };
+
+  const saveConfig = async () => {
+    setSavingConfig(true);
+    const { data: { session } } = await supabase.auth.getSession();
+    const resp = await fetch(`${API_BASE_URL}/admin/config`, {
+      method: 'PATCH',
+      headers: { 'Authorization': `Bearer ${session.access_token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ vad_threshold: vadThreshold })
+    });
+    setSavingConfig(false);
+    if (resp.ok) {
+      setMessage('Settings saved. Takes effect on next voice session.');
+      setTimeout(() => setMessage(''), 4000);
+    } else {
+      setMessage('Error saving settings.');
+    }
+  };
 
   const loadCodes = async () => {
     setLoading(true);
@@ -1152,7 +1185,7 @@ export function AdminView({ cardTheme, subtleText, fontSizes, contrast }) {
       </div>
 
       <div className="flex gap-2 border-b border-gray-200 dark:border-gray-700 overflow-x-auto">
-        {['codes', 'conversations', 'users', 'cando', 'export'].map(tab => (
+        {['codes', 'conversations', 'users', 'cando', 'export', 'settings'].map(tab => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -1162,7 +1195,7 @@ export function AdminView({ cardTheme, subtleText, fontSizes, contrast }) {
                 : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
             }`}
           >
-            {tab === 'codes' ? 'Invitation Codes' : tab === 'conversations' ? 'User Conversations' : tab === 'users' ? 'Users' : tab === 'cando' ? 'Can-Do' : 'Research Data'}
+            {tab === 'codes' ? 'Invitation Codes' : tab === 'conversations' ? 'User Conversations' : tab === 'users' ? 'Users' : tab === 'cando' ? 'Can-Do' : tab === 'export' ? 'Research Data' : 'Settings'}
           </button>
         ))}
       </div>
@@ -1604,6 +1637,45 @@ export function AdminView({ cardTheme, subtleText, fontSizes, contrast }) {
               )}
             </>
           )}
+        </div>
+      )}
+      {activeTab === 'settings' && (
+        <div className={`rounded-2xl border p-6 ${cardTheme}`}>
+          <h3 className={`font-bold ${fontSizes.xl} mb-2`}>Voice Settings</h3>
+          <p className={`${subtleText} mb-8`}>Changes take effect on the next voice session.</p>
+
+          <div className="max-w-md space-y-6">
+            <div>
+              <div className="flex justify-between items-center mb-2">
+                <label className={`font-semibold ${fontSizes.base}`}>VAD Sensitivity Threshold</label>
+                <span className={`font-mono font-bold text-green-600 ${fontSizes.lg}`}>{vadThreshold.toFixed(2)}</span>
+              </div>
+              <input
+                type="range"
+                min="0.50"
+                max="0.95"
+                step="0.05"
+                value={vadThreshold}
+                onChange={(e) => setVadThreshold(parseFloat(e.target.value))}
+                className="w-full accent-green-600"
+              />
+              <div className={`flex justify-between ${subtleText} text-xs mt-1`}>
+                <span>0.50 — very sensitive</span>
+                <span>0.95 — barely triggers</span>
+              </div>
+              <p className={`${subtleText} text-sm mt-3`}>
+                Higher = less likely to trigger on background noise or echo. Lower = picks up quieter speech more easily. Current default: 0.85.
+              </p>
+            </div>
+
+            <button
+              onClick={saveConfig}
+              disabled={savingConfig}
+              className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-semibold py-3 px-8 rounded-xl transition"
+            >
+              {savingConfig ? 'Saving...' : 'Save'}
+            </button>
+          </div>
         </div>
       )}
     </section>
