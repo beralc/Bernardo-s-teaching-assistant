@@ -33,6 +33,8 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
   const mediaStreamRef = useRef(null);
   const webSocketRef = useRef(null);
   const audioContextRef = useRef(null);
+  const speakerDestinationRef = useRef(null);
+  const speakerAudioElRef = useRef(null);
   const scriptProcessorRef = useRef(null);
   const audioQueueRef = useRef([]);
   const isPlayingRef = useRef(false);
@@ -157,7 +159,7 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
 
     const source = audioContextRef.current.createBufferSource();
     source.buffer = audioBuffer;
-    source.connect(audioContextRef.current.destination);
+    source.connect(speakerDestinationRef.current || audioContextRef.current.destination);
 
     const currentTime = audioContextRef.current.currentTime;
     const startTime = nextPlayTimeRef.current <= currentTime
@@ -265,6 +267,16 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
 
         const context = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 24000 });
         audioContextRef.current = context;
+
+        // Route bot audio through an <audio> element so mobile browsers use
+        // the loudspeaker instead of the earpiece.
+        const speakerDest = context.createMediaStreamDestination();
+        speakerDestinationRef.current = speakerDest;
+        const audioEl = new Audio();
+        audioEl.srcObject = speakerDest.stream;
+        audioEl.setAttribute('playsinline', '');
+        audioEl.play().catch(() => {});
+        speakerAudioElRef.current = audioEl;
 
         const source = context.createMediaStreamSource(stream);
         const processor = context.createScriptProcessor(2048, 1, 1);
@@ -426,6 +438,12 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
       mediaStreamRef.current.getTracks().forEach(track => track.stop());
       mediaStreamRef.current = null;
     }
+    if (speakerAudioElRef.current) {
+      speakerAudioElRef.current.pause();
+      speakerAudioElRef.current.srcObject = null;
+      speakerAudioElRef.current = null;
+    }
+    speakerDestinationRef.current = null;
     if (audioContextRef.current) {
       audioContextRef.current.close();
       audioContextRef.current = null;
