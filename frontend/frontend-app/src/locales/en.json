@@ -59,7 +59,8 @@
     "tabs": {
       "personal": "Personal",
       "learning": "Learning",
-      "security": "Security"
+      "security": "Security",
+      "help": "Help"
     },
     "profile": {
       "title": "Your Profile",
@@ -151,7 +152,35 @@
       "empty": "No achievements yet. Start a voice conversation to unlock your first Can-Do statements!",
       "unlocked": "Unlocked"
     },
-    "loading": "Loading account information..."
+    "loading": "Loading account information...",
+    "help": {
+      "faqTitle": "Frequently Asked Questions",
+      "faq": [
+        {
+          "q": "What do I do if it doesn't understand me?",
+          "a": "Speak slowly and close to the microphone. If there's background noise, find a quieter spot. You can always try again — it's perfectly fine."
+        },
+        {
+          "q": "Do I need to speak perfect English?",
+          "a": "Not at all! Mistakes are a normal part of learning. The assistant is patient and will never judge you."
+        },
+        {
+          "q": "Where can I see my progress?",
+          "a": "Tap the 'Progress' button on the bar at the bottom. You'll see how many sessions you've done and which topics you've practised."
+        },
+        {
+          "q": "How do I choose what to talk about?",
+          "a": "Tap 'Starters' on the bar at the bottom. You'll see cards with different topics — pick the one you like most and tap 'Start'."
+        }
+      ],
+      "feedbackTitle": "Send Feedback",
+      "feedbackSubtitle": "Something not working? Got a suggestion? Write to us here.",
+      "feedbackPlaceholder": "Write your message here...",
+      "feedbackSubmit": "Send",
+      "feedbackSending": "Sending...",
+      "feedbackSuccess": "Thank you! We've received your feedback.",
+      "feedbackError": "Could not send. Please try again."
+    }
   },
   "talk": {
     "readyTitle": "Ready to Practice?",

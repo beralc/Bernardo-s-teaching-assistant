@@ -59,7 +59,8 @@
     "tabs": {
       "personal": "Personal",
       "learning": "Aprendizaje",
-      "security": "Seguridad"
+      "security": "Seguridad",
+      "help": "Ayuda"
     },
     "profile": {
       "title": "Tu Perfil",
@@ -151,7 +152,35 @@
       "empty": "Aún no tienes logros. ¡Inicia una conversación de voz para desbloquear tus primeros Can-Do!",
       "unlocked": "Desbloqueado"
     },
-    "loading": "Cargando información de la cuenta..."
+    "loading": "Cargando información de la cuenta...",
+    "help": {
+      "faqTitle": "Preguntas frecuentes",
+      "faq": [
+        {
+          "q": "¿Qué hago si no me entiende?",
+          "a": "Habla despacio y cerca del micrófono. Si hay ruido de fondo, busca un lugar más tranquilo. También puedes intentarlo de nuevo — no pasa nada."
+        },
+        {
+          "q": "¿Tengo que hablar en inglés perfecto?",
+          "a": "¡Para nada! Los errores son parte normal del aprendizaje. El asistente es paciente y nunca te va a juzgar."
+        },
+        {
+          "q": "¿Dónde veo mi progreso?",
+          "a": "Toca el botón 'Progreso' en la barra de abajo. Verás cuántas sesiones has hecho y qué temas has practicado."
+        },
+        {
+          "q": "¿Cómo elijo de qué hablar?",
+          "a": "Toca 'Temas' en la barra de abajo. Verás tarjetas con diferentes temas — elige el que más te guste y toca 'Empezar'."
+        }
+      ],
+      "feedbackTitle": "Enviar comentarios",
+      "feedbackSubtitle": "¿Algo no funciona bien? ¿Tienes alguna sugerencia? Escríbenos aquí.",
+      "feedbackPlaceholder": "Escribe tu mensaje aquí...",
+      "feedbackSubmit": "Enviar",
+      "feedbackSending": "Enviando...",
+      "feedbackSuccess": "¡Gracias! Hemos recibido tus comentarios.",
+      "feedbackError": "No se pudo enviar. Por favor, inténtalo de nuevo."
+    }
   },
   "talk": {
     "readyTitle": "¿Listo para practicar?",

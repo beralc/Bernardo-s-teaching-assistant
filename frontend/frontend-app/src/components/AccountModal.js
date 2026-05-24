@@ -52,7 +52,7 @@ async function apiDownloadData(accessToken) {
 }
 
 export function AccountModal({ userInfo, onClose, onLogout, onSave, theme, cardTheme, subtleText, currentAvatarUrl }) {
-  const [activeTab, setActiveTab] = useState('personal'); // 'personal' | 'learning' | 'security'
+  const [activeTab, setActiveTab] = useState('personal'); // 'personal' | 'learning' | 'security' | 'help'
   const { t } = useLanguage();
   // eslint-disable-next-line no-unused-vars
   const [isEditingPassword, setIsEditingPassword] = useState(false);
@@ -97,6 +97,11 @@ export function AccountModal({ userInfo, onClose, onLogout, onSave, theme, cardT
   // GDPR: export data flow
   const [exportingData, setExportingData] = useState(false);
   const [exportError, setExportError] = useState('');
+
+  // Help tab: FAQ accordion and feedback form
+  const [openFaqIndex, setOpenFaqIndex] = useState(-1);
+  const [feedbackText, setFeedbackText] = useState('');
+  const [feedbackStatus, setFeedbackStatus] = useState('idle'); // 'idle' | 'sending' | 'success' | 'error'
 
   // Can-Do achievements
   // Can-Do data loaded for future profile display
@@ -352,6 +357,22 @@ export function AccountModal({ userInfo, onClose, onLogout, onSave, theme, cardT
     }
   };
 
+  const handleSubmitFeedback = async () => {
+    if (!feedbackText.trim()) return;
+    setFeedbackStatus('sending');
+    const user = (await supabase.auth.getUser()).data.user;
+    const { error } = await supabase
+      .from('feedback')
+      .insert({ user_id: user?.id ?? null, message: feedbackText.trim() });
+    if (error) {
+      setFeedbackStatus('error');
+    } else {
+      setFeedbackStatus('success');
+      setFeedbackText('');
+      setTimeout(() => setFeedbackStatus('idle'), 4000);
+    }
+  };
+
   // Derive the dynamic institution label from the current study method
   const getInstitutionLabel = () => {
     if (studyMethod === 'Academy') return t('account.profile.academyName');
@@ -387,6 +408,12 @@ export function AccountModal({ userInfo, onClose, onLogout, onSave, theme, cardT
             className={`px-4 py-2 font-semibold transition ${activeTab === 'security' ? 'border-b-2 border-green-600 text-green-600' : subtleText}`}
           >
             {t('account.tabs.security')}
+          </button>
+          <button
+            onClick={() => setActiveTab('help')}
+            className={`px-4 py-2 font-semibold transition ${activeTab === 'help' ? 'border-b-2 border-green-600 text-green-600' : subtleText}`}
+          >
+            {t('account.tabs.help')}
           </button>
         </div>
 
@@ -874,6 +901,67 @@ export function AccountModal({ userInfo, onClose, onLogout, onSave, theme, cardT
                       </div>
                     )}
                   </div>
+                </div>
+              </div>
+            )}
+
+            {/* Help Tab */}
+            {activeTab === 'help' && (
+              <div className="space-y-6">
+                {/* FAQ accordion */}
+                <div>
+                  <h3 className="font-bold text-lg mb-3">{t('account.help.faqTitle')}</h3>
+                  <div className="space-y-2">
+                    {t('account.help.faq').map((item, i) => (
+                      <div key={i} className={`rounded-2xl border ${cardTheme} overflow-hidden`}>
+                        <button
+                          onClick={() => setOpenFaqIndex(openFaqIndex === i ? -1 : i)}
+                          className="w-full flex items-center justify-between px-5 py-4 text-left font-semibold text-base gap-3"
+                          aria-expanded={openFaqIndex === i}
+                        >
+                          <span>{item.q}</span>
+                          <svg
+                            className={`w-5 h-5 shrink-0 transition-transform ${openFaqIndex === i ? 'rotate-180' : ''}`}
+                            fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </button>
+                        {openFaqIndex === i && (
+                          <div className={`px-5 pb-4 text-base leading-relaxed ${subtleText}`}>
+                            {item.a}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Send Feedback */}
+                <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+                  <h3 className="font-bold text-lg mb-1">{t('account.help.feedbackTitle')}</h3>
+                  <p className={`text-sm mb-3 ${subtleText}`}>{t('account.help.feedbackSubtitle')}</p>
+                  <textarea
+                    value={feedbackText}
+                    onChange={(e) => setFeedbackText(e.target.value)}
+                    placeholder={t('account.help.feedbackPlaceholder')}
+                    rows={4}
+                    disabled={feedbackStatus === 'sending' || feedbackStatus === 'success'}
+                    className={`w-full px-4 py-3 rounded-2xl border text-base resize-none ${cardTheme} disabled:opacity-60`}
+                  />
+                  {feedbackStatus === 'success' && (
+                    <p className="text-sm text-green-600 dark:text-green-400 mt-2">{t('account.help.feedbackSuccess')}</p>
+                  )}
+                  {feedbackStatus === 'error' && (
+                    <p className="text-sm text-red-600 dark:text-red-400 mt-2">{t('account.help.feedbackError')}</p>
+                  )}
+                  <button
+                    onClick={handleSubmitFeedback}
+                    disabled={!feedbackText.trim() || feedbackStatus === 'sending' || feedbackStatus === 'success'}
+                    className="w-full mt-3 bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-4 px-4 rounded-2xl transition text-lg"
+                  >
+                    {feedbackStatus === 'sending' ? t('account.help.feedbackSending') : t('account.help.feedbackSubmit')}
+                  </button>
                 </div>
               </div>
             )}
