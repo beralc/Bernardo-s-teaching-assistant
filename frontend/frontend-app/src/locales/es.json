@@ -315,12 +315,12 @@
       "gotIt": "Entendido"
     },
     "howItWorks": {
-      "title": "Vas a hablar con un profesor de inteligencia artificial.",
-      "body1": "No es una persona real, pero es muy paciente y amable. Hablará despacio y te ayudará si te quedas atascado.",
-      "body2": "Puedes cometer errores — así es como se aprende. Nunca se reirá ni te hará sentir mal."
+      "title": "Tu compañero de conversación en inglés",
+      "body1": "Bernardo's English Helper te escucha hablar y te ayuda a practicar con calma. Sin exámenes, sin presión — solo una voz tranquila y paciente, disponible cuando quieras.",
+      "body2": "Puedes hablar todo lo despacio que necesites. Siempre te esperará."
     },
     "micTip": {
-      "title": "Empezar es muy sencillo.",
+      "title": "Cuando tú quieras, empezamos.",
       "body": "Toca el botón verde grande. El asistente te saludará primero — habla cuando lo escuches.",
       "screenshotAlt": "La pantalla Hablar con el gran botón verde del micrófono",
       "tip1": "Usa auriculares si tienes — el sonido es mucho mejor.",

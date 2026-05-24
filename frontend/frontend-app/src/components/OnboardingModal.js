@@ -47,7 +47,7 @@ function AppScreenshot({ src, alt, objectPosition = "center top" }) {
       <img
         src={src}
         alt={alt}
-        className="w-full h-52 object-cover"
+        className="w-full h-40 sm:h-52 object-cover"
         style={{ objectPosition }}
       />
     </div>
@@ -189,54 +189,66 @@ export function OnboardingModal({ userId, onComplete }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm sm:px-4"
       role="dialog"
       aria-modal="true"
       aria-label={t("onboarding.ariaLabel")}
     >
-      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md flex flex-col gap-6 p-8 relative max-h-[90vh] overflow-y-auto">
+      {/* Modal shell: full-screen on mobile, centered card on sm+.
+          Outer container does NOT scroll — only the middle region does.
+          Using h-full + max-h with dvh so iOS Safari URL bar doesn't clip the footer. */}
+      <div className="bg-white shadow-2xl w-full max-w-md flex flex-col relative
+                      h-full max-h-[100dvh] rounded-none
+                      sm:h-auto sm:max-h-[90vh] sm:rounded-3xl">
 
-        {/* Skip — padded for 44px+ touch target */}
+        {/* Skip — absolute, padded for 44px+ touch target.
+            Lives above the scroll region so it stays put while content scrolls. */}
         {!isLastStep && (
           <button
             onClick={handleComplete}
-            className="absolute top-3 right-3 p-3 text-gray-400 hover:text-gray-600 text-lg font-semibold transition-colors"
+            className="absolute top-3 right-3 z-10 p-3 text-gray-400 hover:text-gray-600 text-lg font-semibold transition-colors"
             aria-label={t("onboarding.skipAriaLabel")}
           >
             {t("onboarding.skip")}
           </button>
         )}
 
-        {/* Step content — aria-live so screen readers announce new steps */}
+        {/* Scrollable step content — the ONLY scroll surface.
+            min-h-0 is required so flex-1 can shrink below content size and let overflow kick in.
+            aria-live so screen readers announce new steps. */}
         <div
-          className="min-h-[300px] flex flex-col justify-center"
+          className="flex-1 min-h-0 overflow-y-auto px-6 pt-12 pb-6 sm:px-8 sm:pt-14"
           aria-live="polite"
         >
           {stepContent[step]}
         </div>
 
-        <ProgressDots total={TOTAL_STEPS} current={step} />
+        {/* Sticky footer: progress dots + nav buttons.
+            Pinned outside the scroll area so users can always tap Next/Back.
+            Top border separates it visually when content scrolls behind. */}
+        <div className="shrink-0 border-t border-gray-100 bg-white px-6 py-4 sm:px-8 sm:py-5 sm:rounded-b-3xl flex flex-col gap-4">
+          <ProgressDots total={TOTAL_STEPS} current={step} />
 
-        {/* Navigation */}
-        <div className="flex items-center gap-3">
-          {step > 0 ? (
+          <div className="flex items-center gap-3">
+            {step > 0 ? (
+              <button
+                onClick={handleBack}
+                className="flex-1 py-4 rounded-2xl border-2 border-gray-300 text-gray-700 text-xl font-semibold hover:bg-gray-50 transition-colors"
+              >
+                {t("common.back")}
+              </button>
+            ) : (
+              <div className="flex-1" aria-hidden="true" />
+            )}
+
             <button
-              onClick={handleBack}
-              className="flex-1 py-4 rounded-2xl border-2 border-gray-300 text-gray-700 text-xl font-semibold hover:bg-gray-50 transition-colors"
+              onClick={handleNext}
+              className="flex-1 py-4 rounded-2xl bg-green-600 hover:bg-green-700 text-white text-xl font-bold transition-colors shadow-lg"
+              autoFocus
             >
-              {t("common.back")}
+              {isLastStep ? t("onboarding.ready.startButton") : t("common.next")}
             </button>
-          ) : (
-            <div className="flex-1" aria-hidden="true" />
-          )}
-
-          <button
-            onClick={handleNext}
-            className="flex-1 py-4 rounded-2xl bg-green-600 hover:bg-green-700 text-white text-xl font-bold transition-colors shadow-lg"
-            autoFocus
-          >
-            {isLastStep ? t("onboarding.ready.startButton") : t("common.next")}
-          </button>
+          </div>
         </div>
 
         <span className="sr-only">
