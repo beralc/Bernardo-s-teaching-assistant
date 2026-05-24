@@ -315,20 +315,21 @@
       "gotIt": "Entendido"
     },
     "howItWorks": {
-      "title": "¿Cómo funciona?",
-      "step1": "Elige un tema que te guste",
-      "step2": "Pulsa el gran botón verde del micrófono",
-      "step3": "¡Habla en inglés y el asistente te responderá!"
+      "title": "Vas a hablar con un profesor de inteligencia artificial.",
+      "body1": "No es una persona real, pero es muy paciente y amable. Hablará despacio y te ayudará si te quedas atascado.",
+      "body2": "Puedes cometer errores — así es como se aprende. Nunca se reirá ni te hará sentir mal."
     },
     "micTip": {
-      "title": "Un pequeño consejo antes de empezar",
-      "body": "Para la mejor experiencia, asegúrate de que tu entorno sea tranquilo y tu micrófono funcione correctamente.",
-      "tip1": "Usa auriculares si tienes",
-      "tip2": "Busca una habitación tranquila con poco ruido de fondo"
+      "title": "Empezar es muy sencillo.",
+      "body": "Toca el botón verde grande. El asistente te saludará primero — habla cuando lo escuches.",
+      "screenshotAlt": "La pantalla Hablar con el gran botón verde del micrófono",
+      "tip1": "Usa auriculares si tienes — el sonido es mucho mejor.",
+      "tip2": "Busca un lugar tranquilo con poco ruido de fondo."
     },
     "ready": {
       "title": "¡Todo listo!",
-      "body": "Pulsa el botón de abajo para comenzar tu primera conversación en inglés. Tómate tu tiempo, no hay prisa.",
+      "body": "Elige un tema o ve directo a Hablar. Tómate tu tiempo, no hay prisa.",
+      "screenshotAlt": "La pantalla de Temas con tarjetas de conversación",
       "startButton": "¡Empecemos!"
     }
   },

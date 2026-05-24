@@ -9,7 +9,7 @@ import { ConversationStartersView } from "./components/ConversationStartersView"
 import { ProgressView } from "./components/ProgressView";
 import { AdminView } from "./components/AdminView";
 import { AccountModal } from "./components/AccountModal";
-import { AppTour, hasCompletedTour } from "./components/AppTour";
+import { OnboardingModal, hasCompletedOnboarding } from "./components/OnboardingModal";
 import { NavButton } from "./components/NavButton";
 import { AppIcon, UserIcon, MicIcon, BookIcon, ChartIcon, AdminIcon } from "./components/icons";
 import { PrivacyPolicy } from "./components/PrivacyPolicy";
@@ -65,7 +65,7 @@ function AuthGate() {
 // --- Main App Component (logged in state) ---
 function MainApp({ initialUserId }) {
   const [tab, setTab] = useState("talk"); // "talk" | "starters" | "progress" | "admin"
-  const [showOnboarding, setShowOnboarding] = useState(() => !hasCompletedTour(initialUserId));
+  const [showOnboarding, setShowOnboarding] = useState(() => !hasCompletedOnboarding(initialUserId));
   const [contrast, setContrast] = useState(false);
   const [fontStep, setFontStep] = useState(1); // 0..2 for Small, Medium, Large
   const [showAccountModal, setShowAccountModal] = useState(false);
@@ -238,9 +238,9 @@ function MainApp({ initialUserId }) {
         </div>
       </nav>
 
-      {/* App Tour — shown once per user after first login, keyed by Supabase user ID */}
+      {/* Onboarding modal — shown once per user after first login, keyed by Supabase user ID */}
       {showOnboarding && (
-        <AppTour userId={initialUserId} isAdmin={isAdmin} onComplete={() => setShowOnboarding(false)} />
+        <OnboardingModal userId={initialUserId} onComplete={() => setShowOnboarding(false)} />
       )}
 
       {/* Account Modal */}

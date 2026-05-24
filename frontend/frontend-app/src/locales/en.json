@@ -315,20 +315,21 @@
       "gotIt": "Got it"
     },
     "howItWorks": {
-      "title": "How does it work?",
-      "step1": "Choose a topic you like",
-      "step2": "Press the big green microphone button",
-      "step3": "Speak in English — the assistant will reply!"
+      "title": "You are talking to an AI teacher.",
+      "body1": "It is not a real person, but it is very patient and friendly. It will speak slowly and help you if you get stuck.",
+      "body2": "You can make mistakes — that is how you learn. It will never laugh or make you feel bad."
     },
     "micTip": {
-      "title": "One small tip before we start",
-      "body": "For the best experience, make sure your surroundings are quiet and your microphone is working.",
-      "tip1": "Use headphones if you have them",
-      "tip2": "Find a quiet room with little background noise"
+      "title": "Starting is simple.",
+      "body": "Tap the big green button. The assistant will greet you first — just speak when you hear it.",
+      "screenshotAlt": "The Talk screen with the large green microphone button",
+      "tip1": "Use headphones if you have them — the sound is much better.",
+      "tip2": "Find a quiet spot with little background noise."
     },
     "ready": {
       "title": "You are all set!",
-      "body": "Press the button below to start your first English conversation. Take your time — there is no rush.",
+      "body": "Pick a topic or tap straight to Talk. Take your time — there is no rush.",
+      "screenshotAlt": "The Conversation Starters screen showing topic cards",
       "startButton": "Let's Start!"
     }
   },
