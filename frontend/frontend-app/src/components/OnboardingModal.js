@@ -39,6 +39,16 @@ function AIIcon() {
   );
 }
 
+function MicIcon() {
+  return (
+    <div className="w-24 h-24 rounded-full bg-green-600 flex items-center justify-center shadow-lg" aria-hidden="true">
+      <svg viewBox="0 0 24 24" className="w-12 h-12 text-white" fill="currentColor">
+        <path d="M12 1a4 4 0 0 1 4 4v6a4 4 0 0 1-8 0V5a4 4 0 0 1 4-4zm-1.5 14.93A7.001 7.001 0 0 1 5 9H3a9 9 0 0 0 8 8.94V20H8v2h8v-2h-3v-2.07A9 9 0 0 0 21 9h-2a7 7 0 0 1-6.5 6.93z"/>
+      </svg>
+    </div>
+  );
+}
+
 // ─── App screenshot preview ────────────────────────────────────────────────────
 
 function AppScreenshot({ src, alt, objectPosition = "center top" }) {
@@ -93,26 +103,22 @@ function StepHowItWorks({ t }) {
 function StepMicTip({ t }) {
   return (
     <div className="flex flex-col items-center text-center gap-4">
+      <MicIcon />
       <h2 className="text-3xl font-bold text-gray-900 leading-tight">
         {t("onboarding.micTip.title")}
       </h2>
-      <AppScreenshot
-        src="/onboarding/talk-screen.png"
-        alt={t("onboarding.micTip.screenshotAlt")}
-        objectPosition="center 70%"
-      />
       <p className="text-xl text-gray-700 leading-relaxed max-w-sm">
         {t("onboarding.micTip.body")}
       </p>
       <div className="flex flex-col gap-3 w-full max-w-sm">
-        <div className="flex items-center gap-3 bg-yellow-50 border border-yellow-200 rounded-2xl px-5 py-4">
-          <span className="text-2xl" aria-hidden="true">✅</span>
+        <div className="flex items-center gap-3 bg-yellow-50 border border-yellow-200 rounded-xl px-4 py-3">
+          <span className="text-xl" aria-hidden="true">✅</span>
           <span className="text-lg text-gray-800 text-left">
             {t("onboarding.micTip.tip1")}
           </span>
         </div>
-        <div className="flex items-center gap-3 bg-yellow-50 border border-yellow-200 rounded-2xl px-5 py-4">
-          <span className="text-2xl" aria-hidden="true">✅</span>
+        <div className="flex items-center gap-3 bg-yellow-50 border border-yellow-200 rounded-xl px-4 py-3">
+          <span className="text-xl" aria-hidden="true">✅</span>
           <span className="text-lg text-gray-800 text-left">
             {t("onboarding.micTip.tip2")}
           </span>
