@@ -305,31 +305,19 @@
     "skipAriaLabel": "Omitir el tour de introducción",
     "stepCounter": "Paso {current} de {total}",
     "welcome": {
-      "title": "¡Bienvenido a Bernardo's English Helper!",
-      "body": "Este es tu espacio seguro y amigable para practicar el inglés hablado. Hablarás con un asistente de inteligencia artificial que es paciente, amable y siempre está listo para conversar."
-    },
-    "tour": {
-      "startersLabel": "Elige un tema",
-      "talkLabel": "Pulsa para hablar",
-      "progressLabel": "Tu progreso",
-      "gotIt": "Entendido"
+      "title": "¡Bienvenido/a a tu asistente de inglés!",
+      "body": "Aquí puedes practicar inglés hablando en voz alta, sin presión y sin que nadie te juzgue. Tu asistente es paciente y siempre te esperará."
     },
     "howItWorks": {
-      "title": "Tu compañero de conversación en inglés",
-      "body1": "Bernardo's English Helper te escucha hablar y te ayuda a practicar con calma. Sin exámenes, sin presión — solo una voz tranquila y paciente, disponible cuando quieras.",
-      "body2": "Puedes hablar todo lo despacio que necesites. Siempre te esperará."
-    },
-    "micTip": {
-      "title": "Cuando tú quieras, empezamos.",
-      "body": "Toca el botón verde grande. El asistente te saludará primero — habla cuando lo escuches.",
+      "title": "Solo toca el botón verde",
       "screenshotAlt": "La pantalla Hablar con el gran botón verde del micrófono",
-      "tip1": "Usa auriculares si tienes — el sonido es mucho mejor.",
-      "tip2": "Busca un lugar tranquilo con poco ruido de fondo."
+      "body": "El asistente te habla primero — luego tú respondes. No importa si cometes errores: así es como se aprende.",
+      "reassurance": "Si no te entiende, solo vuelve a intentarlo. No pasa nada."
     },
     "ready": {
-      "title": "¡Todo listo!",
-      "body": "Elige un tema o ve directo a Hablar. Tómate tu tiempo, no hay prisa.",
+      "title": "¿Por dónde empezamos?",
       "screenshotAlt": "La pantalla de Temas con tarjetas de conversación",
+      "body": "Puedes elegir un tema de conversación o ir directamente a Hablar. Los dos caminos te llevan a practicar inglés.",
       "startButton": "¡Empecemos!"
     }
   },

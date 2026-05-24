@@ -305,31 +305,19 @@
     "skipAriaLabel": "Skip the introduction tour",
     "stepCounter": "Step {current} of {total}",
     "welcome": {
-      "title": "Welcome to Bernardo's English Helper!",
-      "body": "This is your safe and friendly space to practice speaking English. You will talk with an AI assistant — it is patient, friendly, and always ready to chat."
-    },
-    "tour": {
-      "startersLabel": "Pick a topic",
-      "talkLabel": "Tap to talk",
-      "progressLabel": "Your progress",
-      "gotIt": "Got it"
+      "title": "Welcome to your English assistant!",
+      "body": "Here you can practise English by speaking out loud, with no pressure and no judgement. Your assistant is patient and will always wait for you."
     },
     "howItWorks": {
-      "title": "Your friendly English conversation partner",
-      "body1": "Bernardo's English Helper listens to you speak and gently helps you practise. There are no tests, no pressure — just a calm, patient voice ready whenever you are.",
-      "body2": "You can speak as slowly as you like. It will always wait for you."
-    },
-    "micTip": {
-      "title": "Ready when you are.",
-      "body": "Tap the big green button. The assistant will greet you first — just speak when you hear it.",
+      "title": "Just tap the green button",
       "screenshotAlt": "The Talk screen with the large green microphone button",
-      "tip1": "Use headphones if you have them — the sound is much better.",
-      "tip2": "Find a quiet spot with little background noise."
+      "body": "The assistant speaks to you first — then you respond. It doesn't matter if you make mistakes: that's how learning works.",
+      "reassurance": "If it doesn't understand you, just try again. That's perfectly fine."
     },
     "ready": {
-      "title": "You are all set!",
-      "body": "Pick a topic or tap straight to Talk. Take your time — there is no rush.",
+      "title": "Where shall we start?",
       "screenshotAlt": "The Conversation Starters screen showing topic cards",
+      "body": "You can pick a conversation topic or go straight to Talk. Both paths lead to English practice.",
       "startButton": "Let's Start!"
     }
   },
