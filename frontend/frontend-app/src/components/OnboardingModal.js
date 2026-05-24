@@ -103,10 +103,14 @@ function StepHowItWorks({ t }) {
 function StepMicTip({ t }) {
   return (
     <div className="flex flex-col items-center text-center gap-4">
-      <MicIcon />
       <h2 className="text-3xl font-bold text-gray-900 leading-tight">
         {t("onboarding.micTip.title")}
       </h2>
+      <AppScreenshot
+        src="/onboarding/talk-screen.png"
+        alt={t("onboarding.micTip.screenshotAlt")}
+        objectPosition="center 60%"
+      />
       <p className="text-xl text-gray-700 leading-relaxed max-w-sm">
         {t("onboarding.micTip.body")}
       </p>
@@ -137,7 +141,7 @@ function StepReady({ t }) {
       <AppScreenshot
         src="/onboarding/starters-screen.png"
         alt={t("onboarding.ready.screenshotAlt")}
-        objectPosition="center 50%"
+        objectPosition="center 30%"
       />
       <p className="text-xl text-gray-700 leading-relaxed max-w-sm">
         {t("onboarding.ready.body")}
