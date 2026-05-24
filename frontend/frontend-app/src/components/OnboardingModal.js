@@ -47,7 +47,7 @@ function AppScreenshot({ src, alt, objectPosition = "center top" }) {
       <img
         src={src}
         alt={alt}
-        className="w-full h-48 object-cover"
+        className="w-full h-52 object-cover"
         style={{ objectPosition }}
       />
     </div>
@@ -99,7 +99,7 @@ function StepMicTip({ t }) {
       <AppScreenshot
         src="/onboarding/talk-screen.png"
         alt={t("onboarding.micTip.screenshotAlt")}
-        objectPosition="center 45%"
+        objectPosition="center 70%"
       />
       <p className="text-xl text-gray-700 leading-relaxed max-w-sm">
         {t("onboarding.micTip.body")}
@@ -131,7 +131,7 @@ function StepReady({ t }) {
       <AppScreenshot
         src="/onboarding/starters-screen.png"
         alt={t("onboarding.ready.screenshotAlt")}
-        objectPosition="center top"
+        objectPosition="center 50%"
       />
       <p className="text-xl text-gray-700 leading-relaxed max-w-sm">
         {t("onboarding.ready.body")}
