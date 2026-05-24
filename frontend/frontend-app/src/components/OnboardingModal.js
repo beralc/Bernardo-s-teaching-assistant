@@ -57,14 +57,13 @@ function WaveIcon() {
 // ─── App screenshot preview ────────────────────────────────────────────────────
 // objectPosition lets us crop the right area of each screenshot.
 
-function AppScreenshot({ src, alt, objectPosition = "center top" }) {
+function AppScreenshot({ src, alt }) {
   return (
     <div className="w-full rounded-2xl overflow-hidden border-2 border-gray-300 shadow-md">
       <img
         src={src}
         alt={alt}
-        className="w-full h-44 sm:h-56 object-cover"
-        style={{ objectPosition }}
+        className="w-full"
         loading="eager"
       />
     </div>
@@ -116,7 +115,6 @@ function StepHowItWorks({ t }) {
       <AppScreenshot
         src="/onboarding/talk-screen.png"
         alt={t("onboarding.howItWorks.screenshotAlt")}
-        objectPosition="center 55%"
       />
       <p className="text-xl text-gray-700 leading-relaxed max-w-sm">
         {t("onboarding.howItWorks.body")}
@@ -138,7 +136,6 @@ function StepReady({ t }) {
       <AppScreenshot
         src="/onboarding/starters-screen.png"
         alt={t("onboarding.ready.screenshotAlt")}
-        objectPosition="center 25%"
       />
       <p className="text-xl text-gray-700 leading-relaxed max-w-sm">
         {t("onboarding.ready.body")}
