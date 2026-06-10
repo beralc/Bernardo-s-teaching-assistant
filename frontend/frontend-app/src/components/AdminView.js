@@ -1023,8 +1023,9 @@ export function AdminView({ cardTheme, subtleText, fontSizes, contrast }) {
           continue;
         }
 
-        // Build transcript from conversation messages
-        const transcript = messages.map(m => `${m.role === 'user' ? 'Learner' : 'Teacher'}: ${m.content}`).join('\n');
+        // Build transcript with the same User/Assistant labels as
+        // sessionManager.js — the backend assessor prompt keys on "USER turns".
+        const transcript = messages.map(m => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`).join('\n');
         console.log(`Session ${sess.id} transcript length: ${transcript.length}`);
 
         if (transcript.trim().length < 20) {

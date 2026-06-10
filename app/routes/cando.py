@@ -151,6 +151,8 @@ def analyze_session_cando():
         if user_resp.status_code != 200:
             return jsonify({"error": "Invalid token"}), 401
 
+        auth_user_id = user_resp.json().get('id')
+
         data = request.json
         session_id = data.get('session_id')
         user_id = data.get('user_id')
@@ -159,6 +161,13 @@ def analyze_session_cando():
 
         if not all([session_id, user_id, transcript]):
             return jsonify({"error": "Missing required fields: session_id, user_id, transcript"}), 400
+
+        # Only the user themselves (normal post-session analysis) or an admin
+        # (re-analysis tool in AdminView) may write achievements for user_id.
+        if auth_user_id != user_id:
+            admin_id, error = verify_admin(user_token)
+            if error:
+                return jsonify({"error": "Forbidden: Can only analyze your own sessions"}), 403
 
         if not user_level:
             headers = {
@@ -180,7 +189,9 @@ def analyze_session_cando():
         # descriptors to A2 users from a 1-minute coffee chat — a research
         # validity bug. Senior A2 learners should not be receiving B2 Can-Do
         # statements without an explicit level promotion.
-        LEVEL_LADDER = ['A1', 'A2', 'A2+', 'B1', 'B1+', 'B2', 'B2+']
+        # C1/C2 included so self-reported advanced users get a correct window
+        # instead of silently falling back to the A2 default.
+        LEVEL_LADDER = ['A1', 'A2', 'A2+', 'B1', 'B1+', 'B2', 'B2+', 'C1', 'C2']
         try:
             user_idx = LEVEL_LADDER.index(user_level)
         except ValueError:
@@ -359,6 +370,7 @@ clearly demonstrated, return an empty array."""
                 {"role": "system", "content": "You are an expert CEFR language assessor. Respond only in valid JSON format."},
                 {"role": "user", "content": prompt}
             ],
+            response_format={"type": "json_object"},
             temperature=0.3,
             max_tokens=2000
         )
