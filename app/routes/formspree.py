@@ -1,13 +1,17 @@
 import os
 import requests
 from flask import Blueprint, request, jsonify
-from flask_cors import cross_origin
 
 formspree_bp = Blueprint("formspree", __name__)
 
 RESEND_API_KEY = os.getenv("RESEND_API_KEY")
 FROM_EMAIL = "Bernardo's English Helper <hello@bernardomorales.com>"
-INVITATION_CODE = "BETA2026OOFVED"
+# Set INVITATION_CODE in the environment; keep it out of source control.
+INVITATION_CODE = os.getenv("INVITATION_CODE", "")
+# Shared secret appended to the webhook URL configured in Formspree
+# (e.g. /formspree_webhook?secret=...). Without it, this endpoint is an
+# open email relay through our Resend account.
+WEBHOOK_SECRET = os.getenv("FORMSPREE_WEBHOOK_SECRET")
 SIGNUP_URL = "https://englishhelper.bernardomorales.com/"
 
 
@@ -89,15 +93,24 @@ def build_email(name: str, language: str) -> tuple[str, str, str]:
     return first, subject, html
 
 
-@formspree_bp.route("/formspree_webhook", methods=["POST", "OPTIONS"])
-@cross_origin(origins="*")
+@formspree_bp.route("/formspree_webhook", methods=["POST"])
 def formspree_webhook():
     """
     Receives Formspree webhook payloads and sends a confirmation email
-    to the submitter via Resend.
+    to the submitter via Resend. Server-to-server only (no CORS needed).
     """
+    if WEBHOOK_SECRET:
+        if request.args.get('secret') != WEBHOOK_SECRET:
+            return jsonify({"ok": False, "error": "forbidden"}), 403
+    else:
+        print("WARNING: FORMSPREE_WEBHOOK_SECRET not set - webhook is unprotected")
+
     if not RESEND_API_KEY:
         return jsonify({"ok": False, "error": "RESEND_API_KEY not configured"}), 200
+
+    if not INVITATION_CODE:
+        print("WARNING: INVITATION_CODE not set - cannot send invitation emails")
+        return jsonify({"ok": False, "error": "INVITATION_CODE not configured"}), 200
 
     try:
         data = request.json or {}

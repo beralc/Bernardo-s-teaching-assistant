@@ -138,6 +138,30 @@ def get_supabase_headers(content_type=True):
     return headers
 
 
+def get_authenticated_user(auth_header):
+    """Resolve the Supabase user id from an Authorization header.
+    Returns (user_id, None) on success or (None, error_string) on failure.
+    """
+    if not auth_header or not auth_header.startswith('Bearer '):
+        return None, "Unauthorized: missing or malformed Authorization header"
+
+    user_token = auth_header.split(' ', 1)[1]
+    resp = requests.get(
+        f'{SUPABASE_URL}/auth/v1/user',
+        headers={
+            'Authorization': f'Bearer {user_token}',
+            'apikey': SUPABASE_SERVICE_KEY,
+        }
+    )
+    if resp.status_code != 200:
+        return None, "Unauthorized: invalid or expired token"
+
+    user_id = resp.json().get('id')
+    if not user_id:
+        return None, "Unauthorized: could not resolve user identity"
+    return user_id, None
+
+
 def verify_admin(user_token):
     """Verify user is admin using Supabase REST API.
     Returns (user_id, None) on success or (None, error_string) on failure.

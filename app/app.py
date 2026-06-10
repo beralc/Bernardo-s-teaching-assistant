@@ -29,7 +29,6 @@ def create_app():
     })
 
     # Register blueprints
-    from routes.chat import chat_bp
     from routes.voice import voice_bp
     from routes.admin import admin_bp
     from routes.cando import cando_bp
@@ -37,7 +36,6 @@ def create_app():
     from routes.user import user_bp
     from routes.formspree import formspree_bp
 
-    app.register_blueprint(chat_bp)
     app.register_blueprint(voice_bp)
     app.register_blueprint(admin_bp)
     app.register_blueprint(cando_bp)

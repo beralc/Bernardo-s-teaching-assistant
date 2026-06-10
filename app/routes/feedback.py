@@ -4,6 +4,7 @@ import time
 import requests
 from flask import Blueprint, request, jsonify
 from config import openai_client, SUPABASE_URL, SUPABASE_SERVICE_KEY
+from utils import verify_admin
 
 feedback_bp = Blueprint("feedback", __name__)
 
@@ -30,6 +31,8 @@ def analyze_feedback():
         if user_resp.status_code != 200:
             return jsonify({"error": "Invalid token"}), 401
 
+        auth_user_id = user_resp.json().get('id')
+
         data = request.json
         session_id = data.get('session_id')
         user_id = data.get('user_id')
@@ -37,6 +40,13 @@ def analyze_feedback():
 
         if not all([session_id, user_id, transcript]):
             return jsonify({"error": "Missing required fields: session_id, user_id, transcript"}), 400
+
+        # Only the user themselves (post-session analysis) or an admin
+        # (re-analysis tool in AdminView) may write analysis rows for user_id.
+        if auth_user_id != user_id:
+            admin_id, error = verify_admin(user_token)
+            if error:
+                return jsonify({"error": "Forbidden: Can only analyze your own sessions"}), 403
 
         print(f"analyze_feedback called: session={session_id}, user={user_id}, turns={len(transcript)}")
 

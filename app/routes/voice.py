@@ -1,9 +1,19 @@
 import requests
+from datetime import datetime, timezone
 from flask import Blueprint, request, jsonify
 from config import OPENAI_API_KEY, SUPABASE_URL, SUPABASE_SERVICE_KEY
-from utils import load_prompt, build_realtime_instructions
+from utils import load_prompt, build_realtime_instructions, get_authenticated_user
 
 voice_bp = Blueprint("voice", __name__)
+
+# Server-side copy of the tier limits (frontend has the same values in
+# config/constants.js). -1 = unlimited.
+TIER_MONTHLY_MINUTES = {
+    "free": 5,
+    "starter": 150,
+    "premium": 300,
+    "enterprise": -1,
+}
 
 
 @voice_bp.route("/webrtc_session", methods=["POST"])
@@ -11,13 +21,19 @@ def webrtc_session():
     """
     Handles the creation of the Realtime (WebRTC) session for voice.
     Includes VAD configuration and prompt.json as instructions.
+
+    Requires a Supabase JWT: this endpoint mints OpenAI tokens billed to us,
+    so the caller's identity and remaining minutes are verified server-side.
     """
     try:
+        user_id, auth_error = get_authenticated_user(request.headers.get('Authorization'))
+        if auth_error:
+            return jsonify({"error": auth_error}), 401
+
         prompt_data = load_prompt()
 
         data = request.json or {}
         topic = data.get('topic')
-        user_id = data.get('user_id')
 
         # Valid voices for the gpt-realtime-mini GA API.
         # Any value not in this set will be rejected by OpenAI with a 400 error.
@@ -27,7 +43,8 @@ def webrtc_session():
         }
         DEFAULT_VOICE = "sage"
 
-        # Fetch user's voice preference, CEFR level and recent session topics
+        # Fetch user's profile (voice preference, CEFR level, tier/usage for
+        # the server-side limit check) and recent session topics
         voice = DEFAULT_VOICE
         english_level = None
         recent_topics = []
@@ -39,18 +56,42 @@ def webrtc_session():
         if user_id and SUPABASE_URL and SUPABASE_SERVICE_KEY:
             try:
                 profile_response = requests.get(
-                    f"{SUPABASE_URL}/rest/v1/profiles?id=eq.{user_id}&select=voice_preference,english_level",
+                    f"{SUPABASE_URL}/rest/v1/profiles?id=eq.{user_id}"
+                    "&select=voice_preference,english_level,tier,monthly_voice_minutes_used,premium_until,is_admin",
                     headers=supabase_headers
                 )
                 if profile_response.status_code == 200:
                     profiles = profile_response.json()
                     if profiles and len(profiles) > 0:
-                        raw_voice = profiles[0].get('voice_preference', DEFAULT_VOICE)
+                        profile = profiles[0]
+
+                        # Usage limit enforcement: the frontend timer is only
+                        # cosmetic — this is the authoritative check, since the
+                        # endpoint mints OpenAI tokens billed to us.
+                        if not profile.get('is_admin'):
+                            tier = profile.get('tier') or 'free'
+                            premium_until = profile.get('premium_until')
+                            if tier == 'premium' and premium_until:
+                                try:
+                                    expiry = datetime.fromisoformat(premium_until.replace('Z', '+00:00'))
+                                    if expiry < datetime.now(timezone.utc):
+                                        tier = 'free'
+                                except ValueError:
+                                    pass
+                            limit = TIER_MONTHLY_MINUTES.get(tier, TIER_MONTHLY_MINUTES['free'])
+                            used = profile.get('monthly_voice_minutes_used') or 0
+                            if limit != -1 and used >= limit:
+                                return jsonify({
+                                    "error": "usage_limit_reached",
+                                    "message": f"Monthly limit of {limit} minutes reached for the {tier} tier."
+                                }), 403
+
+                        raw_voice = profile.get('voice_preference', DEFAULT_VOICE)
                         if raw_voice in VALID_REALTIME_VOICES:
                             voice = raw_voice
                         else:
                             print(f"Warning: invalid voice preference '{raw_voice}' for user {user_id}. Falling back to '{DEFAULT_VOICE}'.")
-                        english_level = profiles[0].get('english_level')
+                        english_level = profile.get('english_level')
             except Exception as e:
                 print(f"Error fetching voice preference: {e}")
 

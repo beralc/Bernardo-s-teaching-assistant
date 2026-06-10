@@ -142,20 +142,32 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
 
       let sessionResponse, ephemeral_token, model, vadThreshold = 0.85, silenceDurationMs = 800;
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+        // The backend derives the user from the JWT and enforces usage
+        // limits server-side; no user_id in the body.
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          throw new Error('Not logged in. Please log in again.');
+        }
 
         sessionResponse = await fetch(`${API_BASE_URL}/webrtc_session`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`
+          },
           body: JSON.stringify({
-            topic: selectedTopic,
-            user_id: user?.id
+            topic: selectedTopic
           }),
           signal: controller.signal
         });
 
         clearTimeout(timeoutId);
         setConnectingToBackend(false);
+
+        if (sessionResponse.status === 403) {
+          setLimitReached(true);
+          throw new Error('Monthly voice minutes limit reached.');
+        }
 
         if (!sessionResponse.ok) {
           const errorText = await sessionResponse.text();
