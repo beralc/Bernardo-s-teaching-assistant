@@ -256,7 +256,12 @@ export function OnboardingModal({ userId, onComplete }) {
             Users can always reach Back/Next regardless of scroll position.
             Back is hidden (replaced by a spacer) on Step 1 so the Next button
             stays right-aligned without layout shift. */}
-        <div className="shrink-0 border-t border-gray-100 bg-white px-6 py-5 sm:px-8 sm:rounded-b-3xl flex flex-col gap-4">
+        <div className="shrink-0 border-t border-gray-100 bg-white px-6 py-5 sm:px-8 sm:rounded-b-3xl flex flex-col gap-3">
+          {/* Visible step counter — dots alone are too subtle for users with
+              low digital literacy. */}
+          <p className="text-center text-base font-medium text-gray-500">
+            {t("onboarding.stepCounter", { current: step + 1, total: TOTAL_STEPS })}
+          </p>
           <ProgressDots total={TOTAL_STEPS} current={step} />
 
           <div className="flex items-center gap-3">
@@ -284,10 +289,6 @@ export function OnboardingModal({ userId, onComplete }) {
           </div>
         </div>
 
-        {/* Screen reader step counter */}
-        <span className="sr-only">
-          {t("onboarding.stepCounter", { current: step + 1, total: TOTAL_STEPS })}
-        </span>
       </div>
     </div>
   );

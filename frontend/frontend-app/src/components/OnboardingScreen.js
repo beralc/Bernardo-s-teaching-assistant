@@ -305,6 +305,11 @@ export function OnboardingScreen({ onStart }) {
           >
             {loading ? t('auth.loading') : (isSignUp ? t('auth.signUp') : t('auth.logIn'))}
           </button>
+          {isSignUp && !consentChecked && (
+            <p className="text-center text-base text-gray-600 -mt-2" role="status">
+              {t('auth.consentRequired')}
+            </p>
+          )}
           <button type="button" onClick={() => setIsSignUp(prev => !prev)} className="w-full text-lg font-semibold text-green-600 py-3">
             {isSignUp ? t('auth.alreadyHaveAccount') : t('auth.needAccount')}
           </button>

@@ -40,7 +40,8 @@
     "consentItem2": "My voice sessions are processed by OpenAI",
     "consentItem3": "I can delete my data at any time from my account settings",
     "consentItem4": "This study is approved by the UCM Ethics Committee (ref. 663_CE_20260312_35_HUM)",
-    "consentPrivacyLink": "Read the full Privacy Policy"
+    "consentPrivacyLink": "Read the full Privacy Policy",
+    "consentRequired": "Please tick the consent box above to create your account."
   },
   "confirmation": {
     "title": "Check Your Email!",
