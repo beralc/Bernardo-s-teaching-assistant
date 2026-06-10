@@ -145,6 +145,7 @@ def webrtc_session():
         return jsonify({
             "websocket_url": websocket_url,
             "ephemeral_token": ephemeral_token,
+            "model": realtime_model_name,
             "vad_threshold": vad_threshold,
             "silence_duration_ms": silence_duration_ms
         })

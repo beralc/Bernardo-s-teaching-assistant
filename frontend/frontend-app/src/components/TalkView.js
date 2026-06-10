@@ -30,26 +30,17 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
     { role: "bot", text: getInitialMessage() },
   ]);
 
+  // WebRTC transport: the peer connection carries mic audio up and bot audio
+  // down (so the OS applies real echo cancellation — critical on iOS), and
+  // the "oai-events" data channel carries all JSON events.
   const mediaStreamRef = useRef(null);
-  const webSocketRef = useRef(null);
-  const audioContextRef = useRef(null);
-  const speakerDestinationRef = useRef(null);
+  const peerConnectionRef = useRef(null);
+  const dataChannelRef = useRef(null);
   const speakerAudioElRef = useRef(null);
-  const scriptProcessorRef = useRef(null);
-  const audioQueueRef = useRef([]);
-  const isPlayingRef = useRef(false);
-  const currentSourceRef = useRef(null);
-  // Barge-in tracking: id of the in-flight response (to cancel it), the
-  // current audio item (to truncate it), and how many ms have been played.
-  const activeResponseIdRef = useRef(null);
-  const currentItemIdRef = useRef(null);
-  const playedAudioMsRef = useRef(0);
   const currentResponseTextRef = useRef('');
   const [liveTranscript, setLiveTranscript] = useState("");
   const hasAutoStartedRef = useRef(false);
-  const nextPlayTimeRef = useRef(0);
   const autoStartRequestedRef = useRef(false);
-  const audioChunkCountRef = useRef(0);
   const conversationRef = useRef([]);
 
   const updateConversation = (updater) => {
@@ -116,68 +107,6 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
     setLoadingUsage(false);
   };
 
-  const playAudioChunk = useCallback((base64Audio) => {
-    if (!audioContextRef.current) return;
-
-    try {
-      const binaryString = atob(base64Audio);
-      const bytes = new Uint8Array(binaryString.length);
-      for (let i = 0; i < binaryString.length; i++) {
-        bytes[i] = binaryString.charCodeAt(i);
-      }
-
-      const int16Array = new Int16Array(bytes.buffer);
-      const audioBuffer = audioContextRef.current.createBuffer(1, int16Array.length, 24000);
-      const channelData = audioBuffer.getChannelData(0);
-      for (let i = 0; i < int16Array.length; i++) {
-        channelData[i] = int16Array[i] / 32768.0;
-      }
-
-      audioQueueRef.current.push(audioBuffer);
-      audioChunkCountRef.current++;
-
-      const MIN_BUFFER_CHUNKS = 2;
-      if (!isPlayingRef.current && audioQueueRef.current.length >= MIN_BUFFER_CHUNKS) {
-        playNextChunk();
-      }
-    } catch (error) {
-      console.error('Error decoding audio:', error);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const playNextChunk = useCallback(() => {
-    if (audioQueueRef.current.length === 0) {
-      isPlayingRef.current = false;
-      return;
-    }
-
-    if (!audioContextRef.current) return;
-
-    isPlayingRef.current = true;
-    const audioBuffer = audioQueueRef.current.shift();
-    playedAudioMsRef.current += audioBuffer.duration * 1000;
-
-    const source = audioContextRef.current.createBufferSource();
-    currentSourceRef.current = source;
-    source.buffer = audioBuffer;
-    source.connect(speakerDestinationRef.current || audioContextRef.current.destination);
-
-    const currentTime = audioContextRef.current.currentTime;
-    const startTime = nextPlayTimeRef.current <= currentTime
-      ? currentTime
-      : nextPlayTimeRef.current;
-
-    nextPlayTimeRef.current = startTime + audioBuffer.duration;
-
-    source.onended = () => {
-      playNextChunk();
-    };
-
-    source.start(startTime);
-  }, []);
-
-
   const startListening = async () => {
     if (limitReached) {
       alert(`You've reached your monthly limit of ${TIER_LIMITS[userTier].monthlyMinutes} minutes. Please upgrade to continue using voice conversations.`);
@@ -187,30 +116,12 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
     try {
       conversationStartTimeRef.current = Date.now();
       setElapsedSeconds(0);
-      nextPlayTimeRef.current = 0;
-      audioChunkCountRef.current = 0;
-      activeResponseIdRef.current = null;
-      currentItemIdRef.current = null;
-      playedAudioMsRef.current = 0;
 
-      // Create the AudioContext and output <audio> element SYNCHRONOUSLY,
-      // before any await — iOS Safari only allows resume()/play() inside the
-      // user-gesture call stack. Creating them later (e.g. in ws.onopen) left
-      // the context suspended on iPhone: no playback and no barge-in.
-      const context = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 24000 });
-      audioContextRef.current = context;
-      if (context.state === 'suspended') {
-        context.resume().catch(() => {});
-      }
-
-      // Route bot audio through an <audio> element so mobile browsers use
-      // the loudspeaker (and apply echo cancellation) instead of the earpiece.
-      const speakerDest = context.createMediaStreamDestination();
-      speakerDestinationRef.current = speakerDest;
+      // Create the output <audio> element SYNCHRONOUSLY, before any await —
+      // iOS Safari only allows play() inside the user-gesture call stack.
       const audioEl = new Audio();
-      audioEl.srcObject = speakerDest.stream;
       audioEl.setAttribute('playsinline', '');
-      audioEl.play().catch((e) => console.warn('Speaker element play() blocked:', e));
+      audioEl.autoplay = true;
       speakerAudioElRef.current = audioEl;
 
       await startSession(selectedTopic);
@@ -229,7 +140,7 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 120000);
 
-      let sessionResponse, websocket_url, ephemeral_token, vadThreshold = 0.85, silenceDurationMs = 800;
+      let sessionResponse, ephemeral_token, model, vadThreshold = 0.85, silenceDurationMs = 800;
       try {
         const { data: { user } } = await supabase.auth.getUser();
 
@@ -252,8 +163,8 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
         }
 
         const responseData = await sessionResponse.json();
-        websocket_url = responseData.websocket_url;
         ephemeral_token = responseData.ephemeral_token;
+        model = responseData.model || 'gpt-realtime-mini';
         vadThreshold = responseData.vad_threshold ?? 0.85;
         silenceDurationMs = responseData.silence_duration_ms ?? 800;
       } catch (fetchError) {
@@ -265,19 +176,34 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
         throw fetchError;
       }
 
-      const ws = new WebSocket(
-        websocket_url,
-        [
-          "realtime",
-          `openai-insecure-api-key.${ephemeral_token}`
-        ]
-      );
-      webSocketRef.current = ws;
+      // WebRTC peer connection: mic goes up as a native track (echo-cancelled
+      // by the OS against the bot audio coming down the same connection).
+      const pc = new RTCPeerConnection();
+      peerConnectionRef.current = pc;
 
-      ws.onopen = () => {
+      pc.addTrack(stream.getAudioTracks()[0], stream);
+
+      pc.ontrack = (event) => {
+        audioEl.srcObject = event.streams[0];
+        audioEl.play().catch((e) => console.warn('Bot audio play() blocked:', e));
+      };
+
+      pc.onconnectionstatechange = () => {
+        if (pc.connectionState === 'failed' || pc.connectionState === 'disconnected') {
+          console.error('WebRTC connection state:', pc.connectionState);
+          setLiveTranscript("Connection lost. Please try again.");
+        }
+      };
+
+      const dc = pc.createDataChannel('oai-events');
+      dataChannelRef.current = dc;
+
+      dc.onopen = () => {
         // Transcription is configured server-side at session creation (voice.py).
         // Only update turn_detection here to avoid overriding transcription config.
-        ws.send(JSON.stringify({
+        // interrupt_response makes the server stop speaking (and truncate its
+        // own context) when the user barges in.
+        dc.send(JSON.stringify({
           type: 'session.update',
           session: {
             turn_detection: {
@@ -290,49 +216,9 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
             }
           }
         }));
-
-        // AudioContext was created inside the user gesture in startListening.
-        const context = audioContextRef.current;
-        if (!context) return;
-        if (context.state === 'suspended') {
-          context.resume().catch(() => {});
-        }
-
-        const source = context.createMediaStreamSource(stream);
-        const processor = context.createScriptProcessor(2048, 1, 1);
-        scriptProcessorRef.current = processor;
-
-        source.connect(processor);
-        // Must be connected to destination to keep onaudioprocess firing.
-        // Silent gain node prevents mic audio from playing through speakers.
-        const silentGain = context.createGain();
-        silentGain.gain.value = 0;
-        processor.connect(silentGain);
-        silentGain.connect(context.destination);
-
-        processor.onaudioprocess = (event) => {
-          const left = event.inputBuffer.getChannelData(0);
-          const int16Array = new Int16Array(left.length);
-          for (let i = 0; i < left.length; i++) {
-            int16Array[i] = Math.max(-1, Math.min(1, left[i])) * 0x7FFF;
-          }
-
-          if (ws.readyState === WebSocket.OPEN) {
-            const audioBytes = new Uint8Array(int16Array.buffer);
-            const base64Audio = btoa(String.fromCharCode(...audioBytes));
-            try {
-              ws.send(JSON.stringify({
-                type: 'input_audio_buffer.append',
-                audio: base64Audio
-              }));
-            } catch (sendError) {
-              console.error('WebSocket send failed:', sendError);
-            }
-          }
-        };
       };
 
-      ws.onmessage = async (event) => {
+      dc.onmessage = async (event) => {
         const data = JSON.parse(event.data);
         const sessionLogId = getSessionLogId();
 
@@ -354,24 +240,12 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
             }
           }
 
-        } else if (data.type === 'response.audio.delta' || data.type === 'response.output_audio.delta') {
-          if (data.item_id) {
-            currentItemIdRef.current = data.item_id;
-          }
-          if (data.delta) {
-            playAudioChunk(data.delta);
-          }
-
         } else if (data.type === 'response.audio_transcript.delta' || data.type === 'response.output_audio_transcript.delta') {
           currentResponseTextRef.current += data.delta;
           setLiveTranscript(currentResponseTextRef.current);
 
         } else if (data.type === 'response.created') {
           currentResponseTextRef.current = '';
-          audioChunkCountRef.current = 0;
-          activeResponseIdRef.current = data.response?.id || true;
-          currentItemIdRef.current = null;
-          playedAudioMsRef.current = 0;
 
         } else if (data.type === 'response.audio_transcript.done' || data.type === 'response.output_audio_transcript.done') {
           updateConversation(prev => [...prev, { role: "bot", text: data.transcript }]);
@@ -396,40 +270,15 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
 
         } else if (data.type === 'response.done') {
           currentResponseTextRef.current = '';
-          activeResponseIdRef.current = null;
 
         } else if (data.type === 'error') {
           console.error("OpenAI Realtime API error:", data.error);
           setLiveTranscript("I am listening...");
 
         } else if (data.type === 'input_audio_buffer.speech_started') {
-          // Barge-in: stop generation server-side AND playback client-side.
-          // Without response.cancel the server keeps streaming audio after we
-          // clear the local queue, so the bot appeared to ignore interruptions.
-          if (activeResponseIdRef.current) {
-            ws.send(JSON.stringify({ type: 'response.cancel' }));
-            activeResponseIdRef.current = null;
-          }
-          // Tell the server how much of the bot's answer was actually heard,
-          // so the conversation history matches what the user experienced.
-          if (currentItemIdRef.current && playedAudioMsRef.current > 0) {
-            ws.send(JSON.stringify({
-              type: 'conversation.item.truncate',
-              item_id: currentItemIdRef.current,
-              content_index: 0,
-              audio_end_ms: Math.floor(playedAudioMsRef.current)
-            }));
-            currentItemIdRef.current = null;
-          }
-          if (audioQueueRef.current.length > 0 || isPlayingRef.current) {
-            audioQueueRef.current = [];
-            isPlayingRef.current = false;
-            nextPlayTimeRef.current = 0;
-          }
-          if (currentSourceRef.current) {
-            try { currentSourceRef.current.stop(); } catch (e) { /* already stopped */ }
-            currentSourceRef.current = null;
-          }
+          // Barge-in is handled server-side over WebRTC: with
+          // interrupt_response the server stops the response and truncates
+          // its own context. Nothing to clean up locally.
           setLiveTranscript("Listening...");
 
         } else if (data.type === 'input_audio_buffer.speech_stopped') {
@@ -437,7 +286,6 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
 
         } else if (data.type === 'response.cancelled') {
           currentResponseTextRef.current = '';
-          activeResponseIdRef.current = null;
 
         } else if (data.type === 'session.created' || data.type === 'session.updated') {
           if (data.type === 'session.created' && selectedTopic) {
@@ -447,21 +295,39 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
                 instructions: `Following ALL your existing system instructions (especially: respond ONLY in English, never in Spanish, French or any other language), start the conversation about "${selectedTopic.title}" by greeting the user and introducing the topic in a friendly, engaging way. Ask an opening question to get them talking.`
               }
             };
-            ws.send(JSON.stringify(responseRequest));
+            dc.send(JSON.stringify(responseRequest));
           }
         }
       };
 
-      ws.onerror = (error) => {
-        console.error('WebSocket error:', error);
+      dc.onerror = (error) => {
+        console.error('Data channel error:', error);
         setLiveTranscript("Error during listening. Please try again.");
-        stopListening();
       };
 
-      ws.onclose = (event) => {
-        console.log(`WebSocket closed. Code: ${event.code}, Reason: ${event.reason || 'No reason provided'}`);
-        setLiveTranscript("Assistant's response will appear here...");
-      };
+      // SDP offer/answer exchange with the OpenAI Realtime API.
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+
+      const sdpResponse = await fetch(
+        `https://api.openai.com/v1/realtime/calls?model=${encodeURIComponent(model)}`,
+        {
+          method: 'POST',
+          body: offer.sdp,
+          headers: {
+            Authorization: `Bearer ${ephemeral_token}`,
+            'Content-Type': 'application/sdp'
+          }
+        }
+      );
+
+      if (!sdpResponse.ok) {
+        const errorText = await sdpResponse.text();
+        throw new Error(`WebRTC SDP exchange failed: ${sdpResponse.status} - ${errorText}`);
+      }
+
+      const answerSdp = await sdpResponse.text();
+      await pc.setRemoteDescription({ type: 'answer', sdp: answerSdp });
 
     } catch (error) {
       console.error('Error starting listening:', error);
@@ -473,20 +339,15 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
   const stopListening = useCallback(() => {
     endSession(conversationRef.current);
 
-    audioQueueRef.current = [];
-    isPlayingRef.current = false;
-    activeResponseIdRef.current = null;
-    currentItemIdRef.current = null;
-    playedAudioMsRef.current = 0;
-    if (currentSourceRef.current) {
-      try { currentSourceRef.current.stop(); } catch (e) { /* already stopped */ }
-      currentSourceRef.current = null;
-    }
     currentResponseTextRef.current = '';
 
-    if (webSocketRef.current) {
-      webSocketRef.current.close();
-      webSocketRef.current = null;
+    if (dataChannelRef.current) {
+      try { dataChannelRef.current.close(); } catch (e) { /* already closed */ }
+      dataChannelRef.current = null;
+    }
+    if (peerConnectionRef.current) {
+      try { peerConnectionRef.current.close(); } catch (e) { /* already closed */ }
+      peerConnectionRef.current = null;
     }
     if (mediaStreamRef.current) {
       mediaStreamRef.current.getTracks().forEach(track => track.stop());
@@ -496,11 +357,6 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
       speakerAudioElRef.current.pause();
       speakerAudioElRef.current.srcObject = null;
       speakerAudioElRef.current = null;
-    }
-    speakerDestinationRef.current = null;
-    if (audioContextRef.current) {
-      audioContextRef.current.close();
-      audioContextRef.current = null;
     }
   }, []);
 
