@@ -38,7 +38,12 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
   const scriptProcessorRef = useRef(null);
   const audioQueueRef = useRef([]);
   const isPlayingRef = useRef(false);
-  const isBotSpeakingRef = useRef(false);
+  const currentSourceRef = useRef(null);
+  // Barge-in tracking: id of the in-flight response (to cancel it), the
+  // current audio item (to truncate it), and how many ms have been played.
+  const activeResponseIdRef = useRef(null);
+  const currentItemIdRef = useRef(null);
+  const playedAudioMsRef = useRef(0);
   const currentResponseTextRef = useRef('');
   const [liveTranscript, setLiveTranscript] = useState("");
   const hasAutoStartedRef = useRef(false);
@@ -144,20 +149,17 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
   const playNextChunk = useCallback(() => {
     if (audioQueueRef.current.length === 0) {
       isPlayingRef.current = false;
-      // Keep mic gated for 500ms after last chunk so room reflections decay.
-      setTimeout(() => {
-        isBotSpeakingRef.current = false;
-      }, 500);
       return;
     }
 
     if (!audioContextRef.current) return;
 
     isPlayingRef.current = true;
-    isBotSpeakingRef.current = true;
     const audioBuffer = audioQueueRef.current.shift();
+    playedAudioMsRef.current += audioBuffer.duration * 1000;
 
     const source = audioContextRef.current.createBufferSource();
+    currentSourceRef.current = source;
     source.buffer = audioBuffer;
     source.connect(speakerDestinationRef.current || audioContextRef.current.destination);
 
@@ -187,6 +189,29 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
       setElapsedSeconds(0);
       nextPlayTimeRef.current = 0;
       audioChunkCountRef.current = 0;
+      activeResponseIdRef.current = null;
+      currentItemIdRef.current = null;
+      playedAudioMsRef.current = 0;
+
+      // Create the AudioContext and output <audio> element SYNCHRONOUSLY,
+      // before any await — iOS Safari only allows resume()/play() inside the
+      // user-gesture call stack. Creating them later (e.g. in ws.onopen) left
+      // the context suspended on iPhone: no playback and no barge-in.
+      const context = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 24000 });
+      audioContextRef.current = context;
+      if (context.state === 'suspended') {
+        context.resume().catch(() => {});
+      }
+
+      // Route bot audio through an <audio> element so mobile browsers use
+      // the loudspeaker (and apply echo cancellation) instead of the earpiece.
+      const speakerDest = context.createMediaStreamDestination();
+      speakerDestinationRef.current = speakerDest;
+      const audioEl = new Audio();
+      audioEl.srcObject = speakerDest.stream;
+      audioEl.setAttribute('playsinline', '');
+      audioEl.play().catch((e) => console.warn('Speaker element play() blocked:', e));
+      speakerAudioElRef.current = audioEl;
 
       await startSession(selectedTopic);
 
@@ -260,23 +285,18 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
               threshold: vadThreshold,
               prefix_padding_ms: 300,
               silence_duration_ms: silenceDurationMs,
-              create_response: true
+              create_response: true,
+              interrupt_response: true
             }
           }
         }));
 
-        const context = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 24000 });
-        audioContextRef.current = context;
-
-        // Route bot audio through an <audio> element so mobile browsers use
-        // the loudspeaker instead of the earpiece.
-        const speakerDest = context.createMediaStreamDestination();
-        speakerDestinationRef.current = speakerDest;
-        const audioEl = new Audio();
-        audioEl.srcObject = speakerDest.stream;
-        audioEl.setAttribute('playsinline', '');
-        audioEl.play().catch(() => {});
-        speakerAudioElRef.current = audioEl;
+        // AudioContext was created inside the user gesture in startListening.
+        const context = audioContextRef.current;
+        if (!context) return;
+        if (context.state === 'suspended') {
+          context.resume().catch(() => {});
+        }
 
         const source = context.createMediaStreamSource(stream);
         const processor = context.createScriptProcessor(2048, 1, 1);
@@ -335,6 +355,9 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
           }
 
         } else if (data.type === 'response.audio.delta' || data.type === 'response.output_audio.delta') {
+          if (data.item_id) {
+            currentItemIdRef.current = data.item_id;
+          }
           if (data.delta) {
             playAudioChunk(data.delta);
           }
@@ -346,6 +369,9 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
         } else if (data.type === 'response.created') {
           currentResponseTextRef.current = '';
           audioChunkCountRef.current = 0;
+          activeResponseIdRef.current = data.response?.id || true;
+          currentItemIdRef.current = null;
+          playedAudioMsRef.current = 0;
 
         } else if (data.type === 'response.audio_transcript.done' || data.type === 'response.output_audio_transcript.done') {
           updateConversation(prev => [...prev, { role: "bot", text: data.transcript }]);
@@ -370,18 +396,39 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
 
         } else if (data.type === 'response.done') {
           currentResponseTextRef.current = '';
+          activeResponseIdRef.current = null;
 
         } else if (data.type === 'error') {
           console.error("OpenAI Realtime API error:", data.error);
           setLiveTranscript("I am listening...");
 
         } else if (data.type === 'input_audio_buffer.speech_started') {
-          // User spoke — open the mic gate and clear pending bot audio.
-          isBotSpeakingRef.current = false;
+          // Barge-in: stop generation server-side AND playback client-side.
+          // Without response.cancel the server keeps streaming audio after we
+          // clear the local queue, so the bot appeared to ignore interruptions.
+          if (activeResponseIdRef.current) {
+            ws.send(JSON.stringify({ type: 'response.cancel' }));
+            activeResponseIdRef.current = null;
+          }
+          // Tell the server how much of the bot's answer was actually heard,
+          // so the conversation history matches what the user experienced.
+          if (currentItemIdRef.current && playedAudioMsRef.current > 0) {
+            ws.send(JSON.stringify({
+              type: 'conversation.item.truncate',
+              item_id: currentItemIdRef.current,
+              content_index: 0,
+              audio_end_ms: Math.floor(playedAudioMsRef.current)
+            }));
+            currentItemIdRef.current = null;
+          }
           if (audioQueueRef.current.length > 0 || isPlayingRef.current) {
             audioQueueRef.current = [];
             isPlayingRef.current = false;
             nextPlayTimeRef.current = 0;
+          }
+          if (currentSourceRef.current) {
+            try { currentSourceRef.current.stop(); } catch (e) { /* already stopped */ }
+            currentSourceRef.current = null;
           }
           setLiveTranscript("Listening...");
 
@@ -390,6 +437,7 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
 
         } else if (data.type === 'response.cancelled') {
           currentResponseTextRef.current = '';
+          activeResponseIdRef.current = null;
 
         } else if (data.type === 'session.created' || data.type === 'session.updated') {
           if (data.type === 'session.created' && selectedTopic) {
@@ -427,7 +475,13 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
 
     audioQueueRef.current = [];
     isPlayingRef.current = false;
-    isBotSpeakingRef.current = false;
+    activeResponseIdRef.current = null;
+    currentItemIdRef.current = null;
+    playedAudioMsRef.current = 0;
+    if (currentSourceRef.current) {
+      try { currentSourceRef.current.stop(); } catch (e) { /* already stopped */ }
+      currentSourceRef.current = null;
+    }
     currentResponseTextRef.current = '';
 
     if (webSocketRef.current) {
