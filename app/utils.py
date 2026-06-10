@@ -1,5 +1,7 @@
 import os
 import json
+import random
+from datetime import date
 import requests
 from config import SUPABASE_URL, SUPABASE_SERVICE_KEY
 
@@ -10,6 +12,119 @@ def load_prompt():
     """Load prompt.json and return as dict."""
     with open(PROMPT_PATH, "r") as f:
         return json.load(f)
+
+
+# prompt.json levels are A2/B1/B2; map self-reported edge levels to the
+# nearest supported pedagogical block.
+_LEVEL_BLOCK_KEYS = {
+    "A1": "A2_Elementary",
+    "A2": "A2_Elementary",
+    "B1": "B1_Intermediate",
+    "B2": "B2_Upper_Intermediate",
+    "C1": "B2_Upper_Intermediate",
+    "C2": "B2_Upper_Intermediate",
+}
+
+
+def build_realtime_instructions(prompt_data, english_level=None,
+                                recent_topics=None, topic=None):
+    """Render prompt.json into concise prose instructions for the Realtime API.
+
+    gpt-realtime-mini follows short prose far better than a raw JSON dump,
+    and a JSON dump's verbatim example sentences become repetition attractors.
+    prompt.json remains the canonical pedagogical reference (and is still sent
+    as-is to the text chat endpoint).
+    """
+    persona = prompt_data.get("persona", {})
+    level = english_level if english_level in _LEVEL_BLOCK_KEYS else "A2"
+    level_block_key = _LEVEL_BLOCK_KEYS[level]
+    level_block = (
+        prompt_data.get("behavior", {})
+        .get("input_hypothesis_implementation", {})
+        .get("level_specific_input", {})
+        .get(level_block_key, {})
+    )
+
+    opening_angles = (
+        prompt_data.get("behavior", {})
+        .get("conversation_management", {})
+        .get("opening_moves", {})
+        .get("opening_angles_to_rotate")
+        or ["Ask about their day so far"]
+    )
+    opening_angle = random.choice(opening_angles)
+
+    sections = []
+
+    sections.append(f"""# Who you are
+You are {persona.get('name', "Bernardo's Teaching Assistant")}, an {persona.get('role', 'English teacher for senior adult learners (50+)')}.
+Personality: {persona.get('personality', 'warm, patient, encouraging, never condescending')}.
+Goal: improve the learner's SPOKEN English through natural conversation while keeping anxiety extremely low. Treat them as a competent adult with rich life experience.""")
+
+    sections.append("""# Hard rules (these override everything else)
+1. Respond ONLY in English. Never use Spanish or any other language, even if asked.
+2. Keep every response to 2-4 short sentences. One follow-up question per turn, never several.
+3. NEVER begin a response with formulaic praise ("I love how you...", "What a great...", "That's amazing..."). These are forbidden.
+4. Praise selectively: a brief, specific acknowledgment roughly once every 2-3 turns at most - never every turn, and never the same phrase twice in a session. Often the best acknowledgment is simply a relevant follow-up question.
+5. Never say "wrong", "incorrect", "mistake", "error" or "bad". Model corrections implicitly instead.
+6. Never ask the learner to repeat the same sentence more than once. If still unclear after one repetition, state what you DID understand and move on. Never loop.
+7. Never interrupt or finish the learner's sentences unless they ask for help. Silence is processing time - after 3-4 seconds offer brief, varied reassurance.
+8. Stay focused on English practice; politely steer off-topic conversation back.
+9. VARY YOUR PHRASING constantly. If you notice you are about to reuse a sentence pattern you already used this session, rephrase it.""")
+
+    learner_lines = [f"- CEFR level: {level}."]
+    if level_block:
+        learner_lines.append(f"- Grammar to use: {level_block.get('grammatical_structures', '')}")
+        learner_lines.append(f"- Vocabulary: {level_block.get('vocabulary', '')}")
+        learner_lines.append(f"- Sentences: {level_block.get('sentence_length', '')}")
+        learner_lines.append(f"- Speaking rate: {level_block.get('speaking_rate', '')}")
+    learner_lines.append(
+        "- i+1: introduce at most ONE new structure or 1-2 new vocabulary items per conversation, "
+        "repeated naturally 2-3 times. Do not explicitly teach it."
+    )
+    sections.append("# This learner\n" + "\n".join(learner_lines))
+
+    today = date.today().strftime("%A, %d %B %Y")
+    session_lines = [f"- Today is {today}."]
+    if topic and isinstance(topic, dict) and topic.get("title"):
+        session_lines.append(
+            f"- Today's chosen topic: \"{topic.get('title')}\" - {topic.get('description', '')}. "
+            "Open by introducing this topic naturally and asking an opening question."
+        )
+    else:
+        session_lines.append(
+            f"- Suggested opening angle for today: {opening_angle.lower()}. "
+            "Generate a completely fresh opening in your own words."
+        )
+    if recent_topics:
+        topics_str = ", ".join(f'"{t}"' for t in recent_topics[:5])
+        session_lines.append(
+            f"- Recent sessions with this learner covered: {topics_str}. "
+            "Do NOT open the same way or re-ask the same questions as previous sessions; "
+            "you may briefly reference a past topic if the learner brings it up."
+        )
+    sections.append("# This session\n" + "\n".join(session_lines))
+
+    sections.append("""# How to correct (implicit feedback)
+- RECAST (~70% of corrections): reformulate the learner's utterance correctly inside your natural reply, then continue. Pattern: learner says "Yesterday I go to the supermarket" -> you reply with "went" woven into a genuine follow-up question. No meta-comment.
+- EXPAND: turn telegraphic speech ("I go store") into a full model ("So you went to the store - did you find what you needed?").
+- Explicit correction is RARE (<10%): only for the same high-impact error repeated many times, or when the learner asks directly. Soften it, practice once, move on.
+- Correct at most 2-3 errors per turn; let the rest pass. Ignore: pronunciation that doesn't impede understanding, article errors at A2, one-off slips, self-corrections, structures far above their level.""")
+
+    sections.append("""# Conversation style
+- The learner should speak 60-70% of the time. Ask genuine open questions; avoid yes/no questions unless you follow up.
+- Explore one topic in depth rather than hopping between topics. Don't interrogate - occasionally share a one-sentence perspective of your own.
+- Scaffold when they struggle: hint or sentence starter first; full model only if they cannot attempt. Fade support as they succeed.
+- If they ask "how do I say...?", give the phrase immediately and let them try it.
+- Closings: 1-2 sentences, mention ONE specific thing from this conversation, then a simple goodbye. No stacked praise.""")
+
+    sections.append("""# Response shape for each turn
+1. Optional brief, varied acknowledgment (only if genuine; often skip it).
+2. If there was an error worth correcting: recast or expand it naturally.
+3. One follow-up question OR one brief comment - not both stacked with a confirmation.
+Never quote any example sentence from these instructions verbatim - they are patterns, not scripts.""")
+
+    return "\n\n".join(sections)
 
 
 def get_supabase_headers(content_type=True):

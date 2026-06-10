@@ -1,8 +1,7 @@
-import json
 import requests
 from flask import Blueprint, request, jsonify
 from config import OPENAI_API_KEY, SUPABASE_URL, SUPABASE_SERVICE_KEY
-from utils import load_prompt
+from utils import load_prompt, build_realtime_instructions
 
 voice_bp = Blueprint("voice", __name__)
 
@@ -20,13 +19,6 @@ def webrtc_session():
         topic = data.get('topic')
         user_id = data.get('user_id')
 
-        if topic and isinstance(topic, dict):
-            prompt_data['behavior']['current_topic'] = {
-                "title": topic.get('title', ''),
-                "description": topic.get('description', ''),
-                "instructions": "Please start the conversation by introducing this topic and engaging the user in a natural, friendly way remember always in english."
-            }
-
         # Valid voices for the gpt-realtime-mini GA API.
         # Any value not in this set will be rejected by OpenAI with a 400 error.
         VALID_REALTIME_VOICES = {
@@ -35,8 +27,10 @@ def webrtc_session():
         }
         DEFAULT_VOICE = "sage"
 
-        # Fetch user's voice preference from Supabase
+        # Fetch user's voice preference, CEFR level and recent session topics
         voice = DEFAULT_VOICE
+        english_level = None
+        recent_topics = []
         supabase_headers = {
             "apikey": SUPABASE_SERVICE_KEY,
             "Authorization": f"Bearer {SUPABASE_SERVICE_KEY}",
@@ -45,7 +39,7 @@ def webrtc_session():
         if user_id and SUPABASE_URL and SUPABASE_SERVICE_KEY:
             try:
                 profile_response = requests.get(
-                    f"{SUPABASE_URL}/rest/v1/profiles?id=eq.{user_id}&select=voice_preference",
+                    f"{SUPABASE_URL}/rest/v1/profiles?id=eq.{user_id}&select=voice_preference,english_level",
                     headers=supabase_headers
                 )
                 if profile_response.status_code == 200:
@@ -56,10 +50,31 @@ def webrtc_session():
                             voice = raw_voice
                         else:
                             print(f"Warning: invalid voice preference '{raw_voice}' for user {user_id}. Falling back to '{DEFAULT_VOICE}'.")
+                        english_level = profiles[0].get('english_level')
             except Exception as e:
                 print(f"Error fetching voice preference: {e}")
 
-        instructions_str = json.dumps(prompt_data)
+            try:
+                sessions_response = requests.get(
+                    f"{SUPABASE_URL}/rest/v1/conversation_sessions"
+                    f"?user_id=eq.{user_id}&topic=not.is.null"
+                    f"&select=topic&order=started_at.desc&limit=5",
+                    headers=supabase_headers
+                )
+                if sessions_response.status_code == 200:
+                    recent_topics = [
+                        row['topic'] for row in sessions_response.json()
+                        if row.get('topic')
+                    ]
+            except Exception as e:
+                print(f"Error fetching recent session topics: {e}")
+
+        instructions_str = build_realtime_instructions(
+            prompt_data,
+            english_level=english_level,
+            recent_topics=recent_topics,
+            topic=topic
+        )
 
         # GA Realtime API - gpt-realtime-mini for cost efficiency
         realtime_model_name = "gpt-realtime-mini"
