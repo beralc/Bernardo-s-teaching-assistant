@@ -1,295 +1,109 @@
-import React, { useState } from "react";
-import { useLanguage } from "../LanguageContext";
+import React, { useEffect, useRef, useState } from 'react';
+import { useLanguage } from '../LanguageContext';
+import { MicIcon, StopIcon } from './icons';
 
-// Versioned, user-keyed so each user gets their own flag.
-// Bump the version suffix (v3 → v4) to force the flow to re-show for everyone
-// after a significant content change.
-const ONBOARDING_KEY_PREFIX = "onboarding-complete-v3";
-
-function getOnboardingKey(userId) {
-  return userId
-    ? `${ONBOARDING_KEY_PREFIX}-${userId}`
-    : ONBOARDING_KEY_PREFIX;
-}
-
+const key = (userId) => `onboarding-complete-v4-${userId || 'guest'}`;
 export function hasCompletedOnboarding(userId) {
-  return localStorage.getItem(getOnboardingKey(userId)) === "true";
+  try { return localStorage.getItem(key(userId)) === 'true'; } catch { return false; }
 }
-
 export function markOnboardingComplete(userId) {
-  localStorage.setItem(getOnboardingKey(userId), "true");
+  try { localStorage.setItem(key(userId), 'true'); } catch { /* Guide remains usable without storage. */ }
 }
 
-// ─── Step 1 icon ──────────────────────────────────────────────────────────────
-// Wave hand rendered as an SVG path — not emoji inside <text> — for reliable
-// rendering on iOS Safari.
+const copy = {
+  en: {
+    title: 'A quick practice before you begin', language: 'Guide language', close: 'Close guide',
+    next: 'Next', back: 'Back', done: 'Go to the app', step: 'Step', of: 'of',
+    headings: ['Choose what to talk about', 'Try the conversation buttons', 'Speak when you are ready'],
+    intro: 'Practise English with an AI conversation partner. You can choose an everyday topic in Starters, or open Talk for a conversation of your own.',
+    reassurance: 'You do not need perfect English. The assistant can offer a short language suggestion. You can ask it to explain or speak more slowly.',
+    demo: 'This is a practice button. It does not open your microphone, send audio, or use your conversation minutes.',
+    start: 'Try starting', stop: 'Try stopping', stopped: 'Practice finished. In a real conversation, the red button ends the conversation.',
+    running: 'Practice started. Press the large red button to end it.',
+    permission: 'When you start a real conversation, your browser may ask to use the microphone. Choose Allow if you want to speak.',
+    turns: 'Wait until you see “Your turn” before answering. To interrupt a reply, tap “I would like to speak” and wait for “Your turn”. The red button ends the conversation.',
+    help: 'If the microphone is blocked, open this site’s permissions in your browser and allow microphone access. If you cannot hear the assistant, check your volume. Headphones can help with echo.',
+    control: 'You can end a conversation at any time with the large red button. Open this guide again using How to use the app.',
+  },
+  es: {
+    title: 'Una práctica breve antes de empezar', language: 'Idioma de la guía', close: 'Cerrar guía',
+    next: 'Siguiente', back: 'Atrás', done: 'Ir a la aplicación', step: 'Paso', of: 'de',
+    headings: ['Elige de qué hablar', 'Prueba los botones', 'Habla cuando estés preparado'],
+    intro: 'Practica inglés con un asistente de inteligencia artificial. Puedes elegir un tema cotidiano en Temas, o abrir Hablar para conversar sobre lo que quieras.',
+    reassurance: 'No necesitas hablar un inglés perfecto. El asistente puede ofrecerte una breve sugerencia. Puedes pedirle que la explique o que hable más despacio.',
+    demo: 'Este botón es de práctica. No abre el micrófono, no envía audio ni consume minutos de conversación.',
+    start: 'Probar cómo empezar', stop: 'Probar cómo terminar', stopped: 'Práctica terminada. En una conversación real, el botón rojo termina la conversación.',
+    running: 'Práctica iniciada. Pulsa el botón rojo grande para terminarla.',
+    permission: 'Al empezar una conversación real, el navegador puede pedir permiso para usar el micrófono. Elige Permitir si quieres hablar.',
+    turns: 'Espera a ver “Tu turno” antes de responder. Para interrumpir una respuesta, pulsa “Quiero hablar” y espera a ver “Tu turno”. El botón rojo termina la conversación.',
+    help: 'Si el micrófono está bloqueado, abre los permisos de esta página en el navegador y permite el acceso. Si no oyes al asistente, comprueba el volumen. Los auriculares pueden ayudar a reducir el eco.',
+    control: 'Puedes terminar la conversación en cualquier momento con el botón rojo grande. Puedes volver a esta guía desde Cómo usar la aplicación.',
+  },
+};
 
-function WaveIcon() {
-  return (
-    <div
-      className="w-24 h-24 rounded-full bg-green-100 flex items-center justify-center"
-      aria-hidden="true"
-    >
-      {/* Hand-wave SVG path */}
-      <svg
-        viewBox="0 0 48 48"
-        className="w-14 h-14"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        {/* Palm */}
-        <path
-          d="M20 36c-1 0-2-.5-2.5-1.5L11 22a2 2 0 0 1 3.6-1.7l3.4 7V12a2 2 0 0 1 4 0v12h1V10a2 2 0 0 1 4 0v14h1V13a2 2 0 0 1 4 0v14l.5-2a2 2 0 0 1 3.9 1l-2 8c-1 4-4.7 6-8.4 6H20z"
-          fill="#16a34a"
-        />
-        {/* Sleeve cuff hint */}
-        <path
-          d="M14 20.5c-.6-1.1-.4-2.5.6-3.3"
-          stroke="#15803d"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-        />
-      </svg>
-    </div>
-  );
-}
-
-// ─── App screenshot preview ────────────────────────────────────────────────────
-// objectPosition lets us crop the right area of each screenshot.
-
-function AppScreenshot({ src, alt }) {
-  return (
-    <div className="w-full rounded-2xl overflow-hidden border-2 border-gray-300 shadow-md">
-      <img
-        src={src}
-        alt={alt}
-        className="w-full"
-        loading="eager"
-      />
-    </div>
-  );
-}
-
-// ─── Reassurance callout ───────────────────────────────────────────────────────
-// Used on Step 2 to address the two primary fears: "what if it doesn't
-// understand me?" and "what if I make mistakes?"
-
-function ReassuranceCallout({ text }) {
-  return (
-    <div className="flex items-start gap-3 bg-green-50 border border-green-200 rounded-2xl px-5 py-4 w-full max-w-sm text-left">
-      {/* Heart rendered as a styled span, not inside SVG, for iOS reliability */}
-      <span className="text-2xl leading-none mt-0.5" aria-hidden="true">
-        💚
-      </span>
-      <span className="text-lg text-gray-700 leading-snug">{text}</span>
-    </div>
-  );
-}
-
-// ─── Step components ───────────────────────────────────────────────────────────
-// Each step is self-contained. No local state, no navigation logic.
-// Props: { t } — the translation function from useLanguage().
-
-function StepWelcome({ t }) {
-  return (
-    <div className="flex flex-col items-center text-center gap-6">
-      <WaveIcon />
-      <h2 className="text-3xl font-bold text-gray-900 leading-tight">
-        {t("onboarding.welcome.title")}
-      </h2>
-      <p className="text-xl text-gray-700 leading-relaxed max-w-sm">
-        {t("onboarding.welcome.body")}
-      </p>
-    </div>
-  );
-}
-
-function StepHowItWorks({ t }) {
-  return (
-    <div className="flex flex-col items-center text-center gap-5">
-      <h2 className="text-3xl font-bold text-gray-900 leading-tight">
-        {t("onboarding.howItWorks.title")}
-      </h2>
-      {/* Show the actual app screen — the user sees the exact button they
-          will press. More powerful than any illustration. */}
-      <AppScreenshot
-        src="/onboarding/talk-screen.png"
-        alt={t("onboarding.howItWorks.screenshotAlt")}
-      />
-      <p className="text-xl text-gray-700 leading-relaxed max-w-sm">
-        {t("onboarding.howItWorks.body")}
-      </p>
-      {/* Addresses "what if it doesn't understand me?" and "what if I make
-          mistakes?" — the two fears most common in this user group. */}
-      <ReassuranceCallout text={t("onboarding.howItWorks.reassurance")} />
-    </div>
-  );
-}
-
-function StepReady({ t }) {
-  return (
-    <div className="flex flex-col items-center text-center gap-5">
-      <h2 className="text-3xl font-bold text-gray-900 leading-tight">
-        {t("onboarding.ready.title")}
-      </h2>
-      {/* Show the Starters screen so the user is not surprised by it later */}
-      <AppScreenshot
-        src="/onboarding/starters-screen.png"
-        alt={t("onboarding.ready.screenshotAlt")}
-      />
-      <p className="text-xl text-gray-700 leading-relaxed max-w-sm">
-        {t("onboarding.ready.body")}
-      </p>
-    </div>
-  );
-}
-
-// ─── Progress dots ─────────────────────────────────────────────────────────────
-// Current step dot is larger and filled green. Inactive dots are smaller and gray.
-// No animation — avoids motion issues for older users.
-
-function ProgressDots({ total, current }) {
-  return (
-    <div className="flex items-center justify-center gap-3" aria-hidden="true">
-      {Array.from({ length: total }).map((_, i) => (
-        <span
-          key={i}
-          className={`block rounded-full transition-all duration-200 ${
-            i === current
-              ? "w-4 h-4 bg-green-600"
-              : "w-3 h-3 bg-gray-400"
-          }`}
-        />
-      ))}
-    </div>
-  );
-}
-
-// ─── Flow configuration ────────────────────────────────────────────────────────
-// Add or remove a step here. Update TOTAL_STEPS to match the array length.
-// Do not hard-code step logic anywhere else.
-
-function buildSteps(t) {
-  return [
-    <StepWelcome key="welcome" t={t} />,
-    <StepHowItWorks key="how" t={t} />,
-    <StepReady key="ready" t={t} />,
-  ];
-}
-
-const TOTAL_STEPS = 3;
-
-// ─── Main modal ────────────────────────────────────────────────────────────────
-// Full-screen on mobile, centered card on sm+.
-// Backdrop does NOT close the modal — prevents accidental dismissal by users
-// unfamiliar with modal UX conventions on mobile.
-
-export function OnboardingModal({ userId, onComplete }) {
-  const { t } = useLanguage();
+export function OnboardingModal({ userId, onComplete, fontSizes }) {
+  const { language, setLanguage } = useLanguage();
+  const c = copy[language] || copy.en;
   const [step, setStep] = useState(0);
-
-  const isFirstStep = step === 0;
-  const isLastStep = step === TOTAL_STEPS - 1;
-
-  const handleComplete = () => {
-    markOnboardingComplete(userId);
-    onComplete();
-  };
-
-  const handleNext = () => {
-    if (!isLastStep) {
-      setStep((s) => s + 1);
-    } else {
-      handleComplete();
-    }
-  };
-
-  const handleBack = () => {
-    if (!isFirstStep) setStep((s) => s - 1);
-  };
-
-  const steps = buildSteps(t);
-
+  const [running, setRunning] = useState(false);
+  const [practised, setPractised] = useState(false);
+  const dialog = useRef(null);
+  const heading = useRef(null);
+  const scrollArea = useRef(null);
+  useEffect(() => {
+    const previous = document.activeElement;
+    const element = dialog.current;
+    const overflow = document.body.style.overflow;
+    element.showModal();
+    document.body.style.overflow = 'hidden';
+    heading.current?.focus();
+    return () => {
+      element.close();
+      document.body.style.overflow = overflow;
+      if (previous?.isConnected) previous.focus();
+    };
+  }, []);
+  useEffect(() => {
+    heading.current?.focus();
+    if (scrollArea.current) scrollArea.current.scrollTop = 0;
+  }, [step]);
+  const finish = () => { markOnboardingComplete(userId); onComplete(); };
+  const button = 'min-h-[52px] rounded-xl border-2 border-gray-600 px-4 py-3 font-semibold focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-blue-700';
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm sm:px-4"
-      role="dialog"
-      aria-modal="true"
-      aria-label={t("onboarding.ariaLabel")}
-    >
-      {/* Modal shell:
-          - Mobile: full-screen (h-full, rounded-none)
-          - sm+: centered card (sm:h-auto, sm:rounded-3xl)
-          The outer container does NOT scroll. Only the inner content region scrolls.
-          max-h uses dvh so iOS Safari's URL bar does not clip the footer. */}
-      <div
-        className="
-          bg-white shadow-2xl w-full max-w-md flex flex-col relative
-          h-full max-h-[100dvh] rounded-none
-          sm:h-auto sm:max-h-[90vh] sm:rounded-3xl
-        "
-      >
-        {/* Skip button — visually quiet to avoid competing with Next.
-            44px touch target enforced by p-3.
-            Hidden on the last step so the only call to action is "Let's Start!". */}
-        {!isLastStep && (
-          <button
-            onClick={handleComplete}
-            className="absolute top-4 right-4 z-10 p-3 min-h-[52px] min-w-[80px] text-gray-500 hover:text-gray-700 text-base font-medium transition-colors"
-            aria-label={t("onboarding.skipAriaLabel")}
-          >
-            {t("onboarding.skip")}
-          </button>
-        )}
-
-        {/* Scrollable content region — the ONLY scroll surface.
-            min-h-0 is required for flex-1 to allow overflow on short-screen devices.
-            aria-live so screen readers announce step changes. */}
-        <div
-          className="flex-1 min-h-0 overflow-y-auto px-6 pt-12 pb-6 sm:px-8 sm:pt-14"
-          aria-live="polite"
-        >
-          {steps[step]}
+    <dialog ref={dialog} aria-labelledby="guide-title" onCancel={(e) => { e.preventDefault(); finish(); }}
+      className="m-auto w-full max-w-xl max-h-[95dvh] rounded-2xl bg-white text-gray-900 p-0 backdrop:bg-black/60">
+      <div className={`flex max-h-[95dvh] flex-col ${fontSizes?.lg || 'text-xl'}`}>
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b p-4">
+          <label className="flex flex-wrap items-center gap-2">{c.language}
+            <select className="min-h-[52px] rounded-lg border-2 border-gray-600 p-2 bg-white" value={language} onChange={e => setLanguage(e.target.value)}>
+              <option value="es">Español</option><option value="en">English</option>
+            </select>
+          </label>
+          <button className={button} onClick={finish}>{c.close}</button>
         </div>
-
-        {/* Sticky footer — pinned outside the scroll region.
-            Users can always reach Back/Next regardless of scroll position.
-            Back is hidden (replaced by a spacer) on Step 1 so the Next button
-            stays right-aligned without layout shift. */}
-        <div className="shrink-0 border-t border-gray-100 bg-white px-6 py-5 sm:px-8 sm:rounded-b-3xl flex flex-col gap-3">
-          {/* Visible step counter — dots alone are too subtle for users with
-              low digital literacy. */}
-          <p className="text-center text-base font-medium text-gray-500">
-            {t("onboarding.stepCounter", { current: step + 1, total: TOTAL_STEPS })}
-          </p>
-          <ProgressDots total={TOTAL_STEPS} current={step} />
-
-          <div className="flex items-center gap-3">
-            {!isFirstStep ? (
-              <button
-                onClick={handleBack}
-                className="flex-1 py-4 rounded-2xl border-2 border-gray-300 text-gray-700 text-xl font-semibold hover:bg-gray-50 transition-colors"
-              >
-                {t("common.back")}
-              </button>
-            ) : (
-              /* Invisible spacer keeps Next button right-aligned on Step 1 */
-              <div className="flex-1" aria-hidden="true" />
-            )}
-
-            <button
-              onClick={handleNext}
-              className="flex-1 py-4 rounded-2xl bg-green-600 hover:bg-green-700 text-white text-xl font-bold transition-colors shadow-lg"
-              autoFocus
-            >
-              {isLastStep
-                ? t("onboarding.ready.startButton")
-                : t("common.next")}
+        <div ref={scrollArea} className="min-h-0 overflow-y-auto p-6 space-y-5 leading-relaxed">
+          <p className="text-gray-700">{c.title}</p>
+          <h2 id="guide-title" ref={heading} tabIndex={-1} className={`${fontSizes?.xxl || 'text-3xl'} font-bold`}>{c.headings[step]}</h2>
+          {step === 0 && <><p>{c.intro}</p><p className="rounded-xl bg-green-50 border border-green-800 p-4">{c.reassurance}</p></>}
+          {step === 1 && <>
+            <p>{c.demo}</p>
+            <button onClick={() => { setRunning(!running); if (running) setPractised(true); }}
+              aria-label={running ? c.stop : c.start}
+              className={`mx-auto w-48 h-48 rounded-full text-white flex flex-col items-center justify-center gap-2 shadow-xl focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-4 focus-visible:outline-blue-700 ${running ? 'bg-red-600' : 'bg-green-700'}`}>
+              {running ? <StopIcon /> : <MicIcon />}<span className="text-lg font-bold px-3">{running ? c.stop : c.start}</span>
             </button>
-          </div>
+            <p role="status">{running ? c.running : practised ? c.stopped : c.start}</p>
+          </>}
+          {step === 2 && <><p>{c.permission}</p><p>{c.turns}</p><p>{c.control}</p><details className="rounded-xl border-2 border-gray-600 p-4"><summary className="cursor-pointer font-semibold min-h-[44px]">{language === 'es' ? 'Si algo no funciona' : 'If something does not work'}</summary><p className="mt-3">{c.help}</p></details></>}
         </div>
-
+        <footer className="border-t p-4 space-y-3 shrink-0">
+          <p className="text-center">{c.step} {step + 1} {c.of} 3</p>
+          <div className="flex flex-wrap gap-3">
+            {step > 0 && <button className={`${button} flex-1`} onClick={() => { setRunning(false); setStep(step - 1); }}>{c.back}</button>}
+            <button className={`${button} flex-1 bg-green-700 text-white`} onClick={() => { setRunning(false); if (step === 2) finish(); else setStep(step + 1); }}>{step === 2 ? c.done : c.next}</button>
+          </div>
+        </footer>
       </div>
-    </div>
+    </dialog>
   );
 }
