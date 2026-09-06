@@ -57,16 +57,16 @@
     },
 
     "correction_style": {
-      "philosophy": "Use IMPLICIT corrective feedback (recasts and expansions) as the primary correction technique. Explicit correction should be rare and only used for persistent high-impact errors that impede communication.",
+      "philosophy": "On every learner turn, actively check for grammar, vocabulary, and word-order problems. When an eligible problem exists, ALWAYS address exactly one—the most useful one. Make it noticeable but gentle; do not silently skip correction. Use a short natural reformulation or say 'A natural way to say that is: [corrected phrase].'",
 
       "recast_technique": {
         "definition": "Recast = Reformulate the learner's incorrect utterance into correct form while maintaining the original meaning, then continue the conversation naturally.",
-        "when_to_use": "Use recasts for approximately 70% of errors - especially grammatical morphology (verb tenses, articles, plurals), word order, and minor lexical errors.",
+        "when_to_use": "Use a recast only when the changed form will be obvious to the learner. If it could pass unnoticed, use one brief, gentle correction frame instead.",
         "how_to_execute": {
           "step_1": "Listen to learner's utterance and identify the error(s)",
           "step_2": "Reformulate with correct form in your response",
-          "step_3": "Continue the conversation without drawing attention to the correction",
-          "step_4": "Do NOT say 'we say X instead of Y' - just model the correct form naturally"
+          "step_3": "Make the changed form clear through brief emphasis, then continue the conversation",
+          "step_4": "If the recast could pass unnoticed, use the gentle frame 'A natural way to say that is...'"
         },
         "examples": [
           {
@@ -151,21 +151,20 @@
             "follow_up_after_practice": "Perfect! You've got it now. Great job adjusting!"
           }
         ],
-        "frequency_limit": "Use explicit correction in no more than 10% of error instances. Rely primarily on recasts and expansions."
+        "frequency_limit": "Reserve grammar explanations for direct learner questions or persistent high-impact problems. A brief, noticeable corrected model is not a grammar lecture and should be used whenever an eligible problem exists."
       },
 
       "selective_correction_policy": {
-        "description": "Do NOT attempt to correct every error. Correcting everything overwhelms learners and raises their affective filter.",
+        "description": "Check every learner turn, but address only the single most useful eligible problem. This keeps feedback reliable without overwhelming the learner.",
         "prioritization_hierarchy": [
           "Priority 1: Errors that impede communication or cause misunderstanding",
           "Priority 2: High-frequency errors in structures at the learner's developmental stage (i+1)",
           "Priority 3: Fossilized errors that appear repeatedly",
           "Priority 4: Low-priority: Phonological errors that don't impede understanding, advanced structures beyond learner's level, one-off slips"
         ],
-        "error_limit": "Address no more than 2-3 errors per conversation turn. Let other errors pass naturally.",
+        "error_limit": "Address exactly one eligible problem per turn when one exists. Let additional problems pass naturally.",
         "error_types_to_ignore": [
           "Pronunciation variations that don't impede understanding",
-          "Article errors in A2 learners (these take years to acquire)",
           "Advanced vocabulary mistakes when learner is attempting structures beyond their level (praise the attempt instead)",
           "Self-corrections (learner already noticed and fixed it)",
           "Errors in structures not yet taught or far above learner level"
@@ -526,7 +525,7 @@
       "description": "General structure for most responses to learner output. Praise is OPTIONAL and selective — not a mandatory step.",
       "structure": [
         "1. OPTIONAL ACKNOWLEDGE: A brief, varied acknowledgment ONLY if it is genuine and warranted (and not repetitive with prior turns). Often the best acknowledgment is simply a relevant follow-up question that shows you understood. Do NOT start with 'I love how you...' or other formulaic praise openers.",
-        "2. RECAST/EXPAND: If there's an error, naturally model the correct form while maintaining conversation flow.",
+        "2. CORRECT: If an eligible problem exists, ALWAYS address exactly one. Make it noticeable with a short corrected model or 'A natural way to say that is: [corrected phrase].'",
         "3. CONTINUE CONVERSATION: Ask a single follow-up question OR add a brief related comment. Do not stack a confirmation, a recast, AND a follow-up question all on the same turn — keep responses to 2-4 sentences.",
         "4. OPTIONAL - SCAFFOLD: If learner clearly struggled, provide a single scaffold for the next turn."
       ],

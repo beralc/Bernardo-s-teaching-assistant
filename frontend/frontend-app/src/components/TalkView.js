@@ -37,6 +37,8 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
   const peerConnectionRef = useRef(null);
   const dataChannelRef = useRef(null);
   const speakerAudioElRef = useRef(null);
+  const micReenableTimerRef = useRef(null);
+  const assistantAudioPlayingRef = useRef(false);
   const currentResponseTextRef = useRef('');
   const [liveTranscript, setLiveTranscript] = useState("");
   const hasAutoStartedRef = useRef(false);
@@ -176,7 +178,7 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
 
         const responseData = await sessionResponse.json();
         ephemeral_token = responseData.ephemeral_token;
-        model = responseData.model || 'gpt-realtime-mini';
+        model = responseData.model || 'gpt-realtime-2.1-mini';
         vadThreshold = responseData.vad_threshold ?? 0.85;
         silenceDurationMs = responseData.silence_duration_ms ?? 800;
       } catch (fetchError) {
@@ -210,21 +212,51 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
       const dc = pc.createDataChannel('oai-events');
       dataChannelRef.current = dc;
 
+      // While assistant audio is coming from the loudspeaker, send silence on
+      // the WebRTC microphone track. This prevents acoustic echo from being
+      // classified as a new learner turn. A short tail lets room echo decay.
+      // This deliberately favors uninterrupted playback over barge-in.
+      const setMicEnabled = (enabled) => {
+        const micTrack = mediaStreamRef.current?.getAudioTracks?.()[0];
+        if (micTrack && micTrack.readyState === 'live') micTrack.enabled = enabled;
+      };
+
+      const muteMicForAssistant = () => {
+        if (micReenableTimerRef.current) {
+          clearTimeout(micReenableTimerRef.current);
+          micReenableTimerRef.current = null;
+        }
+        setMicEnabled(false);
+      };
+
+      const reenableMicAfterEchoTail = () => {
+        if (micReenableTimerRef.current) clearTimeout(micReenableTimerRef.current);
+        micReenableTimerRef.current = setTimeout(() => {
+          setMicEnabled(true);
+          micReenableTimerRef.current = null;
+        }, 400);
+      };
+
       dc.onopen = () => {
         // Transcription is configured server-side at session creation (voice.py).
-        // Only update turn_detection here to avoid overriding transcription config.
-        // interrupt_response makes the server stop speaking (and truncate its
-        // own context) when the user barges in.
+        // Only update turn detection here to avoid overriding transcription.
+        // Automatic interruption stays off because speaker echo must never cut
+        // off the assistant; the microphone gate below enforces half-duplex.
         dc.send(JSON.stringify({
+          event_id: 'configure_voice_turn_detection',
           type: 'session.update',
           session: {
-            turn_detection: {
-              type: 'server_vad',
-              threshold: vadThreshold,
-              prefix_padding_ms: 300,
-              silence_duration_ms: silenceDurationMs,
-              create_response: true,
-              interrupt_response: true
+            audio: {
+              input: {
+                turn_detection: {
+                  type: 'server_vad',
+                  threshold: vadThreshold,
+                  prefix_padding_ms: 300,
+                  silence_duration_ms: silenceDurationMs,
+                  create_response: true,
+                  interrupt_response: false
+                }
+              }
             }
           }
         }));
@@ -258,6 +290,7 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
 
         } else if (data.type === 'response.created') {
           currentResponseTextRef.current = '';
+          muteMicForAssistant();
 
         } else if (data.type === 'response.audio_transcript.done' || data.type === 'response.output_audio_transcript.done') {
           updateConversation(prev => [...prev, { role: "bot", text: data.transcript }]);
@@ -282,15 +315,31 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
 
         } else if (data.type === 'response.done') {
           currentResponseTextRef.current = '';
+          // Audio playback can outlive response generation. The output-buffer
+          // event is authoritative; this is a fallback for non-audio replies.
+          if (!assistantAudioPlayingRef.current) reenableMicAfterEchoTail();
+
+        } else if (data.type === 'output_audio_buffer.started') {
+          assistantAudioPlayingRef.current = true;
+          muteMicForAssistant();
+
+        } else if (data.type === 'output_audio_buffer.stopped' || data.type === 'output_audio_buffer.cleared') {
+          assistantAudioPlayingRef.current = false;
+          reenableMicAfterEchoTail();
 
         } else if (data.type === 'error') {
           console.error("OpenAI Realtime API error:", data.error);
-          setLiveTranscript("I am listening...");
+          assistantAudioPlayingRef.current = false;
+          reenableMicAfterEchoTail();
+          if (data.error?.event_id === 'configure_voice_turn_detection') {
+            setLiveTranscript("Voice configuration failed. Please stop and try again.");
+          } else {
+            setLiveTranscript("Voice connection error. Please stop and try again.");
+          }
 
         } else if (data.type === 'input_audio_buffer.speech_started') {
-          // Barge-in is handled server-side over WebRTC: with
-          // interrupt_response the server stops the response and truncates
-          // its own context. Nothing to clean up locally.
+          // With half-duplex gating, this should only represent learner speech
+          // captured while assistant playback is idle.
           setLiveTranscript("Listening...");
 
         } else if (data.type === 'input_audio_buffer.speech_stopped') {
@@ -298,6 +347,8 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
 
         } else if (data.type === 'response.cancelled') {
           currentResponseTextRef.current = '';
+          assistantAudioPlayingRef.current = false;
+          reenableMicAfterEchoTail();
 
         } else if (data.type === 'session.created' || data.type === 'session.updated') {
           if (data.type === 'session.created' && selectedTopic) {
@@ -352,6 +403,12 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
     endSession(conversationRef.current);
 
     currentResponseTextRef.current = '';
+    assistantAudioPlayingRef.current = false;
+
+    if (micReenableTimerRef.current) {
+      clearTimeout(micReenableTimerRef.current);
+      micReenableTimerRef.current = null;
+    }
 
     if (dataChannelRef.current) {
       try { dataChannelRef.current.close(); } catch (e) { /* already closed */ }

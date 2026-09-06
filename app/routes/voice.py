@@ -117,8 +117,9 @@ def webrtc_session():
             topic=topic
         )
 
-        # GA Realtime API - gpt-realtime-mini for cost efficiency
-        realtime_model_name = "gpt-realtime-mini"
+        # GPT-Realtime-2.1 Mini improves instruction following while keeping
+        # the same published audio/text token rates as gpt-realtime-mini.
+        realtime_model_name = "gpt-realtime-2.1-mini"
 
         url = "https://api.openai.com/v1/realtime/client_secrets"
         headers = {

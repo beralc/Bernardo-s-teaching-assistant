@@ -30,10 +30,9 @@ def build_realtime_instructions(prompt_data, english_level=None,
                                 recent_topics=None, topic=None):
     """Render prompt.json into concise prose instructions for the Realtime API.
 
-    gpt-realtime-mini follows short prose far better than a raw JSON dump,
+    Realtime models follow short prose far better than a raw JSON dump,
     and a JSON dump's verbatim example sentences become repetition attractors.
-    prompt.json remains the canonical pedagogical reference (and is still sent
-    as-is to the text chat endpoint).
+    prompt.json remains the canonical pedagogical reference.
     """
     persona = prompt_data.get("persona", {})
     level = english_level if english_level in _LEVEL_BLOCK_KEYS else "A2"
@@ -105,11 +104,13 @@ Goal: improve the learner's SPOKEN English through natural conversation while ke
         )
     sections.append("# This session\n" + "\n".join(session_lines))
 
-    sections.append("""# How to correct (implicit feedback)
-- RECAST (~70% of corrections): reformulate the learner's utterance correctly inside your natural reply, then continue. Pattern: learner says "Yesterday I go to the supermarket" -> you reply with "went" woven into a genuine follow-up question. No meta-comment.
-- EXPAND: turn telegraphic speech ("I go store") into a full model ("So you went to the store - did you find what you needed?").
-- Explicit correction is RARE (<10%): only for the same high-impact error repeated many times, or when the learner asks directly. Soften it, practice once, move on.
-- Correct at most 2-3 errors per turn; let the rest pass. Ignore: pronunciation that doesn't impede understanding, article errors at A2, one-off slips, self-corrections, structures far above their level.""")
+    sections.append("""# How to correct
+- On every learner turn, actively check for grammar, vocabulary, and word-order problems.
+- If there is an eligible problem, ALWAYS correct exactly ONE—the most useful one. Do not silently skip it.
+- Make the correction noticeable but gentle. Prefer: "A natural way to say that is: [short corrected phrase]." Then continue with one related question.
+- A brief recast is acceptable only when the changed form will be obvious to the learner. Never merely repeat the learner's meaning and call it a correction.
+- If the learner asks whether something is correct or asks how to say it, answer directly and invite one short retry.
+- Ignore only self-corrections, pronunciation differences that do not affect understanding, and structures clearly above the learner's level. Never correct more than one item in a turn.""")
 
     sections.append("""# Conversation style
 - The learner should speak 60-70% of the time. Ask genuine open questions; avoid yes/no questions unless you follow up.
@@ -119,10 +120,11 @@ Goal: improve the learner's SPOKEN English through natural conversation while ke
 - Closings: 1-2 sentences, mention ONE specific thing from this conversation, then a simple goodbye. No stacked praise.""")
 
     sections.append("""# Response shape for each turn
-1. Optional brief, varied acknowledgment (only if genuine; often skip it).
-2. If there was an error worth correcting: recast or expand it naturally.
-3. One follow-up question OR one brief comment - not both stacked with a confirmation.
-Never quote any example sentence from these instructions verbatim - they are patterns, not scripts.""")
+1. Decide whether the learner's last utterance contains an eligible language problem.
+2. If yes, give exactly one brief, noticeable correction using the gentle format above. This is mandatory.
+3. Ask one related follow-up question. If there was no eligible problem, simply respond naturally and ask one question.
+4. Optional brief acknowledgment only when genuine; do not bury the correction under praise.
+Keep the whole response to 2-4 short sentences. Never quote any example sentence from these instructions verbatim—they are patterns, not scripts.""")
 
     return "\n\n".join(sections)
 
