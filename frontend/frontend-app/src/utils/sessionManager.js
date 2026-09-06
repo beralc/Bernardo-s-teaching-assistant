@@ -43,15 +43,15 @@ export async function saveTranscription(text, correctedText = null) {
   }
 }
 
-export async function startSession(topic = null) {
+export async function startSession(topic = null, isActive = () => true) {
   const user = (await supabase.auth.getUser()).data.user;
   if (!user) {
     console.warn('No user logged in, cannot start session');
     return;
   }
 
-  sessionStartTime = new Date();
-  sessionConversation = [];
+  if (!isActive()) return;
+  const startedAt = new Date();
 
   console.log('Starting session with topic:', topic?.title || 'No topic');
 
@@ -59,7 +59,7 @@ export async function startSession(topic = null) {
     .from('conversation_sessions')
     .insert([{
       user_id: user.id,
-      started_at: sessionStartTime.toISOString(),
+      started_at: startedAt.toISOString(),
       topic: topic ? topic.title : null
     }])
     .select();
@@ -67,6 +67,14 @@ export async function startSession(topic = null) {
   if (error) {
     console.error('Error starting session:', error.message, error);
   } else if (logData && logData.length > 0) {
+    if (!isActive()) {
+      await supabase.from('conversation_sessions').update({
+        ended_at: new Date().toISOString(), duration_minutes: 0
+      }).eq('id', logData[0].id);
+      return;
+    }
+    sessionStartTime = startedAt;
+    sessionConversation = [];
     sessionLogId = logData[0].id;
     console.log('Session started successfully! Session ID:', sessionLogId);
   } else {
