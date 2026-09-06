@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from "react";
-import { supabase } from "./supabaseClient";
+import { supabase, isDemoMode } from "./supabaseClient";
 import { useLanguage } from "./LanguageContext";
 
 // Components
@@ -16,6 +16,7 @@ import { PrivacyPolicy } from "./components/PrivacyPolicy";
 
 // Utils
 import { saveTranscription, endSession } from "./utils/sessionManager";
+import { readPreference, writePreference } from "./utils/preferences";
 
 // --- Root Router ---
 // Handles the /privacy route before any auth logic runs.
@@ -34,6 +35,10 @@ function AuthGate() {
   const { t } = useLanguage();
 
   useEffect(() => {
+    if (isDemoMode) {
+      setLoading(false);
+      return undefined;
+    }
     const { data: authListener } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setUserId(session?.user?.id ?? null);
@@ -51,6 +56,10 @@ function AuthGate() {
     };
   }, []);
 
+  if (isDemoMode) {
+    return <MainApp initialUserId="local-preview" />;
+  }
+
   if (loading) {
     return <div className="min-h-screen grid place-items-center bg-gray-50 text-gray-900">{t('app.loading')}</div>;
   }
@@ -64,16 +73,21 @@ function AuthGate() {
 
 // --- Main App Component (logged in state) ---
 function MainApp({ initialUserId }) {
-  const [tab, setTab] = useState("talk"); // "talk" | "starters" | "progress" | "admin"
+  const [tab, setTab] = useState("starters");
   const [showOnboarding, setShowOnboarding] = useState(() => !hasCompletedOnboarding(initialUserId));
-  const [contrast, setContrast] = useState(false);
-  const [fontStep, setFontStep] = useState(1); // 0..2 for Small, Medium, Large
+  const [contrast, setContrast] = useState(() => readPreference('display-contrast', false) === true);
+  const [fontStep, setFontStep] = useState(() => {
+    const saved = readPreference('display-font-size', 1);
+    return [0, 1, 2].includes(saved) ? saved : 1;
+  });
   const [showAccountModal, setShowAccountModal] = useState(false);
   const [userInfo, setUserInfo] = useState(null);
   const [selectedTopic, setSelectedTopic] = useState(null);
   const [avatarUrl, setAvatarUrl] = useState('');
   const [isAdmin, setIsAdmin] = useState(false);
   const { t, language, setLanguage } = useLanguage();
+  useEffect(() => writePreference('display-contrast', contrast), [contrast]);
+  useEffect(() => writePreference('display-font-size', fontStep), [fontStep]);
 
   // Font size mappings for different elements based on fontStep
   const fontSizes = useMemo(() => {
@@ -99,6 +113,7 @@ function MainApp({ initialUserId }) {
 
   // Load user information and avatar
   const loadUserInfo = async () => {
+    if (isDemoMode) return;
     const { data: { session } } = await supabase.auth.getSession();
     const user = session?.user;
     if (user) {
@@ -158,24 +173,24 @@ function MainApp({ initialUserId }) {
   return (
     <div className={`min-h-screen flex flex-col ${theme} ${fontSizes.base}`}>
       <header className={`sticky top-0 z-10 border-b ${contrast ? 'border-gray-700' : 'border-gray-200'} ${headerTheme}`}>
-        <div className="mx-auto max-w-5xl px-4 py-3 flex items-center justify-between">
+        <div className="mx-auto max-w-5xl px-4 py-3 flex flex-wrap gap-3 items-center justify-between">
           <button
-            onClick={() => setTab("talk")}
+            onClick={() => setTab("starters")}
             className="flex items-center gap-3 hover:opacity-80 transition"
-            aria-label="Go to Talk"
+            aria-label={language === 'es' ? 'Elegir un tema' : 'Choose a topic'}
           >
             <AppIcon />
             <div className="leading-tight">
               <div className="font-bold text-lg md:text-xl">{t('app.title')}</div>
             </div>
           </button>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <button
               className={`px-3 py-2 rounded-xl border text-sm font-semibold ${cardTheme} hover:opacity-80 transition-opacity`}
               onClick={() => setLanguage(language === 'es' ? 'en' : 'es')}
               aria-label="Change language"
             >
-              {language === 'es' ? '🇬🇧 EN' : '🇪🇸 ES'}
+              {language === 'es' ? 'English' : 'Español'}
             </button>
             <button
               className={`px-4 py-2 rounded-xl border text-sm font-semibold ${cardTheme} hover:opacity-80 transition-opacity`}
@@ -217,8 +232,11 @@ function MainApp({ initialUserId }) {
       </header>
 
       <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8">
+        <button className="mb-5 min-h-[52px] rounded-xl border-2 border-current px-4 py-3 underline font-semibold" onClick={() => { setTab('starters'); setShowOnboarding(true); }}>
+          {language === 'es' ? 'Cómo usar la aplicación' : 'How to use the app'}
+        </button>
         {tab === "talk" && <TalkView subtleText={subtleText} cardTheme={cardTheme} fontSizes={fontSizes} onSaveTranscription={saveTranscription} selectedTopic={selectedTopic} />}
-        {tab === "starters" && <ConversationStartersView cardTheme={cardTheme} subtleText={subtleText} fontSizes={fontSizes} onStartConversation={(topic) => {
+        {tab === "starters" && <ConversationStartersView userId={initialUserId} cardTheme={cardTheme} subtleText={subtleText} fontSizes={fontSizes} onStartConversation={(topic) => {
           setSelectedTopic(topic);
           setTab("talk");
         }} />}
@@ -227,7 +245,7 @@ function MainApp({ initialUserId }) {
       </main>
 
       {/* Jakob's Law: Bottom tab bar is a familiar navigation pattern for mobile users. */}
-      <nav className={`sticky bottom-0 border-t ${contrast ? 'border-gray-700' : 'border-gray-800'} ${headerTheme}`}>
+      <nav style={{ paddingBottom: 'env(safe-area-inset-bottom)' }} className={`sticky bottom-0 border-t ${contrast ? 'border-gray-700' : 'border-gray-800'} ${headerTheme}`}>
         <div className="mx-auto max-w-5xl px-4">
           <div className={`grid ${isAdmin ? 'grid-cols-4' : 'grid-cols-3'} gap-2 py-2`}>
             <NavButton active={tab === "starters"} onClick={() => setTab("starters")} label={t('nav.starters')} icon={<BookIcon active={tab === 'starters'} />} activeColor={activeNavText} inactiveColor={inactiveNavText} />
@@ -240,7 +258,7 @@ function MainApp({ initialUserId }) {
 
       {/* Onboarding modal — shown once per user after first login, keyed by Supabase user ID */}
       {showOnboarding && (
-        <OnboardingModal userId={initialUserId} onComplete={() => setShowOnboarding(false)} />
+        <OnboardingModal userId={initialUserId} fontSizes={fontSizes} onComplete={() => setShowOnboarding(false)} />
       )}
 
       {/* Account Modal */}
