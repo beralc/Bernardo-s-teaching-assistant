@@ -1,50 +1,41 @@
 import React from "react";
-import { TIER_LIMITS } from "../config/constants";
 import { StopIcon } from "./icons";
+import { useLanguage } from "../LanguageContext";
+import { MicrophoneLevel } from "./MicrophoneLevel";
 
-export function ListeningView({ onStop, cardTheme, subtleText, fontSizes, liveTranscript, usageRemaining, userTier, isAdmin, elapsedSeconds }) {
-  const formatElapsedTime = (seconds) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
+const labels = {
+  en: { connecting: 'Connecting…', listening: 'Your turn — I’m listening', waiting: 'Waiting for a reply…', preparing: 'Preparing a reply…', speaking: 'The assistant is speaking', interrupting: 'Stopping the reply…' },
+  es: { connecting: 'Conectando…', listening: 'Tu turno — te escucho', waiting: 'Esperando una respuesta…', preparing: 'Preparando una respuesta…', speaking: 'El asistente está hablando', interrupting: 'Deteniendo la respuesta…' },
+};
 
+export function ListeningView({ onStop, onInterrupt, stream, voiceState = 'connecting', cardTheme, subtleText, fontSizes, liveTranscript, usageRemaining, elapsedSeconds }) {
+  const { language } = useLanguage();
+  const es = language === 'es';
+  const canInterrupt = ['speaking', 'preparing'].includes(voiceState);
   return (
-    <section aria-label="Listening to your speech" className="flex flex-col gap-6 h-full">
-      {isAdmin ? (
-        <div className="bg-green-50 dark:bg-green-900/30 border-2 border-green-600 dark:border-green-700 rounded-xl p-2 shadow-md">
-          <p className="text-sm text-center font-extrabold text-gray-900 dark:text-green-100">
-            ✨ Unlimited (Admin) • Time: {formatElapsedTime(elapsedSeconds)}
-          </p>
-        </div>
-      ) : usageRemaining !== -1 && usageRemaining <= 2 ? (
-        <div className="bg-orange-100 dark:bg-orange-900 border border-orange-300 dark:border-orange-700 rounded-xl p-3">
-          <p className="text-sm font-semibold text-orange-800 dark:text-orange-100">
-            ⚠️ Only {usageRemaining} {usageRemaining === 1 ? 'minute' : 'minutes'} remaining • Elapsed: {formatElapsedTime(elapsedSeconds)}
-          </p>
-        </div>
-      ) : usageRemaining !== -1 && usageRemaining > 2 ? (
-        <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-xl p-2">
-          <p className="text-xs text-center text-blue-700 dark:text-blue-200">
-            {usageRemaining} min remaining ({TIER_LIMITS[userTier].name}) • Elapsed: {formatElapsedTime(elapsedSeconds)}
-          </p>
-        </div>
-      ) : null}
-
-      <div className={`flex-1 flex flex-col justify-center items-center text-center rounded-3xl border p-8 ${cardTheme}`}>
-        <h2 className={`${fontSizes.xxxl} font-bold mb-2`}>I'm listening...</h2>
-        <p className={`${subtleText} ${fontSizes.lg} mb-8`}>Your words will appear below.</p>
-        <button
-          onClick={onStop}
-          className="w-48 h-48 bg-red-600 text-white rounded-full flex items-center justify-center shadow-2xl"
-          aria-label="Stop speaking"
-        >
+    <section className="flex flex-col gap-6 h-full">
+      <p className={subtleText + ' text-center'}>
+        {es ? 'Tiempo' : 'Time'}: {Math.floor(elapsedSeconds / 60)}:{String(elapsedSeconds % 60).padStart(2, '0')}
+        {usageRemaining >= 0 && ' · ' + usageRemaining + (es ? ' min disponibles' : ' min remaining')}
+      </p>
+      {usageRemaining >= 0 && usageRemaining <= 1 && <p role="status">{es ? 'Queda menos de un minuto.' : 'Less than one minute remaining.'}</p>}
+      <div className={'flex-1 flex flex-col items-center text-center rounded-3xl border p-5 sm:p-8 ' + cardTheme}>
+        <h2 role="status" className={fontSizes.xxxl + ' font-bold mb-3'}>{(labels[language] || labels.en)[voiceState]}</h2>
+        <p className={subtleText + ' mb-6'}>{voiceState === 'listening'
+          ? (es ? 'Habla a tu ritmo.' : 'Speak at your own pace.')
+          : (es ? 'El micrófono está en pausa.' : 'Your microphone is paused.')}</p>
+        <MicrophoneLevel stream={stream} active={voiceState === 'listening'} />
+        <button onClick={onInterrupt} disabled={!canInterrupt} className="min-h-[56px] rounded-xl border-2 border-current px-5 py-3 mb-6 font-semibold disabled:opacity-40">
+          {es ? 'Quiero hablar' : 'I would like to speak'}
+        </button>
+        <button onClick={onStop} className="w-48 h-48 shrink-0 bg-red-600 text-white rounded-full flex flex-col gap-3 items-center justify-center shadow-2xl">
           <StopIcon />
+          <span className="font-bold text-xl">{es ? 'Terminar' : 'End conversation'}</span>
         </button>
       </div>
-      <div className={`rounded-3xl border p-5 ${cardTheme}`} aria-live="polite">
-        <div className={`${subtleText} mb-2 ${fontSizes.base} font-semibold`}>Live Transcript</div>
-        <p className={`leading-relaxed ${fontSizes.xxl} min-h-[3em]`}>{liveTranscript}</p>
+      <div className={'rounded-3xl border p-5 ' + cardTheme}>
+        <h3 className={subtleText + ' mb-2 font-semibold'}>{es ? 'Texto de la respuesta' : 'Reply text'}</h3>
+        <p className={'leading-relaxed min-h-[3em] ' + fontSizes.xxl}>{liveTranscript}</p>
       </div>
     </section>
   );
