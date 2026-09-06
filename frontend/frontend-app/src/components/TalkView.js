@@ -5,6 +5,7 @@ import { API_BASE_URL, TIER_LIMITS } from "../config/constants";
 import { startSession, endSession, getSessionLogId } from "../utils/sessionManager";
 import { MicIcon } from "./icons";
 import { ChatBubble } from "./ChatBubble";
+import { createVoiceTurn } from "../utils/voiceTurn";
 import { ListeningView } from "./ListeningView";
 
 export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription, selectedTopic }) {
@@ -17,7 +18,13 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const conversationStartTimeRef = useRef(null);
   const [connectingToBackend, setConnectingToBackend] = useState(false);
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const [voiceState, setVoiceState] = useState('connecting');
+  const [voiceError, setVoiceError] = useState('');
+  const turnRef = useRef(null);
+  const attemptRef = useRef(0);
+  const abortRef = useRef(null);
+  const connectionTimerRef = useRef(null);
 
   const getInitialMessage = () => {
     if (selectedTopic) {
@@ -37,12 +44,8 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
   const peerConnectionRef = useRef(null);
   const dataChannelRef = useRef(null);
   const speakerAudioElRef = useRef(null);
-  const micReenableTimerRef = useRef(null);
-  const assistantAudioPlayingRef = useRef(false);
   const currentResponseTextRef = useRef('');
   const [liveTranscript, setLiveTranscript] = useState("");
-  const hasAutoStartedRef = useRef(false);
-  const autoStartRequestedRef = useRef(false);
   const conversationRef = useRef([]);
 
   const updateConversation = (updater) => {
@@ -59,7 +62,7 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
 
   const loadUsageInfo = async () => {
     const user = (await supabase.auth.getUser()).data.user;
-    if (!user) return;
+    if (!user) { setLoadingUsage(false); setLimitReached(true); return; }
 
     const { data: profile } = await supabase
       .from('profiles')
@@ -115,6 +118,11 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
       return;
     }
 
+    const attempt = ++attemptRef.current;
+    const active = () => attemptRef.current === attempt;
+    setVoiceState('connecting');
+    setVoiceError('');
+    connectionTimerRef.current = setTimeout(() => { if (active()) failVoice(); }, 120000);
     try {
       conversationStartTimeRef.current = Date.now();
       setElapsedSeconds(0);
@@ -126,7 +134,7 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
       audioEl.autoplay = true;
       speakerAudioElRef.current = audioEl;
 
-      await startSession(selectedTopic);
+      // Session logging starts after credentials are accepted, before audio connects.
 
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
@@ -135,11 +143,14 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
           autoGainControl: true
         }
       });
+      if (!active()) { stream.getTracks().forEach(track => track.stop()); return; }
       mediaStreamRef.current = stream;
+      stream.getAudioTracks()[0].enabled = false;
 
       setConnectingToBackend(true);
 
       const controller = new AbortController();
+      abortRef.current = controller;
       const timeoutId = setTimeout(() => controller.abort(), 120000);
 
       let sessionResponse, ephemeral_token, model, vadThreshold = 0.85, silenceDurationMs = 800;
@@ -147,6 +158,7 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
         // The backend derives the user from the JWT and enforces usage
         // limits server-side; no user_id in the body.
         const { data: { session } } = await supabase.auth.getSession();
+        if (!active()) { clearTimeout(timeoutId); return; }
         if (!session) {
           throw new Error('Not logged in. Please log in again.');
         }
@@ -164,6 +176,7 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
         });
 
         clearTimeout(timeoutId);
+        if (!active()) return;
         setConnectingToBackend(false);
 
         if (sessionResponse.status === 403) {
@@ -183,7 +196,7 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
         silenceDurationMs = responseData.silence_duration_ms ?? 800;
       } catch (fetchError) {
         clearTimeout(timeoutId);
-        setConnectingToBackend(false);
+        if (active()) setConnectingToBackend(false);
         if (fetchError.name === 'AbortError') {
           throw new Error('Backend request timed out after 2 minutes. Please try again.');
         }
@@ -192,52 +205,38 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
 
       // WebRTC peer connection: mic goes up as a native track (echo-cancelled
       // by the OS against the bot audio coming down the same connection).
+      if (!active()) return;
       const pc = new RTCPeerConnection();
       peerConnectionRef.current = pc;
 
       pc.addTrack(stream.getAudioTracks()[0], stream);
 
       pc.ontrack = (event) => {
+        if (!active()) return;
         audioEl.srcObject = event.streams[0];
-        audioEl.play().catch((e) => console.warn('Bot audio play() blocked:', e));
+        audioEl.play().catch(() => { if (active()) failVoice(); });
       };
 
       pc.onconnectionstatechange = () => {
         if (pc.connectionState === 'failed' || pc.connectionState === 'disconnected') {
           console.error('WebRTC connection state:', pc.connectionState);
-          setLiveTranscript("Connection lost. Please try again.");
+          if (active()) failVoice();
         }
       };
 
       const dc = pc.createDataChannel('oai-events');
       dataChannelRef.current = dc;
 
-      // While assistant audio is coming from the loudspeaker, send silence on
-      // the WebRTC microphone track. This prevents acoustic echo from being
-      // classified as a new learner turn. A short tail lets room echo decay.
-      // This deliberately favors uninterrupted playback over barge-in.
-      const setMicEnabled = (enabled) => {
-        const micTrack = mediaStreamRef.current?.getAudioTracks?.()[0];
-        if (micTrack && micTrack.readyState === 'live') micTrack.enabled = enabled;
-      };
-
-      const muteMicForAssistant = () => {
-        if (micReenableTimerRef.current) {
-          clearTimeout(micReenableTimerRef.current);
-          micReenableTimerRef.current = null;
-        }
-        setMicEnabled(false);
-      };
-
-      const reenableMicAfterEchoTail = () => {
-        if (micReenableTimerRef.current) clearTimeout(micReenableTimerRef.current);
-        micReenableTimerRef.current = setTimeout(() => {
-          setMicEnabled(true);
-          micReenableTimerRef.current = null;
-        }, 400);
-      };
+      const turn = createVoiceTurn({
+        track: stream.getAudioTracks()[0],
+        send: event => { if (active() && dc.readyState === 'open') dc.send(JSON.stringify(event)); },
+        onState: setVoiceState,
+        onError: () => { if (active()) failVoice(); },
+      });
+      turnRef.current = turn;
 
       dc.onopen = () => {
+        if (!active()) return;
         // Transcription is configured server-side at session creation (voice.py).
         // Only update turn detection here to avoid overriding transcription.
         // Automatic interruption stays off because speaker echo must never cut
@@ -246,6 +245,7 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
           event_id: 'configure_voice_turn_detection',
           type: 'session.update',
           session: {
+            type: 'realtime',
             audio: {
               input: {
                 turn_detection: {
@@ -262,8 +262,15 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
         }));
       };
 
+      let greeted = false;
+      let pendingReply = '';
       dc.onmessage = async (event) => {
-        const data = JSON.parse(event.data);
+        if (!active()) return;
+        let data;
+        try { data = JSON.parse(event.data); } catch { return; }
+        if (!turn.handle(data)) return;
+        if (data.type === 'session.updated') clearTimeout(connectionTimerRef.current);
+        if (data.type === 'session.updated' && !greeted) conversationStartTimeRef.current = Date.now();
         const sessionLogId = getSessionLogId();
 
         if (data.type === 'conversation.item.input_audio_transcription.completed') {
@@ -290,22 +297,27 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
 
         } else if (data.type === 'response.created') {
           currentResponseTextRef.current = '';
-          muteMicForAssistant();
+          pendingReply = '';
 
         } else if (data.type === 'response.audio_transcript.done' || data.type === 'response.output_audio_transcript.done') {
-          updateConversation(prev => [...prev, { role: "bot", text: data.transcript }]);
+          pendingReply = data.transcript || '';
+        } else if (data.type === 'output_audio_buffer.stopped') {
+          const transcript = pendingReply;
+          pendingReply = '';
+          if (!transcript) return;
+          updateConversation(prev => [...prev, { role: "bot", text: transcript }]);
 
-          if (data.transcript) {
-            onSaveTranscription(`Bot: ${data.transcript}`);
+          if (transcript) {
+            onSaveTranscription(`Bot: ${transcript}`);
 
-            if (sessionLogId && data.transcript) {
+            if (sessionLogId && transcript) {
               const user = (await supabase.auth.getUser()).data.user;
               if (user) {
                 await supabase.from('conversation_messages').insert([{
                   session_id: sessionLogId,
                   user_id: user.id,
                   role: 'assistant',
-                  content: data.transcript
+                  content: transcript
                 }]);
               }
             }
@@ -313,50 +325,16 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
 
           currentResponseTextRef.current = '';
 
-        } else if (data.type === 'response.done') {
-          currentResponseTextRef.current = '';
-          // Audio playback can outlive response generation. The output-buffer
-          // event is authoritative; this is a fallback for non-audio replies.
-          if (!assistantAudioPlayingRef.current) reenableMicAfterEchoTail();
-
-        } else if (data.type === 'output_audio_buffer.started') {
-          assistantAudioPlayingRef.current = true;
-          muteMicForAssistant();
-
-        } else if (data.type === 'output_audio_buffer.stopped' || data.type === 'output_audio_buffer.cleared') {
-          assistantAudioPlayingRef.current = false;
-          reenableMicAfterEchoTail();
-
         } else if (data.type === 'error') {
-          console.error("OpenAI Realtime API error:", data.error);
-          assistantAudioPlayingRef.current = false;
-          reenableMicAfterEchoTail();
-          if (data.error?.event_id === 'configure_voice_turn_detection') {
-            setLiveTranscript("Voice configuration failed. Please stop and try again.");
-          } else {
-            setLiveTranscript("Voice connection error. Please stop and try again.");
-          }
-
-        } else if (data.type === 'input_audio_buffer.speech_started') {
-          // With half-duplex gating, this should only represent learner speech
-          // captured while assistant playback is idle.
-          setLiveTranscript("Listening...");
-
-        } else if (data.type === 'input_audio_buffer.speech_stopped') {
-          setLiveTranscript("Processing...");
-
-        } else if (data.type === 'response.cancelled') {
-          currentResponseTextRef.current = '';
-          assistantAudioPlayingRef.current = false;
-          reenableMicAfterEchoTail();
+          // Cancellation can race response.done; that specific error is harmless.
+          if (data.error?.code !== 'response_cancel_not_active') failVoice();
 
         } else if (data.type === 'session.created' || data.type === 'session.updated') {
-          if (data.type === 'session.created' && selectedTopic) {
+          if (data.type === 'session.updated' && selectedTopic && !greeted) {
+            greeted = true;
+            turn.prepare();
             const responseRequest = {
-              type: 'response.create',
-              response: {
-                instructions: `Following ALL your existing system instructions (especially: respond ONLY in English, never in Spanish, French or any other language), start the conversation about "${selectedTopic.title}" by greeting the user and introducing the topic in a friendly, engaging way. Ask an opening question to get them talking.`
-              }
+              type: 'response.create'
             };
             dc.send(JSON.stringify(responseRequest));
           }
@@ -365,10 +343,12 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
 
       dc.onerror = (error) => {
         console.error('Data channel error:', error);
-        setLiveTranscript("Error during listening. Please try again.");
+        if (active()) failVoice();
       };
 
       // SDP offer/answer exchange with the OpenAI Realtime API.
+      await startSession(selectedTopic, active);
+      if (!active()) return;
       const offer = await pc.createOffer();
       await pc.setLocalDescription(offer);
 
@@ -377,6 +357,7 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
         {
           method: 'POST',
           body: offer.sdp,
+          signal: controller.signal,
           headers: {
             Authorization: `Bearer ${ephemeral_token}`,
             'Content-Type': 'application/sdp'
@@ -390,26 +371,26 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
       }
 
       const answerSdp = await sdpResponse.text();
+      if (!active()) return;
       await pc.setRemoteDescription({ type: 'answer', sdp: answerSdp });
+      if (!active()) return;
 
     } catch (error) {
       console.error('Error starting listening:', error);
-      alert(`Microphone access failed: ${error.message}. Please ensure microphone permissions are granted.`);
-      setSpeaking(false);
+      if (active()) failVoice(error.name === 'NotAllowedError' ? 'permission' : 'connection');
     }
   };
 
   const stopListening = useCallback(() => {
+    ++attemptRef.current;
+    clearTimeout(connectionTimerRef.current);
+    abortRef.current?.abort();
+    abortRef.current = null;
+    turnRef.current?.close();
+    turnRef.current = null;
     endSession(conversationRef.current);
 
     currentResponseTextRef.current = '';
-    assistantAudioPlayingRef.current = false;
-
-    if (micReenableTimerRef.current) {
-      clearTimeout(micReenableTimerRef.current);
-      micReenableTimerRef.current = null;
-    }
-
     if (dataChannelRef.current) {
       try { dataChannelRef.current.close(); } catch (e) { /* already closed */ }
       dataChannelRef.current = null;
@@ -429,27 +410,27 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
     }
   }, []);
 
-  useEffect(() => {
-    return () => {
-      if (speaking) {
-        stopListening();
-        setSpeaking(false);
-      }
-    };
-  }, [stopListening, speaking]);
+  const failVoice = (kind = 'connection') => {
+    stopListening();
+    setSpeaking(false);
+    setConnectingToBackend(false);
+    setVoiceError(kind);
+  };
+
+  useEffect(() => () => stopListening(), [stopListening]);
 
   useEffect(() => {
-    if (!speaking || isAdmin) return;
+    if (!speaking || voiceState === 'connecting') return;
 
     const timerInterval = setInterval(() => {
       const secondsElapsed = Math.floor((Date.now() - conversationStartTimeRef.current) / 1000);
       setElapsedSeconds(secondsElapsed);
 
-      const minutesElapsed = Math.ceil(secondsElapsed / 60);
+      const minutesElapsed = Math.floor(secondsElapsed / 60);
       const remainingMinutes = usageRemaining - minutesElapsed;
 
-      if (remainingMinutes <= 0) {
-        alert('Your time is up! The conversation will now end.');
+      if (!isAdmin && usageRemaining !== -1 && remainingMinutes <= 0) {
+        setVoiceError('limit');
         stopListening();
         setSpeaking(false);
         setLimitReached(true);
@@ -457,9 +438,10 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
     }, 1000);
 
     return () => clearInterval(timerInterval);
-  }, [speaking, isAdmin, usageRemaining, stopListening]);
+  }, [speaking, voiceState, isAdmin, usageRemaining, stopListening]);
 
   const handleToggleSpeaking = () => {
+    if (!speaking && (loadingUsage || limitReached)) return;
     const newState = !speaking;
     setSpeaking(newState);
 
@@ -470,29 +452,20 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
     }
   };
 
-  useEffect(() => {
-    if (selectedTopic && !hasAutoStartedRef.current && !speaking) {
-      hasAutoStartedRef.current = true;
-      autoStartRequestedRef.current = true;
-      setTimeout(() => {
-        if (autoStartRequestedRef.current) {
-          handleToggleSpeaking();
-          autoStartRequestedRef.current = false;
-        }
-      }, 800);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedTopic, speaking]);
-
   if (speaking) {
-    const minutesElapsed = Math.ceil(elapsedSeconds / 60);
-    const currentRemaining = isAdmin ? -1 : Math.max(0, usageRemaining - minutesElapsed);
+    const minutesElapsed = Math.floor(elapsedSeconds / 60);
+    const currentRemaining = isAdmin || usageRemaining === -1 ? -1 : Math.max(0, usageRemaining - minutesElapsed);
 
-    return <ListeningView onStop={handleToggleSpeaking} cardTheme={cardTheme} subtleText={subtleText} fontSizes={fontSizes} liveTranscript={liveTranscript} usageRemaining={currentRemaining} userTier={userTier} isAdmin={isAdmin} elapsedSeconds={elapsedSeconds} />;
+    return <ListeningView stream={mediaStreamRef.current} voiceState={voiceState} onInterrupt={() => { turnRef.current?.interrupt(); currentResponseTextRef.current = ''; setLiveTranscript(''); }} onStop={handleToggleSpeaking} cardTheme={cardTheme} subtleText={subtleText} fontSizes={fontSizes} liveTranscript={liveTranscript} usageRemaining={currentRemaining} userTier={userTier} isAdmin={isAdmin} elapsedSeconds={elapsedSeconds} />;
   }
 
   return (
     <section aria-label="Voice chat" className="flex flex-col gap-6 h-full">
+      {voiceError && <p role="alert" className="rounded-xl border-2 border-orange-600 p-4">
+        {language === 'es'
+          ? (voiceError === 'permission' ? 'Permite el acceso al micrófono en tu navegador y vuelve a intentarlo.' : voiceError === 'limit' ? 'Se ha terminado el tiempo disponible.' : 'No se ha podido mantener la conexión de voz. Comprueba el sonido y la conexión e inténtalo de nuevo.')
+          : (voiceError === 'permission' ? 'Allow microphone access in your browser, then try again.' : voiceError === 'limit' ? 'Your available conversation time has ended.' : 'The voice connection could not continue. Check your sound and connection, then try again.')}
+      </p>}
       {!loadingUsage && limitReached && (
         <div className="bg-orange-100 dark:bg-orange-900 border border-orange-300 dark:border-orange-700 rounded-xl p-4">
           <h3 className="font-bold text-orange-800 dark:text-orange-100 mb-1">{t('talk.limitReached.title')}</h3>
@@ -502,36 +475,11 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
         </div>
       )}
 
-      {!loadingUsage && !limitReached && usageRemaining !== -1 && (
-        <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-xl p-3">
-          <div className="flex items-center justify-between">
-            <div>
-              <span className="text-sm font-semibold text-blue-700 dark:text-blue-200">
-                {usageRemaining} of {TIER_LIMITS[userTier].monthlyMinutes} minutes remaining
-              </span>
-              <span className="text-xs text-blue-600 dark:text-blue-300 ml-2">
-                ({TIER_LIMITS[userTier].name} tier)
-              </span>
-            </div>
-            <div className="flex-1 max-w-xs ml-4">
-              <div className="bg-blue-200 dark:bg-blue-800 rounded-full h-2">
-                <div
-                  className="bg-blue-600 dark:bg-blue-400 h-2 rounded-full transition-all"
-                  style={{ width: `${(usageRemaining / TIER_LIMITS[userTier].monthlyMinutes) * 100}%` }}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {!loadingUsage && usageRemaining === -1 && (
-        <div className="bg-green-50 dark:bg-green-900/30 border-2 border-green-600 dark:border-green-700 rounded-xl p-3 shadow-md">
-          <span className="text-base font-extrabold text-gray-900 dark:text-green-100">
-            ✨ Unlimited voice conversations {isAdmin ? '(Admin)' : `(${TIER_LIMITS[userTier].name} tier)`}
-          </span>
-        </div>
-      )}
+      {!loadingUsage && !limitReached && <p className={subtleText + ' text-center'}>
+        {usageRemaining === -1
+          ? (language === 'es' ? 'Conversaciones sin límite de tiempo' : 'Unlimited conversation time')
+          : usageRemaining + (language === 'es' ? ' minutos disponibles' : ' minutes remaining')}
+      </p>}
 
       <div className={`flex-1 flex flex-col justify-center items-center text-center rounded-3xl border p-8 ${cardTheme}`}>
         {connectingToBackend ? (
@@ -549,9 +497,10 @@ export function TalkView({ subtleText, cardTheme, fontSizes, onSaveTranscription
             <button
               onClick={handleToggleSpeaking}
               className="w-48 h-48 bg-green-600 text-white rounded-full flex items-center justify-center shadow-2xl transform hover:scale-105 transition-transform"
-              aria-label="Start speaking"
+              disabled={loadingUsage || limitReached}
+              aria-label={language === 'es' ? 'Empezar conversación' : 'Start conversation'}
             >
-              <MicIcon size={72} />
+              <span><MicIcon size={72} /><span className="block mt-2 font-bold">{language === 'es' ? 'Empezar' : 'Start'}</span></span>
             </button>
           </>
         )}
